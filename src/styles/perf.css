@@ -1,0 +1,152 @@
+/* One backdrop-filter per visible glass surface, on every page.
+   ------------------------------------------------------------------
+   Each backdrop-filter is a full-size offscreen blur.  The resting landscape
+   scene was two passes on the shell, two on the dock, two on the drawer, one
+   on every character card, then another on .page-shade / .page-modal / 评语
+   sheet / gift card as those opened -- a dozen blurs of a 1672×941 canvas.
+
+   Budget:
+     - the body blur of whatever glass is actually on screen stays
+     - the 微光晕 scatter pass is dropped (10% screen blend)
+     - cards and buttons keep their fills, not a second filter
+     - .page-shade is a dim only; the sheet behind it already blurs
+     - a full page hides the dock's unused blur; a 评语 sheet hides the
+       archive's blur so two sheets are never both filtering
+
+   Frost, tint and plus-lighter edge are fills, not filters. */
+
+.glass-scatter,
+.dock-scatter,
+.drawer-scatter,
+.pg-scatter {
+  display: none;
+}
+
+.card-glass,
+.pstage .card-glass,
+.btn-ghost,
+.gift-toast {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.page-shade {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Dock stays mounted under a page so closing it restores scroll; it is fully
+   covered, and its blur would sample nothing the reader can see. */
+.stage.has-modal .dock-blur,
+.stage.has-modal .dock-scatter {
+  display: none;
+}
+
+/* 评语 is a sibling of the archive (the archive is a backdrop root).  While it
+   is up, the archive's own blur is behind an opaque-enough sheet. */
+.stage.has-sheet .page-modal {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Gift confirm is the glass in play; the tray under it keeps its body blur so
+   the rail does not flash flat. */
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-blur,
+  .glass-scatter,
+  .dock-blur,
+  .dock-scatter,
+  .drawer-blur,
+  .drawer-scatter,
+  .pg-blur,
+  .pg-scatter,
+  .card-glass,
+  .page-shade,
+  .page-modal,
+  .dev-sheet,
+  .gift-confirm,
+  .gift-toast,
+  .btn-ghost {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+
+/* The deployment shell lifts this document into a fixed iframe and moves it with
+   SillyTavern's message scroller. Re-sampling large backdrop blurs at every new
+   screen position is the dominant scroll cost (30 fps on a 1440px fixture).
+   During the short host-scroll window keep all tint/frost/edge fills but suspend
+   backdrop sampling; the shell removes this class 160ms after scrolling stops. */
+html.host-scroll-active *,
+html.host-scroll-active *::before,
+html.host-scroll-active *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+
+/* iOS WKWebView repaints a transformed portrait iframe on the main thread while
+   the shell forwards a drag into #chat.  On the full glass composition that can
+   starve the HUD's own touch RAF for hundreds of milliseconds, turning a slow
+   gesture into 20-40px jumps.  Keep the layout and text hit targets stable, but
+   suspend decorative raster work only for the gesture window.  Android retains
+   its permanent low mode and never toggles this selector. */
+html[data-hud-ios-scroll='1'].portrait-mode.host-scroll-active *,
+html[data-hud-ios-scroll='1'].portrait-mode.host-scroll-active *::before,
+html[data-hud-ios-scroll='1'].portrait-mode.host-scroll-active *::after {
+  animation: none !important;
+  transition: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  background-image: none !important;
+  mix-blend-mode: normal !important;
+}
+html[data-hud-ios-scroll='1'].portrait-mode.host-scroll-active .pglass,
+html[data-hud-ios-scroll='1'].portrait-mode.host-scroll-active .prim,
+html[data-hud-ios-scroll='1'].portrait-mode.host-scroll-active .pblossoms {
+  display: none !important;
+}
+html[data-hud-ios-scroll='1'].portrait-mode.host-scroll-active img,
+html[data-hud-ios-scroll='1'].portrait-mode.host-scroll-active svg,
+html[data-hud-ios-scroll='1'].portrait-mode.host-scroll-active canvas {
+  visibility: hidden !important;
+}
+
+
+/* Optional low-compositing mode. It keeps tint/rims and interaction affordances
+   but removes expensive backdrop sampling on weaker devices. */
+html[data-hud-performance=low] .glass-blur,
+html[data-hud-performance=low] .dock-blur,
+html[data-hud-performance=low] .drawer-blur,
+html[data-hud-performance=low] .pg-blur,
+html[data-hud-performance=low] .dest-btn,
+html[data-hud-performance=low] .card-glass,
+html[data-hud-performance=low] .page-modal,
+html[data-hud-performance=low] .gift-confirm,
+html[data-hud-performance=low] .gift-toast,
+html[data-hud-performance=low] .dev-sheet,
+html[data-hud-performance=low] .map-legend,
+html[data-hud-performance=low] .arcade-panel,
+html[data-hud-performance=low] .cg-panel {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 低负载档：两张大贴图不参与绘制。
+   src 是由 src/main.js 的 syncHeavyTextures 摘掉的（不给 src 才真的不解码），这里补上
+   绘制侧：把底图藏干净，并给它原来占的位置一层平铺的暗色，免得露出骨架底色显得像没画完。
+   色值取自 bg-plate 的整体调子，不追求还原画面，只求这一层看起来是刻意的。 */
+html[data-hud-performance=low] .pplate,
+html[data-hud-performance=low] .plate {
+  display: none !important;
+}
+html[data-hud-performance=low] .pscale,
+html[data-hud-performance=low] .stage {
+  background:
+    radial-gradient(120% 80% at 30% 0%, #241b33 0%, #15101f 55%, #0b0812 100%);
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "note": "Exact original Suno downloads, mirrored byte-for-byte because cdn1.suno.ai now returns HTTP 403.",
+  "tracks": [
+    {
+      "id": "96da335a-8e9b-4529-8000-12b4e1924942",
+      "game": "scratch",
+      "title": "Neon Roulette",
+      "originalUrl": "https://cdn1.suno.ai/96da335a-8e9b-4529-8000-12b4e1924942.mp3",
+      "file": "96da335a-8e9b-4529-8000-12b4e1924942.mp3",
+      "bytes": 3314432,
+      "sha256": "c109253445e1b04d7900b981e03e36b9fdb37bfe5a28325425c8b1fb02b612c7"
+    },
+    {
+      "id": "127e81f1-7901-4ec1-9b0e-0476ec0ab686",
+      "game": "scratch",
+      "title": "Mint Blue Whiskers",
+      "originalUrl": "https://cdn1.suno.ai/127e81f1-7901-4ec1-9b0e-0476ec0ab686.mp3",
+      "file": "127e81f1-7901-4ec1-9b0e-0476ec0ab686.mp3",
+      "bytes": 5892776,
+      "sha256": "2f192ef3cf8785d645aecbdf945d8f0381d5e6313e9addd6ba9fc3a0425a8295"
+    },
+    {
+      "id": "1c196864-07cf-44c8-85ef-f622882b2881",
+      "game": "fishing",
+      "title": "Coral Arcade Drift",
+      "originalUrl": "https://cdn1.suno.ai/1c196864-07cf-44c8-85ef-f622882b2881.mp3",
+      "file": "1c196864-07cf-44c8-85ef-f622882b2881.mp3",
+      "bytes": 5294977,
+      "sha256": "7f7a6b609ebcc46b2d942083d61c4aa36be041968fffcf31050942dac42e690c"
+    },
+    {
+      "id": "39b656d3-6aa2-42cc-9185-2e8ca8a6cf35",
+      "game": "fishing",
+      "title": "Coral Arcade Drift",
+      "originalUrl": "https://cdn1.suno.ai/39b656d3-6aa2-42cc-9185-2e8ca8a6cf35.mp3",
+      "file": "39b656d3-6aa2-42cc-9185-2e8ca8a6cf35.mp3",
+      "bytes": 6175000,
+      "sha256": "28e6fd47272d00271bb71dc92af8fe0f005975fdb670a2cc4fae0284edb77e48"
+    },
+    {
+      "id": "8d02bddc-e04b-4cd1-9095-e28b37919ac9",
+      "game": "slots",
+      "title": "Neon Roulette",
+      "originalUrl": "https://cdn1.suno.ai/8d02bddc-e04b-4cd1-9095-e28b37919ac9.mp3",
+      "file": "8d02bddc-e04b-4cd1-9095-e28b37919ac9.mp3",
+      "bytes": 6310485,
+      "sha256": "4d6045c4f96536be68b4b0e2331e71f97aacbcec2f530fc37de69d185056d8f8"
+    },
+    {
+      "id": "99f10a76-d569-44c9-b7c5-8e472985765d",
+      "game": "slots",
+      "title": "Neon Roulette",
+      "originalUrl": "https://cdn1.suno.ai/99f10a76-d569-44c9-b7c5-8e472985765d.mp3",
+      "file": "99f10a76-d569-44c9-b7c5-8e472985765d.mp3",
+      "bytes": 6638190,
+      "sha256": "f115bd02aa3eb50d0735d28cee1a511df84c0dd4a16d5ca946418fe830a44381"
+    }
+  ]
+}

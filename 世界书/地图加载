@@ -1,0 +1,424 @@
+---
+<%_
+/* ============================================================
+ * 《地图加载 - 临江市》
+ * 读 stat_data.世界信息.位置 → 在《地图静态资料 - 临江市》里定位节点
+ * → 把这一格周围的路网、同区地点、跨区通勤、住所与工作通勤摊给 AI。
+ * 全城 120 个节点不全给，只给"站在这里看得见、想得到"的那一圈。
+ * ============================================================ */
+const __lj_raw = _.cloneDeep(getMessageVar('stat_data', { defaults: {} }));
+const __lj_off = String(_.get(__lj_raw, '系统配置.地图加载', '') || '').trim() === '关';
+if (!__lj_off) {
+try {
+const data = __lj_raw;
+
+/* ---- 取静态资料 ---- */
+const MAP = await (async () => {
+  const log = (m) => { try { console.log(`[临江市地图加载] ${m}`); } catch (_) {} };
+  const names = ['地图静态资料 - 临江市', '地图静态资料 - 临江市.js', '地图静态资料', '地图静态资料.js'];
+  let raw = '';
+  for (const n of names) {
+    raw = String(await getWorldInfo(n) || '');
+    if (raw.trim()) break;
+  }
+  if (!raw.trim()) { log('未找到《地图静态资料 - 临江市》条目'); return null; }
+  try {
+    return new Function(`${raw}\n; return typeof LJ_MAP_DATA !== 'undefined' ? LJ_MAP_DATA : null;`)();
+  } catch (e) {
+    log('解析静态资料失败: ' + (e && e.message ? e.message : e));
+    return null;
+  }
+})();
+
+if (MAP && MAP.nodes) {
+
+/* ---- 变量 ---- */
+const 位置 = _.get(data, '世界信息.位置', {}) || {};
+const 区域原文 = String(位置.区域 || '').trim();
+const 场所 = String(位置.场所 || '').trim();
+const 私密度变量 = _.get(位置, '私密度', null);
+const 时钟 = String(_.get(data, '世界信息.时间.时钟', '') || '').trim();
+const 时段 = String(_.get(data, '世界信息.时间.时段', '') || '').trim();
+const 年历 = String(_.get(data, '世界信息.年历', '') || '').trim();
+const 玩家 = _.get(data, '玩家信息', {}) || {};
+const 体力 = Number(_.get(玩家, '体力', 0)) || 0;
+const 金钱 = Number(_.get(玩家, '金钱', 0)) || 0;
+const 工作 = _.get(玩家, '工作', {}) || {};
+const 职业 = String(工作.职业 || '').trim();
+const 工作地点 = String(工作.地点 || '').trim();
+const 日收入 = Number(工作.日收入 || 0) || 0;
+const 今日已上班 = 工作.今日已上班 === true;
+const 居住地 = String(_.get(玩家, '居住地', '') || '').trim();
+const 同行 = _.get(玩家, '同行', null);
+
+/* ---- 归一化与匹配 ---- */
+function 归一(t) {
+  return String(t || '')
+    .normalize('NFKC')
+    .replace(/[\s_]+/g, '')
+    .replace(/[·・‧.．、]/g, '')
+    .replace(/[()（）【】\[\]「」『』“”'']/g, '')
+    .toLowerCase();
+}
+function 拆区域(t) {
+  const parts = String(t || '').split(/[·・‧>＞\/｜|,，]/).map(s => s.trim()).filter(Boolean);
+  return { 大: parts[0] || '', 子: parts.length > 1 ? parts[parts.length - 1] : '' };
+}
+const 区域 = 拆区域(区域原文);
+
+const 自建原 = _.get(data, '系统配置.地图.自建节点', {}) || {};
+const 自建 = {};
+const NODES = { ...(MAP.nodes || {}) };
+Object.entries(自建原).forEach(([id, raw]) => {
+  if (!raw || typeof raw !== 'object' || !String(raw.名称 || '').trim()) return;
+  const 功能 = raw.功能 || {};
+  const flag = `${功能.可采集 ? '采' : ''}${功能.可约会 ? '约' : ''}${功能.可工作 ? '工' : ''}${功能.有商店 ? '店' : ''}`;
+  const hours = (Array.isArray(raw.开放时段) ? raw.开放时段 : ['朝', '昼', '暮', '夜', '深夜'])
+    .map(v => v === '深夜' ? '深' : String(v || '').slice(0, 1)).join('');
+  const node = {
+    id, name: String(raw.名称).trim(), aliases: Array.isArray(raw.别名) ? raw.别名 : [],
+    plate: String(raw.底板 || '').trim(), district: String(raw.区域 || '').trim(),
+    arch: String(raw.类型 || 'living').trim(), privacy: Math.max(0, Math.min(5, Number(raw.私密度) || 0)),
+    hours, flag, anchor: String(raw.锚点 || '').trim(), anchorName: String(raw.锚点名称 || '').trim(),
+    accessKm: Math.max(0, Number(raw.接驳距离) || 0), intro: String(raw.简介 || '').trim(),
+    draw: String(raw.看点 || '').trim(), special: Array.isArray(raw.特殊) ? raw.特殊 : [], custom: true,
+  };
+  自建[id] = node;
+  NODES[id] = [node.name, node.plate, node.arch, node.privacy, node.hours, node.flag];
+});
+const 全部ID = Object.keys(NODES);
+function 节点(id) {
+  if (自建[id]) return 自建[id];
+  const a = NODES[id];
+  if (!a) return null;
+  return { id, name: a[0], plate: a[1], arch: a[2], privacy: a[3], hours: a[4], flag: a[5] || '', custom: false };
+}
+function 别名(id) {
+  const n = 节点(id);
+  return n ? [n.name, id, ...(n.aliases || [])] : [id];
+}
+/** 精确 → 包含 → 打分。地图节点名和变量里写的区域名常常只是部分重合 */
+function 找节点(候选) {
+  const list = 候选.map(x => String(x || '').trim()).filter(Boolean);
+  for (const t of list) {
+    const k = 归一(t);
+    if (!k) continue;
+    for (const id of 全部ID) {
+      if (别名(id).some(a => 归一(a) === k)) return id;
+    }
+  }
+  let best = null;
+  for (const t of list) {
+    const k = 归一(t);
+    if (k.length < 2) continue;
+    for (const id of 全部ID) {
+      for (const a of 别名(id)) {
+        const na = 归一(a);
+        if (na.length < 2) continue;
+        if (!na.includes(k) && !k.includes(na)) continue;
+        const score = Math.min(na.length, k.length) * 10 - Math.abs(na.length - k.length);
+        if (!best || score > best.score) best = { id, score };
+      }
+    }
+  }
+  return best ? best.id : null;
+}
+function 找区(名) {
+  const k = 归一(名);
+  if (!k) return null;
+  const ds = MAP.districts || [];
+  let hit = ds.find(d => [d.name, d.varName, d.label].some(x => 归一(x) === k));
+  if (hit) return hit;
+  hit = ds.find(d => [d.name, d.varName, d.label].some(x => {
+    const nx = 归一(x);
+    return nx.length >= 2 && (nx.includes(k) || k.includes(nx));
+  }));
+  return hit || null;
+}
+
+/* ---- 定位 ---- */
+const 当前区 = 找区(区域.大) || 找区(区域原文);
+const 当前ID = 找节点([区域.子, 区域原文, 场所]);
+const 当前 = 当前ID ? 节点(当前ID) : null;
+const 所在区 = 当前 ? (MAP.districts || []).find(d => d.key === 当前.plate) : 当前区;
+
+/* ---- 文字表 ---- */
+const 类型名 = {
+  nature: '自然山水', hotspring: '温泉汤院', medical: '医疗', commercial: '商业',
+  adult: '成人场所', academy: '院校科研', live: '演艺直播', living: '生活起居',
+  culture: '人文古迹', craft: '手作工坊', traffic: '交通设施', public: '公共场所'
+};
+const 私密说明 = ['全开放', '街面开放', '有人但不专注', '半私密', '隐蔽', '完全私密'];
+const 功能名 = { 采: '可采集', 约: '可约会', 工: '可打工', 店: '有商店', 岗: '有正式岗位' };
+function 功能文(flag) {
+  const s = String(flag || '');
+  const out = [];
+  for (const k of ['采', '约', '工', '店', '岗']) if (s.includes(k)) out.push(功能名[k]);
+  return out.join('／');
+}
+/** 静态资料里时段压成了单字串（深夜→深）。展开成带分隔符的列表，别糊成"朝昼暮夜深夜"一坨 */
+function 时段文(h) {
+  const s = String(h || '');
+  if (!s) return '未标注';
+  const list = [...s].map(c => (c === '深' ? '深夜' : c));
+  return list.length >= 5 ? '全时段' : list.join('/');
+}
+function 开放中(h) {
+  const s = String(h || '');
+  if (!s || !时段) return null;
+  return s.includes(时段 === '深夜' ? '深' : 时段);
+}
+function 名(id) { const n = 节点(id); return n ? n.name : id; }
+function 区名(plate) {
+  const d = (MAP.districts || []).find(x => x.key === plate);
+  return d ? d.name : plate;
+}
+/** 直连行：[to, km, 步行分, 步行体力, 公交分, 公交元, 公交体力, 打车分, 打车元] */
+function 直连行文(r) {
+  const t = [`步行${r[2]}分/体力-${r[3]}`];
+  if (r[4] && r[4] < r[2]) t.push(`公交地铁${r[4]}分/${r[5]}元/体力-${r[6]}`);
+  t.push(`打车${r[7]}分/${r[8]}元`);
+  return t.join('｜');
+}
+/** 枢纽行：[公交分,公交元,公交体力, 打车分,打车元, 步行分,步行体力, km] */
+function 枢纽行文(r) {
+  return `公交地铁${r[0]}分/${r[1]}元/体力-${r[2]}｜打车${r[3]}分/${r[4]}元｜步行${r[5]}分/体力-${r[6]}`;
+}
+
+/* ---- 周边 ---- */
+function 自建接驳行(id) {
+  const n = 自建[id];
+  if (!n || !n.anchor || !NODES[n.anchor]) return [];
+  const km = Math.max(0.05, n.accessKm || 0.05);
+  const walk = Math.max(1, Math.ceil(km / 4.5 * 60));
+  const stamina = Math.max(1, Math.ceil(km * 4));
+  const taxiMin = Math.max(4, Math.ceil(km / 34 * 60) + 4);
+  const taxiYuan = Math.ceil(11 + Math.max(0, km - 3) * 2.6);
+  return [[n.anchor, Math.round(km * 10) / 10, walk, stamina, 0, 0, 0, taxiMin, taxiYuan]];
+}
+function 节点直连(id) {
+  const rows = [...((MAP.link && MAP.link[id]) || [])];
+  if (自建[id]) rows.push(...自建接驳行(id));
+  Object.values(自建).forEach(n => {
+    if (n.anchor !== id) return;
+    const row = 自建接驳行(n.id)[0];
+    if (row) rows.push([n.id, ...row.slice(1)]);
+  });
+  return rows;
+}
+const 直连 = 当前 ? 节点直连(当前.id) : [];
+const 步行圈 = (() => {
+  const rows = (当前 && MAP.near && MAP.near[当前.id]) ? [...MAP.near[当前.id]] : [];
+  if (当前) Object.values(自建).forEach(n => {
+    if (n.anchor !== 当前.id) return;
+    const r = 自建接驳行(n.id)[0];
+    if (r) rows.push([n.id, r[2], r[3]]);
+  });
+  return rows;
+})();
+/** 次邻：沿直连支路走两跳，去掉直连和自己，按两段直线里程之和排序 */
+const 次邻 = (() => {
+  if (!当前) return [];
+  const 直 = new Set(直连.map(r => r[0]));
+  const best = new Map();
+  直连.forEach(a => {
+    const mid = a[0];
+    节点直连(mid).forEach(b => {
+      const far = b[0];
+      if (far === 当前.id || 直.has(far)) return;
+      const km = Math.round((a[1] + b[1]) * 10) / 10;
+      const old = best.get(far);
+      if (!old || km < old.km) best.set(far, { id: far, via: mid, km, min: a[2] + b[2], st: a[3] + b[3] });
+    });
+  });
+  return [...best.values()].sort((x, y) => x.km - y.km).slice(0, 8);
+})();
+/* 只激活"临近 + 次临"这一圈。同区更远的点不列：
+   要去那儿就先走过去，届时它自己会变成临近节点；
+   现在列出来只会白白触发一堆用不上的地点详情条目。
+
+   直连支路和步行圈本来是两张表，但 RNG 只给每个点 2~3 个直连邻居，
+   这两张表内容高度重叠，分开输出等于把同一批名字念两遍。
+   合成一张按步行时长排的"临近"，直连的打星号，需要坐车的才补公交/打车。 */
+const 临近 = (() => {
+  if (!当前) return [];
+  const 直 = new Map(直连.map(r => [r[0], r]));
+  const seen = new Set();
+  const rows = [];
+  const 收 = (id, min, st) => {
+    if (seen.has(id) || !NODES[id]) return;
+    seen.add(id);
+    const d = 直.get(id);
+    const 段 = [`步行${min}分/体力-${st}`];
+    // 走得动就不提车；超过 20 分钟才值得给公交和打车
+    if (d && min > 20) {
+      if (d[4] && d[4] < min) 段.push(`公交地铁${d[4]}分/${d[5]}元/体力-${d[6]}`);
+      段.push(`打车${d[7]}分/${d[8]}元`);
+    }
+    rows.push({
+      n: 节点(id),
+      直连: !!d,
+      文: (d ? `${d[1]}km｜` : '') + 段.join('｜'),
+      min
+    });
+  };
+  步行圈.forEach(r => 收(r[0], r[1], r[2]));
+  直连.forEach(r => 收(r[0], r[2], r[3]));
+  return rows.sort((a, b) => a.min - b.min);
+})();
+
+/** 只留经过当前区的线路；线路第三项是它途经的底板 key */
+const 本区地铁 = (MAP.metro || []).filter(m =>
+  所在区 && Array.isArray(m[2]) && m[2].includes(所在区.key)
+);
+
+/* ---- 跨区通勤 ---- */
+const 跨区 = (() => {
+  if (!当前) return [];
+  const baseId = 自建[当前.id]?.anchor || 当前.id;
+  const row = MAP.hub[baseId] || {};
+  return (MAP.districts || [])
+    .filter(d => d.key !== 当前.plate)
+    .map(d => ({ d, r: row[d.key] || null }))
+    .filter(x => x.r)
+    .sort((a, b) => a.r[0] - b.r[0]);
+})();
+
+/* ---- 住所与工作 ---- */
+const 住所ID = 找节点([拆区域(居住地).子, 居住地]);
+const 工作ID = 工作地点 ? 找节点([拆区域(工作地点).子, 工作地点]) : null;
+const 住所 = 住所ID ? 节点(住所ID) : null;
+const 工作节点 = 工作ID ? 节点(工作ID) : null;
+/* 房租、押金、售价、门槛、岗位薪酬班次一概不在这里——
+   那些写在按关键字触发的地点详情条目里，玩家走到哪儿触发哪儿，
+   放进每轮注入只会和详情打架。 */
+/** 通勤：住宅×工作矩阵里有就取精确值；没有就退回"到对方所在区枢纽"的估值 */
+const 通勤 = (() => {
+  if (!住所ID || !工作ID || 住所ID === 工作ID) return null;
+  const exact = MAP.commute && MAP.commute[住所ID] && MAP.commute[住所ID][工作ID];
+  if (exact) return { 精确: true, r: exact };
+  const wp = 工作节点 ? 工作节点.plate : '';
+  const est = MAP.hub[住所ID] && wp ? MAP.hub[住所ID][wp] : null;
+  return est ? { 精确: false, r: est, 经: 区名(wp) + '枢纽' } : null;
+})();
+
+
+/** 从当前位置到某个地点：直连 → 步行圈 → 对方区枢纽估值 */
+function 到某处(目标ID) {
+  if (!当前 || !目标ID || 目标ID === 当前.id) return null;
+  const d = 直连.find(r => r[0] === 目标ID);
+  if (d) return { 精确: true, 文: 直连行文(d), km: d[1] };
+  const c = MAP.commute && MAP.commute[目标ID] && MAP.commute[目标ID][当前.id];
+  if (c) return { 精确: true, 文: 枢纽行文(c), km: c[7] };
+  const c2 = MAP.commute && MAP.commute[当前.id] && MAP.commute[当前.id][目标ID];
+  if (c2) return { 精确: true, 文: 枢纽行文(c2), km: c2[7] };
+  const n = 步行圈.find(r => r[0] === 目标ID);
+  if (n) return { 精确: true, 文: `步行${n[1]}分/体力-${n[2]}`, km: null };
+  const tgt = 节点(目标ID);
+  const h = tgt && MAP.hub[当前.id] ? MAP.hub[当前.id][tgt.plate] : null;
+  if (h) return { 精确: false, 文: 枢纽行文(h), km: h[7], 经: 区名(tgt.plate) + '枢纽' };
+  return null;
+}
+const 回家 = 到某处(住所ID);
+const 去上班 = 到某处(工作ID);
+_%>
+
+# 以下为当前地点附近的实时地图路网，据此安排出行
+<map_info>
+城市：<%= MAP.meta.city %>（<%= MAP.meta.year %>年）｜<%= MAP.meta.span %>
+时间：<%= 年历 %> <%= 时钟 %>，时段「<%= 时段 %>」
+时段划分：<%= MAP.meta.periods %>
+位置：<%= 区域原文 || '未知' %><% if (场所) { %> · <%= 场所 %><% } %>
+<%_ const 自建列表 = Object.values(自建).slice(0, 40); if (自建列表.length) { _%>
+玩家自建节点（属于当前存档，可作为正式地点使用）：
+<%_ 自建列表.forEach(n => { _%>
+- <%= n.name %>｜<%= n.district || 区名(n.plate) %>｜接驳 <%= n.anchorName || 名(n.anchor) %> <%= n.accessKm %>km｜<%= 类型名[n.arch] || n.arch %>｜私密度<%= n.privacy %><% if (功能文(n.flag)) { %>｜<%= 功能文(n.flag) %><% } %>
+<%_ }); _%>
+<%_ } _%>
+<%_ if (当前) { _%>
+节点：<%= 当前.name %>（<%= 类型名[当前.arch] || 当前.arch %>｜<%= 所在区 ? 所在区.name + '·' + 所在区.label : '' %>）｜开放 <%= 时段文(当前.hours) %>｜私密度 <%= 当前.privacy %>／5 <%= 私密说明[当前.privacy] || '' %><% if (功能文(当前.flag)) { %>｜<%= 功能文(当前.flag) %><% } %><% if (当前.custom) { %>
+玩家自建资料：<%= 当前.intro || '未填写简介' %><% if (当前.draw) { %>｜看点：<%= 当前.draw %><% } %><% if (当前.special.length) { %>｜特殊：<%= 当前.special.join('；') %><% } %>
+接驳规则：先步行 <%= 当前.accessKm %>km 到「<%= 当前.anchorName || 名(当前.anchor) %>」，再进入固定路网。<% } %><% if (开放中(当前.hours) === false) { %>
+※当前「<%= 时段 %>」不在开放时段，正文要处理闭门、值班或另找地方<% } %><% if (私密度变量 !== null && Number(私密度变量) !== Number(当前.privacy)) { %>
+※变量私密度写的是 <%= 私密度变量 %>，与节点默认值不同，按变量走<% } %>
+
+临近（★=有直连支路；按步行时长排）：
+<%_ 临近.forEach(x => { _%>
+- <% if (x.直连) { %>★<% } else { %>　<% } %><%= x.n.name %>｜<%= x.文 %>｜<%= 类型名[x.n.arch] || x.n.arch %><% if (功能文(x.n.flag)) { %>｜<%= 功能文(x.n.flag) %><% } %>
+<%_ }); if (!临近.length) { _%>
+- 三公里内没有别的地点，出门就得靠车。
+<%_ } _%>
+<%_ if (次邻.length) { _%>
+次临（沿支路两跳）：
+<%_ 次邻.forEach(x => { const n = 节点(x.id); _%>
+- <%= n.name %>｜约<%= x.km %>km｜经 <%= 名(x.via) %>｜步行合计<%= x.min %>分/体力-<%= x.st %>
+<%_ }); _%>
+<%_ } _%>
+出远门（到各区枢纽，按公交地铁时长排；更远或更细的目标从枢纽接着算）：
+<%_ 跨区.forEach(x => { _%>
+- <%= x.d.name %>（<%= x.d.bearing %>）→ <%= x.d.hubName %>｜<%= x.r[7] %>km｜<%= 枢纽行文(x.r) %>
+<%_ }); _%>
+<%_ } else { _%>
+节点：未命中地图节点
+定位回退：
+- 「位置.区域」要写成「{行政区/风景区} · {地图节点名}」，子区域必须是静态资料里存在的节点名。
+- 当前写法「<%= 区域原文 || '空' %>」没匹配上，先把它改成最接近的正式节点名，再继续叙事。
+<%_ if (当前区) { _%>
+- 大区域匹配到了 <%= 当前区.name %>（<%= 当前区.bearing %>｜<%= 当前区.label %>），这个区的节点有：<%= (当前区.nodes || []).map(id => 名(id)).join('、') %>
+<%_ } _%>
+<%_ } _%>
+
+<%_ if (本区地铁.length) { _%>
+经过本区的轨道（全网 5 条线，其余线路要用时问）：
+<%_ 本区地铁.forEach(m => { _%>
+- <%= m[0] %>：<%= m[1] %>
+<%_ }); _%>
+<%_ } _%>
+过江：临江自西南向东北斜贯城市北部；江北只有浦江区，靠临江大桥（人可走）与过江隧道（人不可走）连通。
+
+当前状态：
+- 当前体力 <%= 体力 %>/100<% if (体力 < 20) { %>　※已进入透支档，按<求职住房与体力规则>只允许短距离移动、进食与回住所<% } else if (体力 < 40) { %>　※疲惫档，长距离步行会直接见底<% } %>
+- 金钱 <%= 金钱 %> 元
+- 同行：<%= 同行 ? 同行 : '独行' %>
+- 住所：<% if (住所) { %><%= 住所.name %>（<%= 区名(住所.plate) %>）<% } else { %><%= 居住地 || '未设置' %>（未命中地图节点）<% } %>
+<%_ if (回家) { _%>
+- 回住所：<%= 回家.文 %><% if (回家.km) { %>｜<%= 回家.km %>km<% } %><% if (!回家.精确) { %>（经<%= 回家.经 %>估值）<% } %>
+<%_ } _%>
+- 工作：<% if (职业) { %><%= 职业 %> @ <%= 工作地点 || '未写地点' %>｜日收入<%= 日收入 %>元｜今日<%= 今日已上班 ? '已上班' : '未上班' %><% } else { %>无业<% } %>
+<%_ if (去上班) { _%>
+- 去上班：<%= 去上班.文 %><% if (去上班.km) { %>｜<%= 去上班.km %>km<% } %><% if (!去上班.精确) { %>（经<%= 去上班.经 %>估值）<% } %>
+<%_ } else if (通勤) { /* 人在住所时上一行已经等于通勤，不重复打印 */ _%>
+- 住所↔工作单程：<%= 枢纽行文(通勤.r) %>｜<%= 通勤.r[7] %>km<% if (!通勤.精确) { %>（经<%= 通勤.经 %>估值）<% } %>
+<%_ } _%>
+
+出行参数（未列出的路线按这个自己估，别拍脑袋）：
+- 均速 km/h：步行 <%= MAP.travel.speed.步行 %>｜公交 <%= MAP.travel.speed.公交 %>｜地铁 <%= MAP.travel.speed.地铁 %>｜驾车干道 <%= MAP.travel.speed.驾车干道 %>｜快速路 <%= MAP.travel.speed.驾车快速路 %>
+- 固定开销（分钟）：公交候车 <%= MAP.travel.wait.公交候车 %>｜地铁进出站 <%= MAP.travel.wait.进出站 %>｜等出租 <%= MAP.travel.wait.打车等车 %>｜取车找车位 <%= MAP.travel.wait.取车找位 %>
+- 票价：地铁 <%= MAP.travel.fare.地铁 %>｜公交 <%= MAP.travel.fare.公交 %>｜出租 <%= MAP.travel.fare.出租 %>
+- 消耗公式：<%= MAP.travel.stamina %>（上面各行的「体力-N」都是按这个算出来的实扣值）
+
+移动铁律：
+- 只能沿临近／次临节点或干道轨道逐段推进，禁止跨区瞬移，也禁止无视中间节点。
+- 上面列出的时长、票价、体力是路网算出来的，正文与变量结算一律以它为准，不得另编数字。
+- 表里没有的路线：先判断要经过哪几个已列节点，再按出行参数累加，不得凭感觉写"十几分钟就到"。
+- 跨江只有临江大桥和过江隧道两条；步行、骑行不能走隧道。
+- 到达新节点必须同步更新 位置.区域 为「{行政区/风景区} · {节点名}」，场所写节点内部的小地点。
+- 深夜或非开放时段抵达要先处理"关门/末班车已过/无人值守"，不能默认照常营业。
+
+</map_info>
+<%_
+} else {
+_%>
+<map_info>
+
+地图静态资料未加载：请确认世界书里存在名为「地图静态资料 - 临江市」的条目，且内容以 var LJ_MAP_DATA = {...} 开头。
+本轮不要凭空编造节点名、距离与通勤时长。
+
+</map_info>
+<%_
+}
+} catch (e) {
+  try { console.log(`[临江市地图加载] 执行失败: ${e && e.stack ? e.stack : e}`); } catch (_) {}
+}
+}
+_%>

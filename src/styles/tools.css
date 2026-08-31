@@ -1,0 +1,65 @@
+/* Tool pod.
+   The pod is part of the shell silhouette, so the glass and the outer rim are
+   already there; only the ring buttons are drawn here.  The row is right-aligned
+   so extra buttons grow leftward into the pod rather than off the edge.  Four
+   40-unit rings at an 8-unit gap fit the 218-unit pod; the previous 46 / 31.5
+   rhythm was sized for three.
+
+   Four is the ceiling, not the current count.  22 units of padding leave 196
+   available and the row spends 184 of it, so a fifth ring needs 232 and would
+   overflow the pod's left fillet onto the main top edge.  Shrinking the rings does
+   not help either: the 44px hit areas the ::after in base.css draws are already
+   wider than the ring pitch, and on a phone held sideways -- where these draw at
+   20 real px -- neighbours overlap by 17.8px, so a fifth ring makes taps *less*
+   reliable rather than merely tighter.  That is why the pod carries only the four
+   rings the player presses without reading them; every other destination is a labelled
+   button in the rail above the Status pane (src/styles/dest.css, `destinations` in
+   data.js), which is outside the glass and so has room to spell itself out. */
+
+.pane-pod {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-right: 22px;
+}
+
+.tool-btn {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(226, 230, 252, .30);
+  border-radius: 50%;
+  background: rgba(150, 160, 210, .07);
+  color: #fff;
+  cursor: pointer;
+  transition: background .18s, border-color .18s;
+}
+.tool-btn .ic {
+  font-size: 22px;
+  filter: drop-shadow(0 1px 3px rgba(6, 8, 22, .55));
+}
+@media (hover: hover) {
+  .tool-btn:hover { background: rgba(178, 190, 240, .2); border-color: rgba(240, 244, 255, .62); }
+}
+
+/* --hit-d is the *drawn* size, which base.css subtracts from 44px/k to size the pad.
+   This said 44 while the ring is 40, so the pad came out 2 units short each side and the
+   hit area landed at 42 real px on a phone held sideways instead of 44 -- the one control
+   `npm run responsive` was still reporting as FAIL. */
+.tool-btn { --hit-d: 40px; }
+.tool-btn.rail-next { --hit-d: 38px; }
+
+.tool-btn .dot {
+  position: absolute;
+  right: 1px;
+  top: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #ffa8cd, #ef3d97 60%, #d4207c);
+  box-shadow: 0 0 8px rgba(255, 60, 150, .8), 0 0 2px rgba(255, 255, 255, .9);
+}

@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>临江 · 故事开场</title>
+<script>
+  setTimeout(() => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600&family=Outfit:wght@300;400;500&family=Pinyon+Script&display=swap';
+    document.head.appendChild(link);
+  }, 0);
+</script>
+<style>
+  /* 这块启动卡的做法跟 opening.css 是同一套：先铺一张照片，再让玻璃浮在照片上。
+     上一版是反过来的——一整块 alpha .55 的紫填充，靠 backdrop-filter 去模糊酒馆的
+     深色聊天底。聊天底本来就是一片平的深色，模糊它等于什么都没模糊，所以那块紫
+     只能读成"贴上去的塑料板"，跟原型那种晶莹感差得远。
+
+     这一版把背景补上：卡里自己带一条从原型背景图裁下来的横带（花枝 — 书架暖灯 —
+     窗外湖面 — 桌沿反光），然后所有玻璃件（按钮、步骤块、徽记、状态条）都改成
+     薄白填充 + 亮边 + backdrop-filter，模糊的对象是这张照片而不是聊天底。
+     颜色让照片给，玻璃保持中性偏白——这是 opening.css 里那条"填充极薄，景深靠
+     模糊拿，不靠往上刷不透明深色"的规则。 */
+  :root {
+    --ink: #fff;
+    --mute: rgba(255, 255, 255, .84);
+    --faint: rgba(255, 255, 255, .66);
+    --rim: rgba(255, 255, 255, .46);
+    --rim-soft: rgba(255, 255, 255, .32);
+    --pink: #ffb3d4;
+    --blue: #a9d6ff;
+    --gold: #ffe0aa;
+    --ok: #9ff0cd;
+    /* 字压在照片上，靠这道影子站住，不靠把照片压暗 */
+    --tsh: 0 1px 3px rgba(16, 12, 38, .62), 0 2px 16px rgba(18, 14, 42, .34);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; }
+  body {
+    /* 外泛光要有地方铺开，不然会被楼层边缘切掉 */
+    padding: 8px 10px 12px;
+    color: var(--ink);
+    font-family: 'Noto Sans SC', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #launch {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px 26px;
+    padding: 22px 26px 24px;
+    border: 1px solid var(--rim);
+    border-radius: 26px;
+    /* 照片没加载出来之前的底色，也是照片边缘透出来的那一层 */
+    background: linear-gradient(155deg, #3f3d78, #232550 52%, #4c3060);
+    box-shadow:
+      /* 落地阴影 + 两圈外泛光：原型那块板是"发光的亚克力"，不是贴上去的方块 */
+      0 26px 64px -30px rgba(10, 8, 30, .70),
+      0 0 30px -6px rgba(255, 170, 212, .34),
+      0 0 72px -20px rgba(154, 198, 255, .30),
+      inset 0 1px 0 rgba(255, 255, 255, .52);
+    text-shadow: var(--tsh);
+  }
+
+  /* 照片本体。裁的是 opening-strip.webp（原图的一条横带，90KB）；
+     取不到就退回全尺寸原图，两者的 object-position 都对着同一段景。 */
+  #scene {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 48%;
+    /* 轻微失焦。opening.html 里照片是被整块玻璃的 backdrop-filter 模糊掉的，
+       卡里从来看不到锐利的实景；这张横条只有 190 高，书架和桌面的细节全挤在
+       标题后面，压一点焦既还原那种柔光，也让白字站得住。
+       scale 是为了把 blur 在四边糊出来的透明边推到裁切框外面。 */
+    filter: blur(2px) saturate(1.14) contrast(1.02);
+    transform: scale(1.045);
+    pointer-events: none;
+    user-select: none;
+  }
+  #scene.full { object-position: 50% 42%; }
+
+  /* 收一档冷色。幅度小到照片的层次还在——左边字多的一侧压得重些，
+     右边窗外湖面留亮，卡片才有"从暗处看向窗外"的纵深 */
+  .veil {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(120% 150% at 4% -20%, rgba(255, 172, 210, .20), transparent 56%),
+      radial-gradient(110% 150% at 100% -6%, rgba(154, 198, 255, .18), transparent 58%),
+      /* 最右边是一丛绿植，绿色在这张紫调的卡上很跳，用一层冷紫把它并回来 */
+      linear-gradient(270deg, rgba(46, 34, 82, .30), rgba(46, 34, 82, .10) 12%, transparent 22%),
+      linear-gradient(97deg, rgba(19, 15, 42, .48) 0%, rgba(21, 17, 46, .30) 42%, rgba(26, 20, 54, .12) 68%, rgba(32, 24, 60, .16)),
+      linear-gradient(180deg, rgba(22, 18, 48, .08), rgba(20, 17, 46, .30));
+  }
+
+  /* 一道窄而亮的斜切反光，不是一整片雾——"晶莹"是这么来的 */
+  #launch::before {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(118deg, rgba(255, 255, 255, .24), rgba(255, 255, 255, .04) 14%, transparent 30%, transparent 78%, rgba(255, 255, 255, .12));
+  }
+  /* 底边那道亮光：原型里 HUD 下沿是压在桌面上的一条粉蓝反光 */
+  #launch::after {
+    content: '';
+    position: absolute;
+    z-index: 4;
+    left: 7%;
+    right: 7%;
+    bottom: 0;
+    height: 2px;
+    pointer-events: none;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 196, 224, .9) 26%, rgba(182, 214, 255, .9) 70%, transparent);
+    box-shadow: 0 0 18px rgba(255, 178, 214, .75);
+  }
+  .brand, #open, .steps, #status { position: relative; z-index: 3; }
+
+  /* 樱花徽记贴着花体标题那一行，跟原型里 Girls 旁边那朵一样；
+     垂直居中会让它掉到标题和正文中间的空当里 */
+  .brand { display: flex; align-items: flex-start; gap: 15px; min-width: 0; }
+  .mark {
+    flex: 0 0 auto;
+    margin-top: -2px;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, .60);
+    background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .52), rgba(255, 214, 234, .12));
+    box-shadow: 0 0 24px rgba(255, 178, 212, .40), inset 0 1px 0 rgba(255, 255, 255, .72);
+    backdrop-filter: blur(8px) saturate(1.2);
+    -webkit-backdrop-filter: blur(8px) saturate(1.2);
+  }
+  .mark img { width: 22px; height: 22px; object-fit: contain; }
+  .copy { min-width: 0; }
+  /* 原型的标题写法：花体英文 + 斜杠 + 中文小标，同一行 */
+  .titleline { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
+  .titleline em {
+    flex: 0 0 auto;
+    font: 400 30px/1 'Pinyon Script', cursive;
+    font-style: normal;
+    color: #fff5f9;
+    text-shadow: 0 2px 16px rgba(255, 168, 208, .70), 0 1px 4px rgba(16, 12, 38, .5);
+  }
+  .titleline span {
+    color: var(--faint);
+    font: 500 11px/1 'Outfit', 'Noto Sans SC', sans-serif;
+    letter-spacing: .16em;
+    white-space: nowrap;
+  }
+  .copy h1 { margin-top: 7px; font-size: 17px; font-weight: 600; letter-spacing: .09em; }
+  .copy p { margin-top: 5px; color: var(--mute); font-size: 12px; line-height: 1.55; }
+
+  #open {
+    position: relative;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 24px;
+    border: 1px solid rgba(255, 255, 255, .70);
+    border-radius: 999px;
+    /* 原型里的按钮是同一块玻璃上磨出来的亮胶囊，不是一片实心白纸。
+       现在它下面是照片，backdrop-filter 才真的有东西可模糊。 */
+    background: linear-gradient(150deg, rgba(255, 255, 255, .26), rgba(255, 224, 240, .12) 55%, rgba(210, 228, 255, .16));
+    box-shadow:
+      0 0 24px -4px rgba(255, 178, 214, .56),
+      0 10px 24px -14px rgba(14, 10, 34, .70),
+      inset 0 1px 0 rgba(255, 255, 255, .72);
+    backdrop-filter: blur(12px) saturate(1.3);
+    -webkit-backdrop-filter: blur(12px) saturate(1.3);
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(24, 18, 52, .55);
+    font: 600 14px/1 'Noto Sans SC', system-ui, sans-serif;
+    letter-spacing: .1em;
+    cursor: pointer;
+    transition: border-color .18s, box-shadow .18s, transform .18s, background .18s;
+  }
+  #open i {
+    font-style: normal;
+    font-family: 'Outfit', sans-serif;
+    opacity: .8;
+    transition: transform .18s;
+  }
+  #open:hover {
+    border-color: #fff;
+    background: linear-gradient(150deg, rgba(255, 255, 255, .36), rgba(255, 224, 240, .20) 55%, rgba(210, 228, 255, .24));
+    box-shadow:
+      0 0 30px -2px rgba(255, 160, 204, .78),
+      0 12px 26px -14px rgba(14, 10, 34, .70),
+      inset 0 1px 0 rgba(255, 255, 255, .85);
+  }
+  #open:hover i { transform: translateX(3px); }
+  #open:active { transform: translateY(1px); }
+  #open:focus-visible { outline: 2px solid rgba(255, 214, 234, .9); outline-offset: 3px; }
+
+  .steps {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 15px;
+    /* 分隔线做成从亮到无的一道，跟原型里 Status 区块的分界一致 */
+    border-top: 1px solid transparent;
+    border-image: linear-gradient(90deg, rgba(255, 255, 255, .32), rgba(255, 255, 255, .06) 72%, transparent) 1;
+  }
+  .steps span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+    padding: 6px 13px;
+    border: 1px solid var(--rim-soft);
+    border-radius: 999px;
+    /* 步骤块是照片上的一层薄玻璃：往上提亮，不往下抠暗 */
+    background: linear-gradient(150deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .36);
+    backdrop-filter: blur(9px) saturate(1.24);
+    -webkit-backdrop-filter: blur(9px) saturate(1.24);
+    color: var(--mute);
+    font-size: 12px;
+  }
+  .steps span em {
+    font: 500 10px/1 'Outfit', sans-serif;
+    font-style: normal;
+    letter-spacing: .12em;
+    /* 序号取原型里资金那行的暖金 */
+    color: var(--gold);
+  }
+
+  #status {
+    grid-column: 1 / -1;
+    display: none;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 14px;
+    border: 1px solid var(--rim-soft);
+    border-radius: 13px;
+    background: linear-gradient(150deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .34);
+    backdrop-filter: blur(9px) saturate(1.24);
+    -webkit-backdrop-filter: blur(9px) saturate(1.24);
+    color: var(--mute);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  #status.on { display: flex; }
+  #status::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--blue);
+    box-shadow: 0 0 12px var(--blue);
+  }
+  #status.ok { color: rgba(224, 250, 240, .94); }
+  #status.ok::before { background: var(--ok); box-shadow: 0 0 12px var(--ok); }
+  #status.warn { color: rgba(255, 222, 240, .94); }
+  #status.warn::before { background: var(--pink); box-shadow: 0 0 12px var(--pink); }
+
+  /* 没有 backdrop-filter 时玻璃件会直接透出照片，字会糊在花枝和湖面高光上，
+     所以把填充补厚一点——只在这一种情况下补 */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    #open { background: linear-gradient(150deg, rgba(96, 92, 156, .78), rgba(60, 58, 116, .74)); }
+    .steps span, #status { background: linear-gradient(150deg, rgba(74, 70, 130, .70), rgba(46, 46, 98, .66)); }
+    .mark { background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .5), rgba(120, 110, 178, .7)); }
+  }
+
+  @media (max-width: 520px) {
+    body { padding: 6px 6px 10px; }
+    #launch { grid-template-columns: minmax(0, 1fr); gap: 13px; padding: 18px 18px 20px; border-radius: 20px; }
+    /* 竖着堆之后卡片接近方形，照片会横向裁掉大半。再往右就只剩天和湖面一片渐变了，
+       停在这儿能同时留住窗台的植物、栏杆和右边的湖，画面还认得出是同一个房间 */
+    #scene { object-position: 47% 50%; }
+    #scene.full { object-position: 50% 44%; }
+    .brand { gap: 12px; align-items: flex-start; }
+    .titleline em { font-size: 26px; }
+    .titleline span { font-size: 10px; letter-spacing: .12em; }
+    .copy h1 { font-size: 16px; }
+    #open { width: 100%; justify-content: center; padding: 11px 18px; }
+    .steps { gap: 6px; padding-top: 13px; }
+    .steps span { padding: 5px 11px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<div id="launch">
+  <!-- 素材走 jsDelivr 而不是 Pages。这里的后备图 opening-background.png 是 2MB，
+       走 Pages 在国内实测 180 秒以上、还会整个取不回来；走 testingcf 是几秒。
+       必须是 testingcf，cdn.jsdelivr.net 在国内被墙。
+       路径里带 public/：jsDelivr 按仓库原样路径服务，是 vite 才把 public/ 摊平。 -->
+  <img id="scene" alt="" aria-hidden="true" decoding="async"
+       src="https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-glass@main/public/assets/opening-strip.webp"
+       onerror="this.onerror=null;this.classList.add('full');this.src='https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-glass@main/public/assets/opening-background.png';">
+  <div class="veil" aria-hidden="true"></div>
+  <div class="brand">
+    <div class="mark"><img src="https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-glass@main/public/assets/mark-sakura.png" alt=""></div>
+    <div class="copy">
+      <div class="titleline"><em>Opening</em><span>/ 临江生活序章 · 2026</span></div>
+      <h1>从这一刻，住进临江</h1>
+      <p>填写你的资料，选择住所、工作与关注的主播。</p>
+    </div>
+  </div>
+  <button id="open" type="button">开启我的故事 <i>&rarr;</i></button>
+  <div class="steps">
+    <span><em>01</em>关于你</span>
+    <span><em>02</em>住所与工作</span>
+    <span><em>03</em>我推的主播</span>
+    <span><em>04</em>自定义主播（可选）</span>
+    <span><em>05</em>确认</span>
+  </div>
+  <div id="status"></div>
+</div>
+<script>
+(function () {
+  /* 粘进角色卡的「开局」楼层。本页与酒馆同源，能摸到 parent.Mvu / TavernHelper；
+     开局页本身托管在 GitHub Pages（跨域），只通过 postMessage 和这里说话。
+     这里只做三件事：全屏挂起开局页、代跑人设生成、把 commitPreview 写回酒馆。 */
+  const OPENING_URL = 'https://tangquanghuy.github.io/linjiang-glass/opening.html?v=20260826-opening-tablet-ime-v20';
+  // const OPENING_URL = 'http://127.0.0.1:5173/opening.html';
+  const CHANNEL = 'linjiang-opening';
+  const OVERLAY_ID = 'linjiang-opening-overlay';
+  const STYLE_ID = 'linjiang-opening-style';
+
+  /* 人设走「角色详情 YAML」，跟 世界书/红蔷薇、斯黛拉、璃亚梦 那三条是同一个格式，
+     生成与写入的做法照 参考/底部状态栏.html 的 人物详情生成：
+       - 模型只输出被 <streamer_profile_yaml> 包住的一段 YAML；
+       - 条目名统一前缀「角色详情：」，插在 after_character_definition；
+       - order 从保留段 260–299 里挑空位，避免跟别的条目抢顺序；
+       - 用 extra 里的 sourceName 做 upsert，开局跑第二次是更新而不是再插一条。 */
+  const PROFILE_TAG = 'streamer_profile_yaml';
+  const PROFILE_PREFIX = '角色详情：';
+  const PROFILE_ORDER_START = 260;
+  const PROFILE_ORDER_END = 299;
+
+  /* 格式示例。比 红蔷薇 那条精简，但层级和字段风格一致，额外多一个「直播设定」块——
+     只放质性的东西：网名、直播分类、常用时间、直播风格、对观众的态度、线上线下差异。
+
+     粉丝数、热度、大航海、牌子名一律不进世界书：那些是会变的运行时数值，归 MVU
+     （对象信息.<名>.直播 与 系统配置.直播间.<名>，由 酒馆变量/变量初始化 起头）。
+     世界书是静态设定，抄一份数字进去只会跟 MVU 打架。 */
+  const PROFILE_FORMAT_SAMPLE = `---
+角色详情:
+  沈遥:
+    线上常用名/主播网名: 遥夜
+    gender: 女
+    age: 23岁
+    identity:
+      public: 西洲区一家小型录音棚的兼职调音助理，晚间开播的杂谈主播
+      hidden: 靠直播收入替家里还一笔没人知道的债，对外一律说是"自己想做"
+    生活背景:
+      本职与收入: 在西洲区一家小型录音棚做兼职调音助理，直播是另一项稳定收入来源
+      工作节奏: 白天接棚内排班，晚间固定开播；忙碌时会压缩休息，但不会拿观众当情绪护理员
+      私人处境: 正替家里偿还一笔不对外提起的债，因此对停播和收入波动格外敏感
+
+    直播设定:
+      平台网名: 遥夜
+      直播分类: [杂谈, 唱歌]
+      常用直播时间: 20:00 - 24:00
+      直播风格: 开场先念未读留言，再进当天的主题；节奏靠她自己控，不追弹幕
+      对观众的态度: 记得住长期发言的ID，但公开场合一律平等对待，不给单人特殊待遇
+      线上线下差异: 镜头前情绪稳定、语速偏快；线下话少，累了会直接不回消息
+
+    social_connection:
+      观众(听众们):
+        relationship: 大多是下班后开着直播做事的人，她把直播间当成陪伴型的背景声
+
+    appearance:
+      overview: 黑色长直发，发尾微卷。浅褐色瞳孔，眼下有一点淡淡的青黑。身形偏瘦，肩线单薄
+      attire:
+        daily: 宽松的灰色针织开衫配长裤，室内常年一双旧棉拖
+        直播: 换一件干净的白衬衫，只在镜头范围内讲究
+      feature:
+        - 眼下的青黑遮不住，粉丝当成她的标志
+        - 说话时习惯用指节敲桌沿打节拍
+
+    对白风格:
+      描述: 语速偏快但不急，句子短。回应会接住上一句的内容，不是各说各话。很少用语气词堆情绪
+      禁止写法:
+        - 禁止写成随时随地照顾玩家情绪的角色：她开播是工作，下播有自己的事
+        - 禁止把打赏写成能换取私人关系
+
+    内部描述:
+      爱好:
+        - 收集不同房间的环境底噪
+        - 深夜一个人走一段回家的路
+      个人特长: 调音与降噪处理；把零散话题接成完整节目
+      本职: 录音棚兼职调音助理，晚间主播
+
+    角色细节:
+      日常: 白天在棚里干活，傍晚回家吃泡面、检设备、开播；下播后处理消息和第二天的安排
+      社交: 对熟人放松得很慢，对越界要求会直接把话说明白
+      复杂反差: 镜头前是稳的那一方，私下常常处在快撑不住的边缘
+
+    行为指导:
+      浅层表现:
+        - 语速快、句子短、回应贴着上一句
+        - 被夸会短暂卡一下再回一句普通的谢谢
+      深层底色:
+        - 把"不能停播"当成底线，累也会硬撑
+      行为红线禁令:
+        - 不把她写成只围绕玩家存在的人`;
+
+  const statusBox = document.getElementById('status');
+  const openBtn = document.getElementById('open');
+  const openingOrigin = (() => {
+    try { return new URL(OPENING_URL, location.href).origin; }
+    catch (e) { return '*'; }
+  })();
+  let frame = null;
+  let loadingTimer = null;
+  let loadingDone = null;
+  let loadingSlowTimer = null;
+
+  const say = (text, tone) => {
+    statusBox.textContent = text || '';
+    statusBox.className = text ? ('on' + (tone ? ' ' + tone : '')) : '';
+  };
+
+  const tavernWin = () => {
+    try { if (window.top && window.top !== window) return window.top; } catch (e) {}
+    try { if (window.parent && window.parent !== window) return window.parent; } catch (e) {}
+    return window;
+  };
+
+  const getCoreWindow = () => {
+    const wins = [];
+    try { if (window.parent) wins.push(window.parent); } catch (e) {}
+    try { if (window.top && window.top !== window.parent) wins.push(window.top); } catch (e) {}
+    wins.push(window);
+    for (const win of wins) {
+      try { if (win && win.Mvu && typeof win.Mvu.getMvuData === 'function') return win; } catch (e) {}
+    }
+    for (const win of wins) {
+      try { if (win && win.TavernHelper) return win; } catch (e) {}
+    }
+    return window.parent || window;
+  };
+
+  const getMvu = () => {
+    const win = getCoreWindow();
+    try {
+      if (win && win.Mvu && typeof win.Mvu.getMvuData === 'function'
+          && typeof win.Mvu.replaceMvuData === 'function') return win.Mvu;
+    } catch (e) {}
+    return null;
+  };
+
+  const getHelper = () => {
+    try { return getCoreWindow().TavernHelper || null; } catch (e) { return null; }
+  };
+
+  /* ---------- 全屏挂起开局页 ---------- */
+
+  const ensureStyle = (doc) => {
+    if (doc.getElementById(STYLE_ID)) return;
+    const style = doc.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = [
+      '#' + OVERLAY_ID + '{position:fixed;left:0;top:0;width:100%;height:100%;',
+      'z-index:2147483646;background:#0a0911;display:block;overflow:hidden;}',
+      '#' + OVERLAY_ID + ' iframe{position:relative;z-index:1;display:block;width:100%;height:100%;border:0;background:#0a0911;}',
+      '#' + OVERLAY_ID + ' .lj-loader{position:absolute;inset:0;z-index:2;display:grid;place-items:center;',
+      'background:radial-gradient(circle at 50% 36%,rgba(127,112,181,.25),transparent 34%),',
+      'radial-gradient(circle at 18% 82%,rgba(116,148,185,.13),transparent 32%),#0a0911;',
+      'color:#f3f0fa;font-family:"Noto Sans SC",system-ui,sans-serif;transition:opacity .45s ease,visibility .45s ease;}',
+      '#' + OVERLAY_ID + ' .lj-loader::before{content:"";position:absolute;inset:0;opacity:.16;',
+      'background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),',
+      'linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:34px 34px;}',
+      '#' + OVERLAY_ID + ' .lj-loader.done{opacity:0;visibility:hidden;pointer-events:none;}',
+      '#' + OVERLAY_ID + ' .lj-loader-inner{position:relative;width:min(360px,72vw);text-align:center;}',
+      '#' + OVERLAY_ID + ' .lj-loader-mark{width:48px;height:48px;margin:0 auto 20px;border:1px solid rgba(236,229,255,.38);',
+      'border-radius:50%;display:grid;place-items:center;box-shadow:0 0 36px rgba(169,151,220,.16);}',
+      '#' + OVERLAY_ID + ' .lj-loader-mark::after{content:"";width:9px;height:9px;border-radius:50%;background:#ddd2f4;',
+      'box-shadow:0 0 18px rgba(221,210,244,.9);animation:lj-opening-pulse 1.6s ease-in-out infinite;}',
+      '#' + OVERLAY_ID + ' .lj-loader-title{font-size:15px;font-weight:500;letter-spacing:.18em;margin-bottom:9px;}',
+      '#' + OVERLAY_ID + ' .lj-loader-copy{font-size:11px;letter-spacing:.12em;color:rgba(230,225,240,.56);margin-bottom:23px;}',
+      '#' + OVERLAY_ID + ' .lj-loader-track{height:3px;border-radius:99px;overflow:hidden;background:rgba(235,229,247,.12);',
+      'box-shadow:inset 0 0 0 1px rgba(255,255,255,.025);}',
+      '#' + OVERLAY_ID + ' .lj-loader-bar{position:relative;width:7%;height:100%;border-radius:inherit;',
+      'background:linear-gradient(90deg,#8e87ae,#ded5ef);box-shadow:0 0 13px rgba(201,190,230,.5);transition:width .42s ease;}',
+      '#' + OVERLAY_ID + ' .lj-loader-bar::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent);',
+      'transform:translateX(-100%);animation:lj-opening-shimmer 1.25s linear infinite;}',
+      '#' + OVERLAY_ID + ' .lj-loader-meta{display:flex;justify-content:space-between;margin-top:10px;color:rgba(230,225,240,.43);',
+      'font:400 10px/1.2 "Outfit",system-ui,sans-serif;letter-spacing:.1em;}',
+      '#' + OVERLAY_ID + ' .lj-close{position:absolute;z-index:3;right:14px;top:14px;width:36px;height:36px;padding:0;',
+      'display:grid;place-items:center;border:1px solid rgba(232,236,255,.55);border-radius:50%;',
+      'background:rgba(24,30,62,.82);color:#fff;font:600 18px/1 system-ui,sans-serif;cursor:pointer;',
+      'touch-action:manipulation;-webkit-tap-highlight-color:transparent;',
+      'backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);}',
+      '#' + OVERLAY_ID + ' .lj-close:hover{background:rgba(48,58,110,.9);}',
+      '#' + OVERLAY_ID + ' .lj-close:active{transform:scale(.94);}',
+      '@media(max-width:700px),(hover:none) and (pointer:coarse){',
+      '#' + OVERLAY_ID + ' .lj-close{top:max(52px,calc(env(safe-area-inset-top,0px) + 12px));',
+      'right:max(12px,calc(env(safe-area-inset-right,0px) + 10px));width:48px;height:48px;',
+      'font-size:23px;border-color:rgba(242,244,255,.72);background:rgba(20,27,61,.9);',
+      'box-shadow:0 8px 24px rgba(0,0,0,.28),0 0 0 1px rgba(255,255,255,.08);}',
+      '}',
+      '@keyframes lj-opening-pulse{0%,100%{transform:scale(.72);opacity:.55}50%{transform:scale(1);opacity:1}}',
+      '@keyframes lj-opening-shimmer{to{transform:translateX(100%)}}',
+    ].join('');
+    doc.head.appendChild(style);
+  };
+
+  const closeOverlay = () => {
+    if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
+    if (loadingSlowTimer) { clearTimeout(loadingSlowTimer); loadingSlowTimer = null; }
+    loadingDone = null;
+    const doc = tavernWin().document;
+    const box = doc.getElementById(OVERLAY_ID);
+    if (box) box.remove();
+    frame = null;
+    try { tavernWin().removeEventListener('keydown', onKey); } catch (e) {}
+  };
+
+  const onKey = (event) => { if (event.key === 'Escape') closeOverlay(); };
+
+  const openOverlay = () => {
+    const win = tavernWin();
+    const doc = win.document;
+    closeOverlay();
+    ensureStyle(doc);
+    const box = doc.createElement('div');
+    box.id = OVERLAY_ID;
+
+    const inner = doc.createElement('iframe');
+    inner.title = '临江故事开场';
+    inner.loading = 'eager';
+    inner.referrerPolicy = 'strict-origin-when-cross-origin';
+    inner.allow = 'clipboard-read; clipboard-write; fullscreen';
+
+    const loading = doc.createElement('div');
+    loading.className = 'lj-loader';
+    loading.setAttribute('role', 'status');
+    loading.setAttribute('aria-live', 'polite');
+    loading.innerHTML = '<div class="lj-loader-inner">'
+      + '<div class="lj-loader-mark"></div>'
+      + '<div class="lj-loader-title">正在加载资源</div>'
+      + '<div class="lj-loader-copy">临江的故事即将开始</div>'
+      + '<div class="lj-loader-track"><div class="lj-loader-bar"></div></div>'
+      + '<div class="lj-loader-meta"><span>LOADING</span><span class="lj-loader-percent">7%</span></div>'
+      + '</div>';
+    const loadingBar = loading.querySelector('.lj-loader-bar');
+    const loadingPercent = loading.querySelector('.lj-loader-percent');
+    const loadingCopy = loading.querySelector('.lj-loader-copy');
+    const startedAt = Date.now();
+    let progress = 7;
+
+    const setProgress = (value) => {
+      progress = Math.max(progress, Math.min(100, Math.round(value)));
+      loadingBar.style.width = progress + '%';
+      loadingPercent.textContent = progress + '%';
+    };
+    const timer = setInterval(() => {
+      if (progress >= 92) return;
+      const step = progress < 45 ? 5 + Math.random() * 7 : progress < 76 ? 2 + Math.random() * 4 : .6 + Math.random() * 1.8;
+      setProgress(Math.min(92, progress + step));
+    }, 380);
+    loadingTimer = timer;
+
+    let finished = false;
+    const finishLoading = () => {
+      if (finished) return;
+      finished = true;
+      clearInterval(timer);
+      if (loadingTimer === timer) loadingTimer = null;
+      if (loadingSlowTimer) { clearTimeout(loadingSlowTimer); loadingSlowTimer = null; }
+      setProgress(100);
+      loadingCopy.textContent = '准备完成';
+      const wait = Math.max(180, 620 - (Date.now() - startedAt));
+      win.setTimeout(() => {
+        loading.classList.add('done');
+        win.setTimeout(() => { if (loading.parentNode) loading.remove(); }, 500);
+      }, wait);
+    };
+    loadingDone = finishLoading;
+    inner.addEventListener('load', finishLoading, { once: true });
+    loadingSlowTimer = win.setTimeout(() => {
+      if (!finished) loadingCopy.textContent = '部分装饰资源响应较慢，基础界面仍在准备';
+    }, 6500);
+    inner.src = OPENING_URL;
+
+    const close = doc.createElement('button');
+    close.type = 'button';
+    close.className = 'lj-close';
+    close.textContent = '×';
+    close.title = '暂时离开';
+    close.setAttribute('aria-label', '关闭开局页');
+    /* 内联 onclick 跑在酒馆文档自己的作用域里：本楼层被重绘掉之后，关闭按钮仍然有效。 */
+    close.setAttribute('onclick', "this.parentNode && this.parentNode.remove()");
+    close.addEventListener('click', closeOverlay);
+    box.appendChild(inner);
+    box.appendChild(loading);
+    box.appendChild(close);
+    doc.body.appendChild(box);
+    frame = inner;
+    try { win.addEventListener('keydown', onKey); } catch (e) {}
+    if (getMvu()) say('完成选择后，准备开始打工/看播/调教的都市生活。');
+    else say('MVU未就绪，试试刷新页面。', 'warn');
+  };
+
+  /* ---------- 人设生成：代跑酒馆的模型 ---------- */
+
+  /* 严格解析模型返回。提示词要求了标签和 yaml 围栏，任一层缺失都作为
+     可见错误返回给开局页，不猜测、不截取、不用本地模板顶替。 */
+  const responseExcerpt = (text) => String(text || '').replace(/\s+/g, ' ').trim().slice(0, 240);
+
+  const extractProfileYaml = (content) => {
+    const raw = String(content || '').trim();
+    if (!raw) throw new Error('API 返回为空。');
+    const tagged = raw.match(new RegExp(`^\\s*<${PROFILE_TAG}>([\\s\\S]*?)<\\/${PROFILE_TAG}>\\s*$`, 'i'));
+    if (!tagged || !tagged[1]) {
+      throw new Error(`格式解析失败：缺少完整的 <${PROFILE_TAG}>...</${PROFILE_TAG}> 标签。返回开头：${responseExcerpt(raw)}`);
+    }
+    const body = tagged[1].trim();
+    const fenced = body.match(/^```yaml\s*([\s\S]*?)```\s*$/i);
+    if (!fenced || !fenced[1]) {
+      throw new Error(`格式解析失败：标签内部不是完整的 \`\`\`yaml 代码块。标签内容开头：${responseExcerpt(body)}`);
+    }
+    const yaml = String(fenced[1]).trim();
+    if (!yaml.startsWith('---')) throw new Error('格式解析失败：YAML 正文必须以 --- 开头。');
+    if (!/^角色详情\s*:/m.test(yaml)) throw new Error('格式解析失败：YAML 缺少顶层“角色详情:”字段。');
+    if (/^\s*current_state\s*:/m.test(yaml)) throw new Error('内容校验失败：角色档案含 current_state 运行态字段。');
+    if (/(待补充|住处待定|稍后补充|TODO|TBD|以MVU动态数据为准)/i.test(yaml)) {
+      throw new Error('内容校验失败：角色档案仍含占位文本或 MVU 系统说明。');
+    }
+    return yaml;
+  };
+
+  const normalizeAiResult = (result) => {
+    if (typeof result === 'string') return result;
+    if (Array.isArray(result)) {
+      if (!result.length) throw new Error('API 返回了空数组。');
+      return result.map(normalizeAiResult).filter(Boolean).join('\n');
+    }
+    if (result && typeof result === 'object') {
+      const value = result.content ?? result.text ?? result.message ?? result.result;
+      if (value != null && value !== '') return String(value);
+      throw new Error('API 返回对象格式未识别；可用字段只有：' + Object.keys(result).join(', '));
+    }
+    if (result == null) throw new Error('API 没有返回结果。');
+    return String(result);
+  };
+
+  /* 近期剧情参考：开局时通常没有聊天记录，所以这一段经常是空的，空了就不加。
+     真正有用的场合是玩家中途再补一名主播。 */
+  const buildChatReferenceSection = () => {
+    try {
+      const win = getCoreWindow();
+      const ctx = win.SillyTavern && typeof win.SillyTavern.getContext === 'function'
+        ? win.SillyTavern.getContext() : win.context;
+      const chat = ctx && Array.isArray(ctx.chat) ? ctx.chat : [];
+      if (!chat.length) return '';
+      const lines = chat.slice(-25).map((msg) => {
+        const content = String(msg && msg.mes || '').trim();
+        if (!content) return '';
+        return `**${msg.is_user ? '玩家' : (msg.name || '角色')}**: ${content}`;
+      }).filter(Boolean);
+      if (!lines.length) return '';
+      return `\n\n参考以下剧情内容定位角色形象，补充她的说话方式、行为倾向与当前处境；`
+        + `如果与「玩家已确定的设定」冲突，仍以「玩家已确定的设定」为准。\n\n`
+        + '近期剧情内容参考：\n```markdown\n' + lines.join('\n\n') + '\n```';
+    } catch (e) { return ''; }
+  };
+
+  const buildStreamerProfilePrompt = (input) => {
+    const d = input || {};
+    const mvu = getMvu();
+    let world = {};
+    try {
+      const data = mvu && mvu.getMvuData({ type: 'message', message_id: 'latest' });
+      world = (data && data.stat_data && data.stat_data.世界信息) || {};
+    } catch (e) { world = {}; }
+    const context = {
+      角色名称: d.name || '',
+      来源分类: '开局新建的自定义主播',
+      世界信息: world,
+      玩家已确定的设定: {
+        姓名: d.name || '',
+        主播网名: d.handle || '',
+        年龄: d.age || '',
+        初始住所_仅供生活背景参考: d.home || '未设置',
+        直播分类: d.categories || ['杂谈'],
+        常用直播时间: d.hours || '不固定',
+        气质关键词: d.tone || '无',
+        玩家提供的素材: d.seed || '无',
+      },
+      /* 这一组只给模型定调用：知道她是多大体量的主播，笔调才对得上。
+         这些数已经写进 MVU 了，所以明确要求不要出现在 YAML 里。 */
+      仅供参考的体量_不要写进YAML: {
+        体量: d.scale && d.scale.label || '',
+        粉丝数: d.scale && d.scale.followers || 0,
+        常态热度: d.scale && d.scale.base || 0,
+        大航海: d.scale ? `舰长 ${d.scale.guards} / 提督 ${d.scale.admirals} / 总督 ${d.scale.governors}` : '',
+      },
+    };
+    return `你需要为一名自定义主播生成可写入世界书的详细人物设定 YAML。这是一部现实向的都市直播题材作品，临江市是一座普通的现代城市，没有超能力和奇幻设定。
+
+要求：
+1. 严格参考后面的格式示例，保持同样的层级组织、字段风格和信息密度。
+2. 姓名、主播网名、年龄、直播分类、常用直播时间、气质关键词和玩家素材都是既定事实，必须落实到对应的人设内容中，不许省略。
+3. 初始住所只用于理解她的生活条件，不要生成 current_state、当前所在位置、直播开关、好感、生理状态等运行态字段，也不要写“以MVU为准”一类系统说明。
+4. 必须把身份、私人动机、人际关系、外貌、服装、爱好、特长、说话方式、行为倾向和内在矛盾补成可直接扮演的具体内容；不得出现“待补充”“待定”“以立绘为准”等占位文本。
+5. 她要有自己的工作、生活、人际关系和判断，不是围绕玩家存在的角色。打赏、关注、牌子等级不能换取私人关系或好感。
+6. 「仅供参考的体量」只用来给笔调定调，不要把粉丝数、热度、大航海人数、牌子名这类运行时数字写进 YAML。
+7. 输出中文内容，保持示例的 YAML 层级。不要写解释、前言、后记、分析过程。
+8. 最终只允许输出被指定标签包裹的 YAML；标签内部必须是完整的 \`\`\`yaml 代码块，YAML 必须以 --- 开头。
+
+最终输出格式必须严格如下：
+<${PROFILE_TAG}>
+\`\`\`yaml
+...你的 YAML 正文...
+\`\`\`
+</${PROFILE_TAG}>
+
+当前任务对象：
+\`\`\`json
+${JSON.stringify(context, null, 2)}
+\`\`\`${buildChatReferenceSection()}
+
+格式示例：
+\`\`\`yaml
+${PROFILE_FORMAT_SAMPLE.trim()}
+\`\`\``;
+  };
+
+  const generateStreamerProfile = async (input) => {
+    const helper = getHelper();
+    if (!helper || typeof helper.generateRaw !== 'function') throw new Error('TavernHelper.generateRaw 不可用');
+    const prompt = buildStreamerProfilePrompt(input);
+    let result;
+    try {
+      result = await helper.generateRaw({
+        ordered_prompts: [{ role: 'user', content: prompt }],
+        max_chat_history: 25,
+        should_stream: false,
+        overrides: {
+          world_info_before: '',
+          world_info_after: '',
+          chat_history: { with_depth_entries: false },
+        },
+      });
+    } catch (error) {
+      throw new Error('人设生成 API 调用失败：' + (error && error.message ? error.message : String(error)));
+    }
+    const raw = normalizeAiResult(result);
+    const yaml = extractProfileYaml(raw);
+    return { yaml };
+  };
+
+  /* ---------- 写回 MVU 与世界书 ---------- */
+
+  const isPlain = (value) => !!value && typeof value === 'object' && !Array.isArray(value);
+
+  const deepMerge = (target, source) => {
+    for (const [key, value] of Object.entries(source || {})) {
+      if (isPlain(value)) {
+        if (!isPlain(target[key])) target[key] = {};
+        deepMerge(target[key], value);
+      } else {
+        target[key] = value;
+      }
+    }
+    return target;
+  };
+
+  const writeMvu = (stat) => {
+    if (!isPlain(stat)) throw new Error('开局数据为空');
+    const mvu = getMvu();
+    if (!mvu) throw new Error('MVU 未就绪');
+    const scopes = [{ type: 'message', message_id: 'latest' }, { type: 'chat' }];
+    let written = 0;
+    for (const scope of scopes) {
+      try {
+        const data = mvu.getMvuData(scope);
+        if (!data) continue;
+        if (!isPlain(data.stat_data)) data.stat_data = {};
+        deepMerge(data.stat_data, stat);
+        mvu.replaceMvuData(data, scope);
+        written += 1;
+      } catch (e) {
+        console.warn('[临江开局] MVU 写入失败', scope, e);
+      }
+    }
+    if (!written) throw new Error('MVU 写入失败');
+    return written;
+  };
+
+  const COVER_PREFIX = 'custom_char_cover_';
+  const COVER_MAX_BYTES = 2 * 1024 * 1024;
+
+  const stashCustomCover = (payload) => {
+    const list = payload && Array.isArray(payload.uis) && payload.uis.length
+      ? payload.uis : (payload && payload.ui ? [payload.ui] : []);
+    let saved = 0;
+    let missed = 0;
+    for (const ui of list) {
+      const src = String(ui && ui.art && ui.art.src || '').trim();
+      const name = String(ui && ui.name || '').trim();
+      if (!src || !name) continue;
+      if (/^data:image\//i.test(src) && src.length * 2 > COVER_MAX_BYTES) {
+        missed += 1;
+        continue;
+      }
+      try {
+        const win = getCoreWindow();
+        (win.localStorage || localStorage).setItem(COVER_PREFIX + name, src);
+        saved += 1;
+      } catch (e) {
+        missed += 1;
+      }
+    }
+    if (saved && missed) return '已保存' + saved + '位主播的直播间封面，另有' + missed + '张立绘暂未保存';
+    if (saved) return '已保存' + saved + '位主播的直播间封面';
+    if (missed) return '有' + missed + '张立绘暂未保存，直播间会先使用头像';
+    return '';
+  };
+  const profileEntryName = (name) => PROFILE_PREFIX + String(name || '').trim();
+
+  /* order 从 260–299 里挑一个还没被占的。整段被占满才退到 max+1。
+     只统计同样是 after_character_definition 的条目：order 是按位置类型分别排的，
+     别的位置类型用了 260 不代表这里不能用。 */
+  const pickProfileOrder = (entries, skipUid) => {
+    const used = new Set();
+    let maxOrder = PROFILE_ORDER_END;
+    (Array.isArray(entries) ? entries : []).forEach((entry) => {
+      if (!entry || entry.uid === skipUid) return;
+      if (String(entry.position && entry.position.type || '') !== 'after_character_definition') return;
+      const order = Number(entry.position && entry.position.order);
+      if (!Number.isFinite(order)) return;
+      maxOrder = Math.max(maxOrder, order);
+      if (order >= PROFILE_ORDER_START && order <= PROFILE_ORDER_END) used.add(order);
+    });
+    for (let order = PROFILE_ORDER_START; order <= PROFILE_ORDER_END; order++) {
+      if (!used.has(order)) return order;
+    }
+    return maxOrder + 1;
+  };
+
+  const worldbookEntry = (book, order) => {
+    const keys = book.keys || [];
+    return {
+      name: profileEntryName(book.sourceName || book.name),
+      comment: profileEntryName(book.sourceName || book.name),
+      enabled: true,
+      keys,
+      key: keys,
+      content: String(book.content || '').trim(),
+      strategy: {
+        type: keys.length ? 'selective' : 'constant',
+        keys,
+        keys_secondary: { logic: 'and_any', keys: [] },
+        scan_depth: 'same_as_global',
+      },
+      position: { type: 'after_character_definition', role: 'system', depth: 0, order },
+      probability: 100,
+      /* 人设正文里全是角色名和地名，放开递归会互相把别的条目钓出来 */
+      recursion: { prevent_incoming: true, prevent_outgoing: true, delay_until: null },
+      effect: { sticky: null, cooldown: null, delay: null },
+      extra: {
+        linjiangOpening: {
+          sourceName: String(book.sourceName || book.name || '').trim(),
+          installedAt: new Date().toISOString(),
+        },
+      },
+    };
+  };
+
+  const targetBookName = async (helper) => {
+    try {
+      const names = typeof helper.getCharWorldbookNames === 'function'
+        ? helper.getCharWorldbookNames('current') : null;
+      if (names && names.primary) return names.primary;
+      if (names && Array.isArray(names.additional) && names.additional.length) return names.additional[0];
+    } catch (e) {}
+    for (const fn of ['getOrCreateChatWorldbook', 'getOrCreateChatLorebook']) {
+      try {
+        if (typeof helper[fn] === 'function') {
+          const name = await helper[fn]('current');
+          if (name) return name;
+        }
+      } catch (e) {}
+    }
+    return null;
+  };
+
+  /* 开局页可能一次给两条：「玩家的我推」和自定义主播人设。旧版只认单条 payload.worldbook，
+     这里同时接受 worldbooks 数组，两边都兼容。 */
+  const bookList = (payload) => {
+    const list = Array.isArray(payload && payload.worldbooks) ? payload.worldbooks.slice() : [];
+    if (!list.length && payload && payload.worldbook) list.push(payload.worldbook);
+    return list.filter((book) => book && book.content);
+  };
+
+  /* upsert，不是盲写：靠条目名或者 extra.sourceName 找已有的那条，找到就更新。
+     否则开局页跑第二次会在世界书里留下两条同名人设，谁生效看运气。 */
+  const writeWorldbooks = async (books) => {
+    if (!books.length) return false;
+    const helper = getHelper();
+    if (!helper) return false;
+    const bookName = await targetBookName(helper);
+    if (!bookName) return false;
+
+    const readEntries = async () => {
+      for (const fn of ['getWorldbook', 'getLorebookEntries']) {
+        try {
+          if (typeof helper[fn] === 'function') {
+            const list = await helper[fn](bookName);
+            if (Array.isArray(list)) return list;
+          }
+        } catch (e) { /* 读不到就按空的走，退化成纯新建 */ }
+      }
+      return [];
+    };
+
+    const updateEntry = async (uid, next) => {
+      for (const fn of ['updateWorldbookWith', 'setLorebookEntries']) {
+        try {
+          if (fn === 'updateWorldbookWith' && typeof helper[fn] === 'function') {
+            await helper[fn](bookName, (list) => (Array.isArray(list) ? list : [])
+              .map((item) => (item && item.uid === uid ? { ...item, ...next } : item)));
+            return true;
+          }
+          if (fn === 'setLorebookEntries' && typeof helper[fn] === 'function') {
+            await helper[fn](bookName, [{ uid, ...next }]);
+            return true;
+          }
+        } catch (e) {
+          console.warn('[临江开局] 世界书更新失败 ' + fn, e);
+        }
+      }
+      return false;
+    };
+
+    const createEntries = async (payloads) => {
+      for (const fn of ['createWorldbookEntries', 'createLorebookEntries']) {
+        try {
+          if (typeof helper[fn] === 'function') {
+            await helper[fn](bookName, payloads, { render: 'immediate' });
+            return true;
+          }
+        } catch (e) {
+          console.warn('[临江开局] 世界书新建失败 ' + fn, e);
+        }
+      }
+      return false;
+    };
+
+    let entries = await readEntries();
+    let touched = 0;
+    for (const book of books) {
+      const source = String(book.sourceName || book.name || '').trim();
+      const entryName = profileEntryName(source);
+      const existing = entries.find((entry) => {
+        if (!entry) return false;
+        const sameName = String(entry.name || entry.comment || '').trim() === entryName;
+        const sameSource = String(entry.extra?.linjiangOpening?.sourceName || '').trim() === source;
+        return sameName || sameSource;
+      });
+      const order = pickProfileOrder(entries, existing && existing.uid);
+      const payload = worldbookEntry(book, order);
+      const ok = existing
+        ? await updateEntry(existing.uid, payload)
+        : await createEntries([payload]);
+      if (!ok) return false;
+      touched += 1;
+      if (!existing) entries = await readEntries();
+    }
+    return touched ? bookName : false;
+  };
+
+  const stashWorldbookText = (books) => {
+    const text = books.map((book) => book.content).join('\n\n');
+    if (!text) return false;
+    try {
+      const win = getCoreWindow();
+      const doc = (win && win.document) ? win.document : document;
+      const area = doc.getElementById('send_textarea');
+      if (!area) return false;
+      const current = String(area.value || '').trim();
+      if (current.indexOf(text) === -1) {
+        area.value = current ? (current + '\n\n' + text) : text;
+        area.dispatchEvent(new Event('input', { bubbles: true }));
+        area.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      return true;
+    } catch (e) { return false; }
+  };
+
+  const sendStartMessage = (message) => {
+    const text = String(message || '').trim();
+    if (!text) return false;
+    try {
+      const win = getCoreWindow();
+      const doc = (win && win.document) ? win.document : document;
+      const area = doc.getElementById('send_textarea');
+      const sendButton = doc.getElementById('send_but');
+      if (!area || !sendButton) return false;
+      const current = String(area.value || '').trim();
+      area.value = current && current.indexOf(text) === -1 ? (current + '\n\n' + text) : text;
+      area.dispatchEvent(new Event('input', { bubbles: true }));
+      area.dispatchEvent(new Event('change', { bubbles: true }));
+      sendButton.click();
+      return true;
+    } catch (error) {
+      console.error('[临江开局] 发送开局消息失败', error);
+      return false;
+    }
+  };
+
+  const commit = async (payload) => {
+    const notes = [];
+    try {
+      writeMvu(payload && payload.mvu);
+      notes.push('你的身份与生活档案已经保存');
+    } catch (error) {
+      console.error('[临江开局] 保存失败', error);
+      say('保存时遇到一点问题，请稍后再试。', 'warn');
+      return;
+    }
+    /* 本地上传图只保存在当前浏览器的 localStorage；网络图片 URL 会由 opening.js
+       写入直播间配置。这样本地 base64 不会进入 MVU。 */
+    const coverNote = stashCustomCover(payload);
+    if (coverNote) notes.push(coverNote);
+    try { const core = getCoreWindow(); core?.dispatchEvent?.(new core.CustomEvent('linjiang:opening-committed')); } catch (e) {}
+
+    const oshi = (payload && Array.isArray(payload.oshi)) ? payload.oshi : [];
+    if (oshi.length) {
+      notes.push('已经关注 ' + oshi.map((x) => x.name).join('、') + '，她们会出现在你的临江日常里');
+    }
+    const books = bookList(payload);
+    if (books.length) {
+      let book = false;
+      try { book = await writeWorldbooks(books); }
+      catch (e) { book = false; }
+      if (book) notes.push('你所期待的相遇已经准备好了');
+      else if (stashWorldbookText(books)) notes.push('人物故事已放入本次开局消息');
+      else notes.push('人物故事暂未保存，请在离开前复制留存');
+    }
+    const sent = sendStartMessage(payload && payload.startMessage);
+    if (sent) notes.push('玩家出身配置与开局内容已经发送');
+    else {
+      const startMessage = String(payload && payload.startMessage || '').trim();
+      if (startMessage && navigator.clipboard) navigator.clipboard.writeText(startMessage).catch(() => {});
+      if (startMessage) notes.push('开局内容已复制，可直接粘贴发送');
+    }
+    say(notes.join('；') + '。', sent ? 'ok' : 'warn');
+    closeOverlay();
+  };
+
+  /* ---------- 桥接 ---------- */
+
+  const onMessage = async (event) => {
+    const data = event.data;
+    if (!data || data.channel !== CHANNEL) return;
+    if (!frame || event.source !== frame.contentWindow) return;
+    if (openingOrigin !== '*' && event.origin !== openingOrigin) return;
+
+    if (data.kind === 'event' && data.type === 'ready') {
+      try { loadingDone?.(); } catch (e) {}
+      return;
+    }
+
+    if (data.kind === 'request') {
+      const reply = { channel: CHANNEL, kind: 'response', id: data.id };
+      try {
+        if (data.action !== 'generateStreamerProfile') throw new Error('未知桥接动作: ' + data.action);
+        say('正在为你的特别关注补全故事…');
+        const payload = await generateStreamerProfile(data.payload || {});
+        event.source.postMessage(Object.assign({ ok: true, payload }, reply), event.origin);
+        say('她的故事已经准备好了。', 'ok');
+      } catch (error) {
+        console.error('[临江开局] 自定义主播人设生成失败', error);
+        event.source.postMessage(Object.assign({
+          ok: false, error: error && error.message ? error.message : String(error),
+        }, reply), event.origin);
+        say('人设生成失败：' + (error && error.message ? error.message : String(error)), 'warn');
+      }
+      return;
+    }
+
+    if (data.kind === 'event' && data.type === 'commitPreview') {
+      await commit(data.payload || {});
+    }
+  };
+
+  const bind = (win) => {
+    try { win.addEventListener('message', onMessage); } catch (e) {}
+  };
+
+  bind(window);
+  if (tavernWin() !== window) bind(tavernWin());
+  openBtn.addEventListener('click', openOverlay);
+  if (!getMvu()) say('故事档案正在准备中，请稍候片刻再开启。');
+})();
+</script>
+</body></html>
