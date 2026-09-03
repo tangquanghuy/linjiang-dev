@@ -1,0 +1,4499 @@
+```text
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>临江 · 玻璃状态栏</title>
+<!-- 状态栏（自包含版）。粘进角色卡「状态栏」。
+     ==================================================================
+     本文件由 scripts/build-status-shell.mjs 从 public/shell/status-shell.js 生成，
+     请勿直接编辑 —— 要改逻辑请改那个脚本，然后跑 npm run shell:build。
+
+     这一版把壳层脚本整份内联进来，所以它跟当初那个手写的单文件壳层在行为上完全一样。
+     它存在的唯一理由是向后兼容：已经装了旧版的用户可以继续粘这一份。
+
+     但它有一个改不掉的毛病 —— 粘下去就冻结了。HUD 产物在 GitHub Pages 上持续更新，这份
+     不会。两者是同一个 RPC 契约的两端，脱节的后果是静默错账（已经出过一次：建设费不扣钱）。
+     新装请用 外部部署/V20260826/状态栏-引导壳.html，那一份粘一次就永远跟着线上走。 -->
+<style>
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: #05040a;
+    overflow: hidden;
+  }
+  #hud {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #05040a;
+  }
+  #hint {
+    display: none;
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    z-index: 2;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(8, 10, 18, 0.82);
+    color: #e2e8f0;
+    font: 12px/1.4 system-ui, sans-serif;
+    pointer-events: none;
+  }
+  #hint.show { display: block; }
+</style>
+</head>
+<body>
+<iframe id="hud" title="玻璃状态栏" src="" loading="eager" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-read; clipboard-write"></iframe>
+<div id="hint"></div>
+<script>
+/* 状态栏壳层的全部逻辑。
+   ==================================================================
+   这份文件是**源**，两份 HTML 包装都由 scripts/build-status-shell.mjs 从它生成：
+
+     外部部署/V20260826/状态栏-引导壳.html   约 50 行，粘一次就不用再动。它只负责用 <script src>
+                                   把本文件从 GitHub Pages 取下来执行。
+     外部部署/V20260826/状态栏.html          自包含版，把本文件内联回去。给已经装了旧版的用户继续粘。
+
+   为什么要拆
+   ------------------------------------------------------------------
+   壳层是粘贴部署的（塞进角色卡），HUD 产物是 Pages 自动部署的。两者是同一个 RPC 契约的
+   两端，却有完全不同的更新节奏：推一次 main，HUD 几秒后对所有玩家生效；壳层冻结在每个人
+   安装的那一天。结果就是玩家手里握着一份越来越旧的权威代码，而依赖它的那一半在脚下持续更新。
+
+   已经吃过一次亏：城市规划蓝图的建设费扣款只在壳层里（见下面的 saveCustomMapNode），
+   HUD 侧的价钱显示和按钮禁用却随 Pages 上线了。旧壳层照样建节点、就是不扣钱，而 HUD 无从
+   分辨「扣了」和「没扣」—— 于是变成静默的免费建设，不是报错。
+
+   握手加版本号解决不了这件事：玩家不会因为看到「请更新状态栏」就去重新粘 118KB 代码，你也
+   没法强制他们。唯一有用的做法是让粘贴的那部分不含逻辑 —— 没有逻辑就没有版本，没有版本就
+   无从脱节。
+
+   为什么从 CDN 取来的脚本还能写 MVU
+   ------------------------------------------------------------------
+   同源权限属于**文档**，不属于脚本的来源 URL。本文件在酒馆助手渲染出来的 srcdoc iframe 里
+   执行，那个文档与酒馆顶层同源，所以 parent.Mvu 照样摸得到。两个可能的拦路虎都不存在：
+   酒馆助手不给 srcdoc iframe 加 sandbox，SillyTavern 的 src/server-main.js 里是
+   contentSecurityPolicy: false。
+
+   「那 CDN 挂了怎么办」不是问题：壳层唯一的用途就是伺候 HUD，而 HUD 那 250KB 本来就从网络
+   加载。取不到脚本的时候 HUD 也起不来，壳层活着也无事可做。把壳层留在本地换不来任何韧性，
+   只是把这 2700 行钉死在每个玩家的存档里。
+
+   本文件走 jsDelivr（testingcf）而不是 Pages，原因是延迟差 20 倍 —— 完整的实测数据和取舍写在
+   scripts/build-status-shell.mjs 的 SHELL_URL 那一段。jsDelivr 的 12 小时边缘缓存由 CI 自动
+   purge 抵掉，所以推一次 main 就对所有人生效。一次坏部署会作用到所有人，但修复同样是一次推送
+   —— 这一点比「等所有人重新粘贴」强得多。
+*/
+(function () {
+  /* This srcdoc is same-origin with the tavern. Desktop/Tauri keep the cross-origin
+     HUD iframe transport; native mobile browsers mount the HUD bundle in this document. */
+  const SHELL_VERSION = 'shell-a8a850d3';
+
+  /* 记号要在两道守卫**之前**就落下。引导壳靠它判断「脚本到底有没有到」，语义必须是
+     「本文件执行过了」而不是「装载成功了」—— 否则下面任何一条提前 return 都会让引导壳
+     误报成网络失败，给用户一句错的提示。线上排查时它也能一眼看出玩家跑的是哪一版。 */
+  try {
+    document.documentElement.dataset.linjiangShell = SHELL_VERSION;
+  } catch (e) {}
+  /* 原生流下 HUD bundle 就在本文档里跑，所以直接给它留个全局；抬升架构走握手回包
+     （见 handleRequest 的 handshake）。两条路都通，HUD 侧就不用关心自己在哪种架构里。 */
+  try {
+    window.__linjiangShellVersion = SHELL_VERSION;
+  } catch (e) {}
+
+  /* 以下两道守卫是「脚本改成异步加载」之后才需要的，内联时代不可能触发。
+     ------------------------------------------------------------------
+     一、window.frameElement 为空。内联执行时这个 iframe 一定还在，异步就不一定了 ——
+         酒馆助手重渲染楼层、或者用户在脚本到达前翻走，iframe 就已经被摘掉。文件末尾
+         manager.register 要拿 window.frameElement 当锚点，传个 null 进去会让 messageRank
+         炸在一个毫无意义的地方。这里直接不干活退出，交给下一次渲染。
+     二、同一文档里重复执行。srcdoc 文档理论上只加载一次，但引导壳如果被谁复制了两份
+         script 标签，两个 IIFE 会各自 register 一个 controller，manager 就会在两个假的
+         候选之间反复改选。用一个文档级标记挡掉。 */
+  if (!window.frameElement) {
+    console.warn(`[临江状态栏] iframe 已不在文档里，跳过本次装载（${SHELL_VERSION}）`);
+    return;
+  }
+  const GUARD = '__linjiangStatusShellLoaded';
+  if (window[GUARD]) {
+    console.warn(`[临江状态栏] 本文档已装载过壳层（${window[GUARD]}），跳过重复执行`);
+    return;
+  }
+  window[GUARD] = SHELL_VERSION;
+  const HUD_URL = 'https://tangquanghuy.github.io/linjiang-glass/?v=20260823-cg-bridge-v1';
+  // const HUD_URL = 'http://127.0.0.1:5173/';
+  const CHANNEL = 'linjiang-hud';
+  const POLL_MS = 10000;
+
+  /* 收回态改用酒馆的原生嵌入（实验开关，默认关）。
+     ==================================================================
+     生产行为：收回态（compacted）跟展开态一样，HUD 被抬到酒馆 body 上的裁剪台里，靠 followHud
+     逐帧跟着栏位走。也就是说「收回嵌入框」只是**排版变体**，机制跟展开态完全相同。
+
+     打开这个开关后，只有收回态改成真正的原生嵌入：HUD 直接挂在楼层自己的文档里，
+     position:static、宽 100%，滚动/裁剪/层叠/高度全部交给酒馆和浏览器。展开态、全屏、竖屏整页
+     一律走原来的生产路径，一个字没改。
+
+     它是给 外部部署/V20260826/状态栏-测试版-流内嵌入.html 用的（由 scripts/build-status-shell.mjs 生成，
+     那份产物会在加载本脚本之前把这个全局设成 true）。生产的两份包装都不设它，所以走的还是老路。
+
+     这个开关现在只作用于桌面/强制抬升路径。手机原生流本来就直接渲染在楼层文档里，
+     因此会明确忽略它；普通版和“流内嵌入版”在 TT 手机上走同一条立即挂载路径。桌面上
+     打开它仍会付出 iframe 跨文档移动导致重载的代价。 */
+  const INLINE_DOCK_REQUESTED = (() => {
+    try { return !!window.__linjiangInlineDock; } catch (e) { return false; }
+  })();
+
+  /* Mobile browsers use a different architecture: the HUD bundle is executed directly
+     in this Tavern Helper srcdoc document. The outer JSR iframe stays in normal flow,
+     so Chrome owns touch scrolling exactly like the reference bottom status bar.
+     The decision is locked for this document; keyboard and toolbar viewport changes do
+     not switch architectures mid-session. */
+  const MOBILE_NATIVE_FLOW = (() => {
+    try {
+      if (window.__linjiangForceDesktopShell) return false;
+      const host = window.top || window.parent || window;
+      const nav = host.navigator || navigator;
+      const ua = String(nav.userAgent || '');
+      const uaMobile = /android|iphone|ipad|ipod|mobile/i.test(ua);
+      const coarse = !!host.matchMedia?.('(pointer: coarse)')?.matches
+        || Number(nav.maxTouchPoints || 0) > 0;
+      if (!uaMobile && !coarse) return false;
+      const width = Number(host.innerWidth || innerWidth) || 0;
+      const height = Number(host.innerHeight || innerHeight) || 0;
+      /* TauriTavern 的移动端也走这条路。
+         ==================================================================
+         这里原来有一条 `if (host.__TAURITAVERN__) return false;`，理由是"TT 保留原有兼容
+         路径，等单独迁移和测试"。结果是：**唯一为了救移动端性能而做的那条路，恰好把
+         TT 用户排除在外**，而 TT 正是移动端的主要宿主。TT 用户拿到的仍是抬升架构，而且在
+         「收进嵌入框」下每来一条 AI 消息都要把 HUD iframe 跨文档挪一次 —— iframe 换父节点
+         必重载，也就是每条消息重新下载执行一整个 HUD。1 核机上这是灾难级的。
+
+         原生流在 TT 上其实比抬升更安全，不是更危险：它根本不建 position:fixed 的浮层，
+         于是 TT 那套浮层准入（mobile-overlay-compat-controller）和几何防火墙
+         （mobile-geometry-firewall 会改写 edge-window 的 top）都没有可作用的对象 ——
+         我们不再需要靠 data-tt-mobile-surface="none" 去申请豁免，因为压根没有面要豁免。
+         同理，TT 把楼层运行时挪进 0×0 停车场那套麻烦（isSafeOuterFrame / recoverInlineDock /
+         startInlineResumeWatch 全是为它写的）在原生流下也不存在：HUD 就在楼层文档里，
+         楼层去哪它去哪。
+
+         宽度判据对 TT 要放宽。 Tauri 的 WebView 会报出比屏幕像素更宽的 CSS 视口（这一点
+         isIosTauriTavernMobile 上面那段注释已经踩过），所以对 TT 移动运行时改用「竖屏即
+         移动」——跟 portraitHud() 一直信的是同一条规则。否则去掉排除也白搭：TT 会因为
+         innerWidth > 879 而继续掉回抬升架构。 */
+      const ttMobile = !!host.__TAURITAVERN__ && (uaMobile || coarse);
+      if (ttMobile && width > 0 && height > 0 && width < height) return true;
+      return width <= 879;
+    } catch (e) {
+      return false;
+    }
+  })();
+
+  /* 手机原生流本身已经是“楼层内直接渲染”，不再叠加旧实验开关。这样普通版与
+     流内嵌入版在 TT 手机上走完全相同的启动/恢复路径，包装里遗留的开关不会再把
+     楼层带进旧的跨文档停靠逻辑。 */
+  const INLINE_DOCK = INLINE_DOCK_REQUESTED && !MOBILE_NATIVE_FLOW;
+
+  const localHudFrame = document.getElementById('hud');
+  let hudFrame = localHudFrame;
+  const hint = document.getElementById('hint');
+  const hudOrigin = (() => {
+    try { return new URL(HUD_URL, location.href).origin; }
+    catch (e) { return '*'; }
+  })();
+
+  const shellOrigin = (() => {
+    try { return document.referrer ? new URL(document.referrer).origin : location.origin; }
+    catch (e) { return location.origin || '*'; }
+  })();
+
+  const showHint = (text) => {
+    hint.textContent = text || '';
+    hint.classList.toggle('show', !!text);
+  };
+
+  const getCoreWindow = () => {
+    const wins = [];
+    try { if (window.parent) wins.push(window.parent); } catch (e) {}
+    try { if (window.top && window.top !== window.parent) wins.push(window.top); } catch (e) {}
+    wins.push(window);
+    for (const win of wins) {
+      try {
+        if (win && win.Mvu && typeof win.Mvu.getMvuData === 'function') return win;
+      } catch (e) {}
+    }
+    return window.parent || window;
+  };
+
+  const mvuState = {
+    ready: false,
+    mvu: null,
+    check() {
+      const win = getCoreWindow();
+      if (!win || typeof win.Mvu === 'undefined'
+          || typeof win.Mvu.getMvuData !== 'function'
+          || typeof win.Mvu.replaceMvuData !== 'function') {
+        this.ready = false;
+        this.mvu = null;
+        return false;
+      }
+      this.ready = true;
+      this.mvu = win.Mvu;
+      return true;
+    },
+  };
+
+  const fetchLatestMvuData = () => {
+    let finalData = {};
+    try {
+      if (mvuState.ready || mvuState.check()) {
+        const messageData = mvuState.mvu.getMvuData({ type: 'message', message_id: 'latest' });
+        const chatData = mvuState.mvu.getMvuData({ type: 'chat' });
+        const messageStat = messageData?.stat_data || {};
+        const chatStat = chatData?.stat_data || {};
+        if (Object.keys(messageStat).length > 0) finalData = messageStat;
+        else finalData = chatStat;
+      }
+    } catch (e) {
+      console.warn('[临江状态栏] MVU 读取失败', e);
+    }
+    return finalData;
+  };
+
+  /* 网络图片 URL 可以随 MVU 保存；本地上传图只留在同源 localStorage，避免
+     base64 膨胀每条消息的 stat_data。无痕窗口只会看到 MVU 中的网络 URL。 */
+  const HUD_COVER_PREFIX = 'custom_char_cover_';
+  const validRemoteCover = (value) => {
+    const src = String(value || '').trim();
+    return /^https?:\/\//i.test(src) ? src : '';
+  };
+  const validLocalCover = (value) => {
+    const src = String(value || '').trim();
+    return /^data:image\/(?:png|jpe?g|webp|gif|avif);base64,/i.test(src) || /^https?:\/\//i.test(src) ? src : '';
+  };
+  const readHudUi = (stat) => {
+    const characterCovers = {};
+    const names = Object.keys((stat && stat.对象信息) || {});
+    const rooms = stat?.系统配置?.直播间 || {};
+    try {
+      const core = getCoreWindow();
+      const storage = core.localStorage || localStorage;
+      names.forEach((name) => {
+        const src = validRemoteCover(rooms?.[name]?.封面)
+          || validLocalCover(storage.getItem(HUD_COVER_PREFIX + name));
+        if (src) characterCovers[name] = src;
+      });
+    } catch (e) {
+      names.forEach((name) => {
+        const src = validRemoteCover(rooms?.[name]?.封面);
+        if (src) characterCovers[name] = src;
+      });
+    }
+    return { characterCovers };
+  };
+
+  const hudSnapshot = (stat) => ({ stat_data: stat, ui: readHudUi(stat) });
+
+  const applyMvuPatches = (patches) => {
+    try {
+      if (!mvuState.ready && !mvuState.check()) return false;
+      const mvuData = mvuState.mvu.getMvuData({ type: 'message', message_id: 'latest' });
+      if (!mvuData?.stat_data) return false;
+      (patches || []).forEach((patch) => {
+        const parts = String(patch.path || '').split('/').filter(Boolean);
+        if (!parts.length) return;
+        if (patch.op === 'replace' || patch.op === 'add') {
+          let obj = mvuData.stat_data;
+          for (let i = 0; i < parts.length - 1; i++) {
+            if (!obj[parts[i]]) obj[parts[i]] = {};
+            obj = obj[parts[i]];
+          }
+          obj[parts[parts.length - 1]] = patch.value;
+        } else if (patch.op === 'remove') {
+          let obj = mvuData.stat_data;
+          for (let i = 0; i < parts.length - 1; i++) {
+            if (!obj[parts[i]]) return;
+            obj = obj[parts[i]];
+          }
+          delete obj[parts[parts.length - 1]];
+        }
+      });
+      mvuState.mvu.replaceMvuData(mvuData, { type: 'message', message_id: 'latest' });
+      return true;
+    } catch (e) {
+      console.warn('[临江状态栏] MVU 写入失败', e);
+      return false;
+    }
+  };
+
+  const sendMessage = (text) => {
+    const next = String(text || '').trim();
+    if (!next) throw new Error('消息内容为空');
+    const win = getCoreWindow();
+    const doc = (win && win.document) ? win.document : document;
+    const textarea = doc.getElementById('send_textarea');
+    if (!textarea) throw new Error('未找到聊天输入框');
+    const sendButton = doc.getElementById('send_but');
+    textarea.value = next;
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    textarea.dispatchEvent(new Event('change', { bubbles: true }));
+    if (sendButton) sendButton.click();
+    try { textarea.focus(); } catch (e) {}
+    return true;
+  };
+
+  const clockIn = () => {
+    const data = fetchLatestMvuData() || {};
+    const work = data.玩家信息?.工作 || {};
+    const job = work.职业;
+    const place = work.地点;
+    const daily = Number(work.日收入) || 0;
+    const done = !!work.今日已上班;
+    const here = data.世界信息?.位置?.区域;
+    if (!job) throw new Error('无业');
+    if (done) throw new Error('今日已上班');
+    if (here !== place) throw new Error('未到岗');
+    if (daily <= 0) throw new Error('日收入为 0');
+    const money = Number(data.玩家信息?.金钱) || 0;
+    const ok = applyMvuPatches([
+      { op: 'replace', path: '/玩家信息/金钱', value: money + daily },
+      { op: 'replace', path: '/玩家信息/工作/今日已上班', value: true },
+    ]);
+    if (!ok) throw new Error('MVU 写入失败');
+    return { money: money + daily, daily };
+  };
+
+  const ARCADE_MILESTONES = [
+    { id: 'slot-golden-grape', unlock: 'slot_golden_grape', label: '黄金葡萄', game: 'slots', field: '旋转次数', target: 50 },
+    { id: 'fish-golden-clown', unlock: 'fish_golden_clown', label: '黄金小丑鱼', game: 'fishing', field: '捕获次数', target: 100 },
+    { id: 'fish-starlight-jelly', unlock: 'fish_starlight_jelly', label: '星光水母', game: 'fishing', field: '捕获次数', target: 500 },
+    { id: 'slot-mystery-cloud', unlock: 'slot_mystery_cloud', label: '云雾问号', game: 'slots', field: '旋转次数', target: 500 },
+    { id: 'fish-deep-bomb', unlock: 'fish_deep_bomb', label: '深海炸弹', game: 'fishing', field: '捕获次数', target: 2000 },
+  ];
+
+  const freshArcadeProfile = () => ({
+    版本: 3,
+    统计: {
+      刮刮乐: { 结算次数: 0, 中奖次数: 0, 最高倍率: 0, 累计返奖: 0 },
+      幸运机: { 旋转次数: 0, 中奖次数: 0, 最高倍率: 0, 累计返奖: 0 },
+      捕鱼: { 结算次数: 0, 捕获次数: 0, 最高倍率: 0, 累计返奖: 0, 清屏次数: 0 },
+    },
+    已解锁: {},
+    已达成: {},
+  });
+
+  const num = (value) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const normalizeArcadeProfile = (raw) => {
+    const base = freshArcadeProfile();
+    const src = raw && typeof raw === 'object' ? raw : {};
+    const stats = src.统计 && typeof src.统计 === 'object' ? src.统计 : {};
+    for (const [game, defaults] of Object.entries(base.统计)) {
+      const row = stats[game] && typeof stats[game] === 'object' ? stats[game] : {};
+      for (const key of Object.keys(defaults)) defaults[key] = Math.max(0, num(row[key]));
+    }
+    base.已解锁 = src.已解锁 && typeof src.已解锁 === 'object' ? { ...src.已解锁 } : {};
+    base.已达成 = src.已达成 && typeof src.已达成 === 'object' ? { ...src.已达成 } : {};
+    const sourceVersion = Math.floor(num(src.版本));
+    if (sourceVersion < 3) {
+      const rows = { scratch: base.统计.刮刮乐, slots: base.统计.幸运机, fishing: base.统计.捕鱼 };
+      for (const milestone of ARCADE_MILESTONES) {
+        const reached = num(rows[milestone.game]?.[milestone.field]) >= milestone.target;
+        if (reached) {
+          base.已达成[milestone.id] = true;
+          base.已解锁[milestone.unlock] = true;
+        } else {
+          delete base.已达成[milestone.id];
+          delete base.已解锁[milestone.unlock];
+        }
+      }
+    }
+    base.版本 = 3;
+    return base;
+  };
+
+  const recordArcadeEvent = (event) => {
+    if (!mvuState.ready && !mvuState.check()) throw new Error('MVU 未就绪');
+    const mvuData = mvuState.mvu.getMvuData({ type: 'message', message_id: 'latest' });
+    if (!mvuData?.stat_data) throw new Error('MVU 数据为空');
+    const stat = mvuData.stat_data;
+    const profile = normalizeArcadeProfile(stat.系统配置?.街机);
+    const detail = event?.detail && typeof event.detail === 'object' ? event.detail : {};
+    if (event?.game === 'scratch' && /:settled$/.test(String(event?.type))) {
+      const row = profile.统计.刮刮乐;
+      row.结算次数 += 1;
+      if (num(detail.payout) > 0) row.中奖次数 += 1;
+      row.最高倍率 = Math.max(row.最高倍率, num(detail.multiplier));
+      row.累计返奖 += Math.max(0, num(detail.payout));
+    } else if (event?.game === 'slots' && /:settled$/.test(String(event?.type))) {
+      const row = profile.统计.幸运机;
+      row.旋转次数 += 1;
+      if (num(detail.payout) > 0) row.中奖次数 += 1;
+      row.最高倍率 = Math.max(row.最高倍率, num(detail.multiplier));
+      row.累计返奖 += Math.max(0, num(detail.payout));
+    } else if (event?.game === 'fishing' && /:settled$/.test(String(event?.type))) {
+      const row = profile.统计.捕鱼;
+      row.结算次数 += 1;
+      if (detail.captured) row.捕获次数 += 1;
+      if (detail.special === 'clear' && detail.captured) row.清屏次数 += 1;
+      row.最高倍率 = Math.max(row.最高倍率, num(detail.multiplier));
+      row.累计返奖 += Math.max(0, num(detail.payout));
+    } else {
+      return { profile, unlocked: [], ignored: true };
+    }
+
+    const rows = { scratch: profile.统计.刮刮乐, slots: profile.统计.幸运机, fishing: profile.统计.捕鱼 };
+    const unlocked = [];
+    for (const milestone of ARCADE_MILESTONES) {
+      if (profile.已达成[milestone.id]) continue;
+      if (num(rows[milestone.game]?.[milestone.field]) < milestone.target) continue;
+      profile.已达成[milestone.id] = true;
+      profile.已解锁[milestone.unlock] = true;
+      unlocked.push({ id: milestone.unlock, label: milestone.label, milestone: milestone.id });
+    }
+
+    if (!stat.系统配置 || typeof stat.系统配置 !== 'object') stat.系统配置 = {};
+    stat.系统配置.街机 = profile;
+    /* 蓝图是街机代币换的，玩街机的人正是持有它的人，这条又是最频繁的写入路径——
+       挂在这儿，老存档的旧描述基本上下一次结算就被改正了。 */
+    syncBlueprintDescription(stat);
+    mvuState.mvu.replaceMvuData(mvuData, { type: 'message', message_id: 'latest' });
+    return { profile, unlocked };
+  };
+
+  const hudWindow = () => hudFrame?.contentWindow || null;
+  const postToHud = (payload) => {
+    if (MOBILE_NATIVE_FLOW) {
+      /* Reuse bridge.js's normal inbound-message parser, but deliver inside this
+         document. source/origin deliberately look like the same-origin tavern parent. */
+      try {
+        dispatchEvent(new MessageEvent('message', {
+          data: payload,
+          source: window.parent,
+          origin: shellOrigin,
+        }));
+      } catch (e) {}
+      return;
+    }
+    const target = hudWindow();
+    if (!target) return;
+    try { target.postMessage(payload, hudOrigin === '*' ? '*' : hudOrigin); }
+    catch (e) {}
+  };
+
+  const postHudMode = (mode) => {
+    postToHud({
+      channel: CHANNEL,
+      kind: 'event',
+      type: 'layoutMode',
+      payload: { mode: mode === 'portrait' ? 'portrait' : 'landscape' },
+    });
+  };
+
+  let lastSnap = '';
+  const pushSnapshot = (force) => {
+    if (!isOwner()) return;
+    const stat = fetchLatestMvuData();
+    const hasWorld = !!(stat && stat.世界信息);
+    showHint(hasWorld ? '' : '等待 MVU 数据…');
+    if (!hasWorld) return;
+    const snapshot = hudSnapshot(stat);
+    const json = JSON.stringify(snapshot);
+    if (!force && json === lastSnap) return;
+    lastSnap = json;
+    postToHud({ channel: CHANNEL, kind: 'event', type: 'snapshot', context: manager.context(), payload: snapshot });
+  };
+
+  /* 唤起外部部署的小手机。
+     ------------------------------------------------------------------
+     本页不含任何小手机代码，只是替掉它原来的悬浮球：小手机脚本自己在酒馆里跑，
+     我们只负责按下那颗钮。
+
+     以前这里只在 top / parent / 自己身上找 __linjiangOpenMobilePhone，前提是小手机脚本
+     能把函数挂到酒馆顶层。那一步只在同源时成立，而小手机通常跑在酒馆助手的脚本框架里，
+     一旦中间有一层跨源/沙箱，赋值就静默失败，这边一个候选都命中不了 —— 于是点了没反应。
+
+     现在两条路依次试：先把整棵框架树都翻一遍找同源的启动函数（indexed frame 访问和
+     length 跨源也读得到，所以这棵树能完整走完，只是跨源的那些取不到属性）；再不行就往
+     每个框架广播一条 postMessage，由小手机脚本自己应答（见 phone/src/31-global-exports.js）。 */
+  const PHONE_CHANNEL = 'linjiang-phone';
+  const PHONE_ACK_MS = 1500;
+  let phoneSeq = 0;
+  const phoneAcks = new Map();
+
+  const frameTree = (root) => {
+    const out = [];
+    const walk = (win) => {
+      if (!win || out.indexOf(win) !== -1) return;
+      out.push(win);
+      let count = 0;
+      try { count = win.frames.length || 0; } catch (e) { count = 0; }
+      for (let i = 0; i < count; i++) {
+        let child = null;
+        try { child = win.frames[i]; } catch (e) { child = null; }
+        if (child) walk(child);
+      }
+    };
+    try { walk(root); } catch (e) {}
+    return out;
+  };
+
+  const phoneWindows = () => {
+    const wins = frameTree(tavernWin());
+    [window.top, window.parent, window].forEach((win) => {
+      try { if (win && wins.indexOf(win) === -1) wins.push(win); } catch (e) {}
+    });
+    return wins;
+  };
+
+  const findPhoneLauncher = () => {
+    for (const win of phoneWindows()) {
+      try {
+        const launch = win.__linjiangOpenMobilePhone || win.openMobilePhone;
+        if (typeof launch === 'function') return launch;
+      } catch (e) {}
+    }
+    return null;
+  };
+
+  const askPhoneByMessage = () => new Promise((resolve) => {
+    const id = 'phone-' + (++phoneSeq) + '-' + Date.now();
+    const timer = setTimeout(() => {
+      phoneAcks.delete(id);
+      resolve(false);
+    }, PHONE_ACK_MS);
+    phoneAcks.set(id, () => {
+      clearTimeout(timer);
+      phoneAcks.delete(id);
+      resolve(true);
+    });
+    const payload = { channel: PHONE_CHANNEL, type: 'open', id };
+    phoneWindows().forEach((win) => {
+      if (win === window) return;
+      try { win.postMessage(payload, '*'); } catch (e) {}
+    });
+  });
+
+  const onPhoneAck = (event) => {
+    const data = event.data;
+    if (!data || data.channel !== PHONE_CHANNEL || data.type !== 'opened') return;
+    const done = phoneAcks.get(data.id);
+    if (done) done();
+  };
+
+  /* 正文插图和 HUD / 小手机分别住在不同 iframe 与 origin，localStorage 不共享。
+     正文在图片 load 后向酒馆顶层发 record；当前状态栏 owner 负责持久转发：
+       1. 走 HUD bridge，让 Pages origin 写入自己的 unlocked_cg；
+       2. 向整棵 frame tree 广播 apply，让正在运行的小手机立即同步。 */
+  const CG_UNLOCK_CHANNEL = 'linjiang-cg-unlock';
+  const seenCGUnlocks = new Set();
+  const onCGUnlockRecord = (event) => {
+    const data = event.data;
+    if (!isOwner() || !data || data.channel !== CG_UNLOCK_CHANNEL || data.type !== 'record') return;
+    const character = String(data.character || '').trim();
+    const scene = String(data.scene || '').trim();
+    const count = Math.max(1, Math.floor(Number(data.count) || 1));
+    if (!character || !scene) return;
+    const id = String(data.id || `${character}/${scene}/${count}`);
+    if (seenCGUnlocks.has(id)) return;
+    seenCGUnlocks.add(id);
+    if (seenCGUnlocks.size > 300) {
+      const oldest = seenCGUnlocks.values().next().value;
+      seenCGUnlocks.delete(oldest);
+    }
+    const payload = {
+      id,
+      category: data.category === 'SFW' ? 'SFW' : 'NSFW',
+      character,
+      scene,
+      count
+    };
+    postToHud({
+      channel: CHANNEL,
+      kind: 'event',
+      type: 'cgUnlock',
+      context: manager.context(),
+      payload
+    });
+    const applyMessage = { channel: CG_UNLOCK_CHANNEL, type: 'apply', ...payload };
+    phoneWindows().forEach((win) => {
+      try { win.postMessage(applyMessage, '*'); } catch (e) {}
+    });
+  };
+  const openPhonePanel = async () => {
+    const launch = findPhoneLauncher();
+    if (launch) {
+      launch();
+      return true;
+    }
+    if (await askPhoneByMessage()) return true;
+    throw new Error('没找到小手机脚本，请确认它已在酒馆里启用');
+  };
+
+  const DEV_PARTS = ['口腔', '胸', '小穴', '肛门'];
+
+  const normalizeDevelopmentNotes = (raw) => {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('评语响应不是JSON对象');
+    const notes = {};
+    DEV_PARTS.forEach((part) => {
+      const text = String(raw[part] || '').replace(/\s+/g, ' ').trim();
+      if (!text) throw new Error(`评语响应缺少${part}`);
+      notes[part] = text.slice(0, 1200);
+    });
+    return notes;
+  };
+
+  const parseDevelopmentNotes = (response) => {
+    const text = String(response || '').trim();
+    const tagged = text.match(/<development_notes>([\s\S]*?)<\/development_notes>/i);
+    let body = tagged ? tagged[1].trim() : text;
+    body = body.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    const start = body.indexOf('{');
+    const end = body.lastIndexOf('}');
+    if (start < 0 || end <= start) throw new Error('评语响应中没有JSON对象');
+    try { return normalizeDevelopmentNotes(JSON.parse(body.slice(start, end + 1))); }
+    catch (error) { throw new Error(`评语JSON解析失败：${error.message}`); }
+  };
+
+  const writeDevelopmentNotes = (name, rawNotes) => {
+    const notes = normalizeDevelopmentNotes(rawNotes);
+    const stat = fetchLatestMvuData();
+    if (!stat?.对象信息?.[name]?.开发度) throw new Error(`MVU中找不到目标对象：${name}`);
+    const patches = DEV_PARTS.map((part) => ({
+      op: 'replace',
+      path: `/对象信息/${name}/开发度/${part}/评语`,
+      value: notes[part],
+    }));
+    if (!applyMvuPatches(patches)) throw new Error('评语写入MVU失败');
+    pushSnapshot(true);
+    return notes;
+  };
+
+  const generateDevelopmentNotes = async (payload) => {
+    const name = String(payload?.name || '').trim();
+    const prompt = String(payload?.prompt || '').trim();
+    if (!name || !prompt) throw new Error('评语生成参数不完整');
+    if (!prompt.includes(name)) throw new Error('生成提示词缺少目标对象姓名，无法激活对应世界书');
+    const core = getCoreWindow();
+    const helper = [core, window.parent, window.top, window].map((win) => {
+      try { return win?.TavernHelper; } catch (e) { return null; }
+    }).find((value) => value && typeof value.generate === 'function');
+    if (!helper) throw new Error('TavernHelper.generate API 不可用');
+    const userInput = `【目标对象世界书关键词】${name}\n【只处理目标对象】${name}\n\n${prompt}`;
+    const response = await helper.generate({ user_input: userInput, max_chat_history: 10 });
+    return writeDevelopmentNotes(name, parseDevelopmentNotes(response));
+  };
+  /* ============ 城市规划蓝图：建设费 ============
+     蓝图是「用品」，按变量规则使用不扣数量，所以它是一张可反复用的许可证，不是一次性道具。
+     代价改成按次收钱：每次在地图上确定建设，从 玩家信息.金钱 扣一笔建设费，钱不够就不许开工。
+
+     这个数字是真源。跟着它走的还有三处，改价时一起改：
+       shop/products.json  item-15 的 description / effect / goods.描述
+       src/data.js         CITY_BUILD_COST（HUD 侧显示与按钮禁用）
+       酒馆变量/变量更新规则 + 世界书/道具制作和使用（正文与 AI 侧的规则说明） */
+  const CITY_BUILD_ITEM = '城市规划蓝图';
+  const CITY_BUILD_COST = 1000000;
+  const yuan = (value) => `￥${Math.round(Number(value) || 0).toLocaleString('en-US')}`;
+  const CITY_BUILD_DESC = `使用后，在地图和世界书中添加你自己的地图节点，并自动将其拥有为自己的资产。每次确定建设另需支付 ${yuan(CITY_BUILD_COST)} 建设费，金钱不足时无法开工；蓝图本身不消耗，可反复使用。`;
+
+  /* 老存档的背包里存着旧版描述（没有建设费那一句）。描述是购买时抄进 MVU 的快照，
+     不会自己更新，所以在每一条已经要写 MVU 的路径上顺手改正一次——不为它单独发起写入。 */
+  const syncBlueprintDescription = (stat) => {
+    const row = stat?.玩家信息?.背包?.用品?.[CITY_BUILD_ITEM];
+    if (!row || typeof row !== 'object') return false;
+    if (String(row.描述 || '') === CITY_BUILD_DESC) return false;
+    row.描述 = CITY_BUILD_DESC;
+    return true;
+  };
+
+  const purchaseShopProduct = (product) => {
+    const bucket = String(product?.storageBucket || '用品').trim();
+    const name = String(product?.goods?.['名称'] || product?.name || '').trim();
+    const category = String(product?.goods?.['类别'] || '').trim();
+    const description = String(product?.goods?.['描述'] || product?.description || '').trim();
+    const goodsCats = ['服装', '饰品', '器具', '器材', '其他'];
+    const consumableCats = ['食物', '饮料', '药物', '日用', '其他'];
+    if (!name) throw new Error('商品名称为空');
+    if (bucket !== '用品' && bucket !== '消耗品') throw new Error('商品存储分类无效');
+    if (bucket === '用品' && !goodsCats.includes(category)) throw new Error('用品类别无效');
+    if (bucket === '消耗品' && !consumableCats.includes(category)) throw new Error('消耗品类别无效');
+    if (!mvuState.ready && !mvuState.check()) throw new Error('MVU 未就绪');
+    const mvuData = mvuState.mvu.getMvuData({ type: 'message', message_id: 'latest' });
+    if (!mvuData?.stat_data) throw new Error('MVU 数据为空');
+    const stat = mvuData.stat_data;
+    stat.玩家信息 = stat.玩家信息 && typeof stat.玩家信息 === 'object' ? stat.玩家信息 : {};
+    stat.玩家信息.背包 = stat.玩家信息.背包 && typeof stat.玩家信息.背包 === 'object' ? stat.玩家信息.背包 : {};
+    const bag = stat.玩家信息.背包;
+    if (bucket === '消耗品') {
+      bag.消耗品 = bag.消耗品 && typeof bag.消耗品 === 'object' ? bag.消耗品 : {};
+      const current = bag.消耗品[name] && typeof bag.消耗品[name] === 'object' ? bag.消耗品[name] : null;
+      bag.消耗品[name] = { 名称: name, 类别: category, 数量: Math.max(0, Math.floor(Number(current?.数量) || 0)) + 1, 品级: String(product?.goods?.['品级'] || product?.rarity || current?.品级 || '').trim(), 强度: Math.max(1, Math.min(5, Math.floor(Number(product?.goods?.['强度']) || Number(current?.强度) || 1))), 描述: description || String(current?.描述 || '') };
+      mvuState.mvu.replaceMvuData(mvuData, { type: 'message', message_id: 'latest' });
+      return { bucket, item: bag.消耗品[name] };
+    }
+    bag.用品 = bag.用品 && typeof bag.用品 === 'object' ? bag.用品 : {};
+    const current = bag.用品[name] && typeof bag.用品[name] === 'object' ? bag.用品[name] : null;
+    bag.用品[name] = { 名称: name, 类别: category, 数量: Math.max(0, Math.floor(Number(current?.数量) || 0)) + 1, 品级: String(product?.goods?.['品级'] || product?.rarity || current?.品级 || '').trim(), 佩戴: category === '器材' ? false : !!current?.佩戴, 描述: description || String(current?.描述 || '') };
+    syncBlueprintDescription(stat);
+    mvuState.mvu.replaceMvuData(mvuData, { type: 'message', message_id: 'latest' });
+    return { bucket, item: bag.用品[name] };
+  };
+
+  /* ============ 玩家自建地图节点 ============ */
+  const customMapHelper = () => {
+    const core = getCoreWindow();
+    return [core, window.parent, window.top, window].map((win) => {
+      try { return win?.TavernHelper; } catch (e) { return null; }
+    }).find((helper) => helper && (
+      typeof helper.getWorldbook === 'function'
+      || typeof helper.getLorebookEntries === 'function'
+      || typeof helper.createWorldbookEntries === 'function'
+      || typeof helper.createLorebookEntries === 'function'
+    ));
+  };
+
+  const customMapBookName = async (helper) => {
+    try {
+      const names = typeof helper.getCharWorldbookNames === 'function'
+        ? helper.getCharWorldbookNames('current') : null;
+      if (names?.primary) return names.primary;
+      if (Array.isArray(names?.additional) && names.additional.length) return names.additional[0];
+    } catch (e) {}
+    for (const fn of ['getOrCreateChatWorldbook', 'getOrCreateChatLorebook']) {
+      try {
+        if (typeof helper[fn] !== 'function') continue;
+        const name = await helper[fn]('current');
+        if (name) return name;
+      } catch (e) {}
+    }
+    return null;
+  };
+
+  const readCustomMapEntries = async (helper, bookName) => {
+    for (const fn of ['getWorldbook', 'getLorebookEntries']) {
+      try {
+        if (typeof helper[fn] !== 'function') continue;
+        const rows = await helper[fn](bookName);
+        if (Array.isArray(rows)) return rows;
+      } catch (e) {}
+    }
+    return [];
+  };
+
+  const customMapScalar = (value) => JSON.stringify(String(value ?? ''));
+  const customMapWorldbookPayload = (node) => {
+    const keys = [...new Set([node.name, ...(node.aliases || [])]
+      .map(value => String(value || '').trim()).filter(Boolean))];
+    const flags = [];
+    if (node.features.canDate) flags.push('约会');
+    if (node.features.canGather) flags.push('采集');
+    if (node.features.canWork) flags.push('工作');
+    if (node.features.hasShop) flags.push('商店');
+    const lines = [
+      `${node.name}:`,
+      '  来源: 玩家自建地点',
+      `  区域: ${customMapScalar(node.district)}`,
+      `  类型: ${customMapScalar(node.archetype)}`,
+      `  私密度: ${node.privacy}`,
+      `  开放: [${node.openHours.map(customMapScalar).join(', ')}]`,
+      `  详情: ${customMapScalar(node.intro)}`,
+      `  看点: ${customMapScalar(node.draw)}`,
+      `  功能: [${flags.map(customMapScalar).join(', ')}]`,
+      '  地图接驳:',
+      `    节点: ${customMapScalar(node.anchorName || node.anchorId)}`,
+      `    步行距离: ${node.accessKm}km`,
+    ];
+    if (node.special.length) {
+      lines.push('  特殊:');
+      node.special.forEach(value => lines.push(`    - ${customMapScalar(value)}`));
+    }
+    return {
+      name: `玩家地点 - ${node.name}`,
+      comment: `玩家地点 - ${node.name}`,
+      enabled: true,
+      keys,
+      key: keys,
+      content: lines.join('\n'),
+      strategy: {
+        type: 'selective', keys,
+        keys_secondary: { logic: 'and_any', keys: [] },
+        scan_depth: 'same_as_global',
+      },
+      position: { type: 'after_character_definition', role: 'system', depth: 0, order: 34 },
+      probability: 100,
+      recursion: { prevent_incoming: true, prevent_outgoing: true, delay_until: null },
+      effect: { sticky: null, cooldown: null, delay: null },
+      extra: { linjiangCustomMapNode: { id: node.id, version: 1 } },
+    };
+  };
+
+  const syncCustomMapWorldbook = async (node) => {
+    const helper = customMapHelper();
+    if (!helper) return { synced: false, uid: null };
+    const bookName = await customMapBookName(helper);
+    if (!bookName) return { synced: false, uid: null };
+    const rows = await readCustomMapEntries(helper, bookName);
+    const existing = rows.find(entry => String(entry?.extra?.linjiangCustomMapNode?.id || '') === node.id);
+    const payload = customMapWorldbookPayload(node);
+    if (existing && typeof helper.updateWorldbookWith === 'function') {
+      await helper.updateWorldbookWith(bookName, list => (Array.isArray(list) ? list : [])
+        .map(entry => entry?.uid === existing.uid ? { ...entry, ...payload } : entry));
+      return { synced: true, uid: existing.uid };
+    }
+    if (existing && typeof helper.setLorebookEntries === 'function') {
+      await helper.setLorebookEntries(bookName, [{ uid: existing.uid, ...payload }]);
+      return { synced: true, uid: existing.uid };
+    }
+    for (const fn of ['createWorldbookEntries', 'createLorebookEntries']) {
+      if (typeof helper[fn] !== 'function') continue;
+      await helper[fn](bookName, [payload], { render: 'immediate' });
+      const next = await readCustomMapEntries(helper, bookName);
+      const created = next.find(entry => String(entry?.extra?.linjiangCustomMapNode?.id || '') === node.id);
+      return { synced: true, uid: created?.uid ?? null };
+    }
+    return { synced: false, uid: null };
+  };
+
+  const removeCustomMapWorldbook = async (id) => {
+    const helper = customMapHelper();
+    if (!helper) return false;
+    const bookName = await customMapBookName(helper);
+    if (!bookName) return false;
+    const rows = await readCustomMapEntries(helper, bookName);
+    const existing = rows.find(entry => String(entry?.extra?.linjiangCustomMapNode?.id || '') === id);
+    if (!existing) return true;
+    if (typeof helper.updateWorldbookWith === 'function') {
+      await helper.updateWorldbookWith(bookName, list => (Array.isArray(list) ? list : [])
+        .filter(entry => entry?.uid !== existing.uid));
+      return true;
+    }
+    if (typeof helper.setLorebookEntries === 'function') {
+      await helper.setLorebookEntries(bookName, [{
+        ...existing, uid: existing.uid, enabled: false, keys: [], key: [], content: '',
+      }]);
+      return true;
+    }
+    return false;
+  };
+
+  const saveCustomMapNode = async (draft) => {
+    if (!mvuState.ready && !mvuState.check()) throw new Error('MVU 未就绪');
+    const mvuData = mvuState.mvu.getMvuData({ type: 'message', message_id: 'latest' });
+    if (!mvuData?.stat_data) throw new Error('MVU 数据为空');
+    const stat = mvuData.stat_data;
+    /* 建设费的门槛先过。地图那边也会拦一道，但它拿的是快照里的金钱，可能已经过时——
+       这里是唯一权威：重新读一次当前 MVU。
+
+       放在最前面是有意的：下面几行会给 系统配置.地图 补默认容器，getMvuData 给的又可能是
+       活引用。钱不够就一个字段都不碰，拒绝之后这份数据跟进函数之前完全一样。 */
+    const funds = Number(stat.玩家信息?.金钱) || 0;
+    if (funds < CITY_BUILD_COST) {
+      throw new Error(`金钱不足：建设需要 ${yuan(CITY_BUILD_COST)}，当前只有 ${yuan(funds)}，还差 ${yuan(CITY_BUILD_COST - funds)}`);
+    }
+    stat.系统配置 = stat.系统配置 && typeof stat.系统配置 === 'object' ? stat.系统配置 : {};
+    stat.系统配置.地图 = stat.系统配置.地图 && typeof stat.系统配置.地图 === 'object' ? stat.系统配置.地图 : {};
+    stat.系统配置.地图.版本 = 1;
+    const saved = stat.系统配置.地图.自建节点;
+    stat.系统配置.地图.自建节点 = saved && typeof saved === 'object' ? saved : {};
+    const nodes = stat.系统配置.地图.自建节点;
+    const id = String(draft?.id || `usr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`).trim();
+    const name = String(draft?.name || '').trim().slice(0, 30);
+    if (!name) throw new Error('地点名称为空');
+    const pos = Array.isArray(draft?.localPos) ? draft.localPos.map(Number) : [];
+    if (pos.length < 2 || !pos.every(Number.isFinite)) throw new Error('节点坐标无效');
+    const duplicate = Object.entries(nodes).find(([key, value]) => key !== id && String(value?.名称 || '').trim() === name);
+    if (duplicate) throw new Error('已有同名玩家节点');
+    const aliases = Array.isArray(draft.aliases)
+      ? draft.aliases.map(value => String(value || '').trim()).filter(Boolean).slice(0, 8) : [];
+    const hours = Array.isArray(draft.openHours)
+      ? draft.openHours.filter(value => ['朝', '昼', '暮', '夜', '深夜'].includes(value)) : [];
+    const node = {
+      id, name, aliases,
+      district: String(draft.district || '').trim(),
+      plate: String(draft.plate || '').trim(),
+      localPos: [Math.max(0, Math.min(1, pos[0])), Math.max(0, Math.min(1, pos[1]))],
+      anchorId: String(draft.anchorId || '').trim(),
+      anchorName: String(draft.anchorName || '').trim(),
+      accessKm: Math.max(0, Math.round((Number(draft.accessKm) || 0) * 100) / 100),
+      archetype: String(draft.archetype || 'living').trim() || 'living',
+      privacy: Math.max(0, Math.min(5, Math.round(Number(draft.privacy) || 0))),
+      openHours: hours.length ? hours : ['朝', '昼', '暮', '夜', '深夜'],
+      intro: String(draft.intro || '').trim().slice(0, 500),
+      draw: String(draft.draw || '').trim().slice(0, 300),
+      special: Array.isArray(draft.special)
+        ? draft.special.map(value => String(value || '').trim()).filter(Boolean).slice(0, 12) : [],
+      features: {
+        canDate: !!draft.features?.canDate,
+        canGather: !!draft.features?.canGather,
+        canWork: !!draft.features?.canWork,
+        hasShop: !!draft.features?.hasShop,
+      },
+      createdAt: `${String(stat.世界信息?.年历 || '').trim()} ${String(stat.世界信息?.时间?.时钟 || '').trim()}`.trim(),
+    };
+    let worldbook = { synced: false, uid: null };
+    try { worldbook = await syncCustomMapWorldbook(node); }
+    catch (error) { console.warn('[临江地图] 地点世界书同步失败', error); }
+    nodes[id] = {
+      名称: node.name, 别名: node.aliases, 区域: node.district, 底板: node.plate,
+      区内坐标: node.localPos, 锚点: node.anchorId, 锚点名称: node.anchorName,
+      接驳距离: node.accessKm, 类型: node.archetype, 私密度: node.privacy,
+      开放时段: node.openHours,
+      功能: {
+        可约会: node.features.canDate, 可采集: node.features.canGather,
+        可工作: node.features.canWork, 有商店: node.features.hasShop,
+      },
+      简介: node.intro, 看点: node.draw, 特殊: node.special, 创建时间: node.createdAt,
+      世界书同步: { 状态: worldbook.synced ? '已同步' : '由地图加载动态注入', 条目UID: worldbook.uid },
+    };
+    /* 扣费和建节点是同一次 replaceMvuData：要么都落，要么都不落。
+       不用 bridge 的 setMoney —— 那条是防抖 + 整字段覆盖的，街机并发推一次就能把这笔扣款冲掉。 */
+    stat.玩家信息 = stat.玩家信息 && typeof stat.玩家信息 === 'object' ? stat.玩家信息 : {};
+    stat.玩家信息.金钱 = funds - CITY_BUILD_COST;
+    syncBlueprintDescription(stat);
+    mvuState.mvu.replaceMvuData(mvuData, { type: 'message', message_id: 'latest' });
+    return { node, worldbook, cost: CITY_BUILD_COST, money: stat.玩家信息.金钱 };
+  };
+
+  const deleteCustomMapNode = async (id) => {
+    const nodeId = String(id || '').trim();
+    if (!nodeId) throw new Error('节点 ID 为空');
+    if (!mvuState.ready && !mvuState.check()) throw new Error('MVU 未就绪');
+    const mvuData = mvuState.mvu.getMvuData({ type: 'message', message_id: 'latest' });
+    const stat = mvuData?.stat_data;
+    const nodes = stat?.系统配置?.地图?.自建节点;
+    if (!nodes?.[nodeId]) return true;
+    const row = nodes[nodeId];
+    const needsWorldbook = String(row?.世界书同步?.状态 || '') === '已同步';
+    let removed = false;
+    try { removed = await removeCustomMapWorldbook(nodeId); }
+    catch (error) { console.warn('[临江地图] 删除地点世界书失败', error); }
+    if (needsWorldbook && !removed) throw new Error('地点世界书暂时未删除，请稍后重试');
+    const deletedName = String(row?.名称 || '').trim();
+    const fallbackArea = [String(row?.区域 || '').trim(), String(row?.锚点名称 || '').trim()]
+      .filter(Boolean).join(' · ');
+    const pointsAtDeleted = value => deletedName && String(value || '').includes(deletedName);
+    if (pointsAtDeleted(stat?.世界信息?.位置?.区域) && fallbackArea) {
+      stat.世界信息.位置.区域 = fallbackArea;
+      stat.世界信息.位置.场所 = '地图接驳点';
+    }
+    if (pointsAtDeleted(stat?.玩家信息?.居住地) && fallbackArea) stat.玩家信息.居住地 = fallbackArea;
+    if (pointsAtDeleted(stat?.玩家信息?.工作?.地点) && fallbackArea) stat.玩家信息.工作.地点 = fallbackArea;
+    Object.values(stat?.对象信息 || {}).forEach(obj => {
+      if (pointsAtDeleted(obj?.位置?.区域) && fallbackArea) {
+        obj.位置.区域 = fallbackArea;
+        obj.位置.场所 = '地图接驳点';
+      }
+    });
+    delete nodes[nodeId];
+    mvuState.mvu.replaceMvuData(mvuData, { type: 'message', message_id: 'latest' });
+    return true;
+  };
+
+  const handleRequest = (action, payload) => {
+    switch (action) {
+      case 'handshake':
+        return {
+          ok: true,
+          label: '临江玻璃状态栏',
+          hasMvu: !!(mvuState.ready || mvuState.check()),
+          context: manager.context(),
+          /* 壳层是粘贴部署的，所以「用户手上到底是哪一版壳层」只有壳层自己知道 —— 而这
+             恰恰是排查时最需要确认的（HUD 跟着 Pages 自动更新，壳层冻结在粘贴那一天）。
+             顺手带在握手里，HUD 就能把它显示在设置页底部。 */
+          shellVersion: SHELL_VERSION,
+          nativeFlow: MOBILE_NATIVE_FLOW,
+        };
+      case 'getSnapshot':
+        return hudSnapshot(fetchLatestMvuData());
+      case 'patch':
+        if (!applyMvuPatches(payload?.patches || [])) throw new Error('MVU 写入失败');
+        return true;
+      case 'clockIn':
+        return clockIn();
+      case 'arcadeEvent':
+        return recordArcadeEvent(payload?.event || {});
+      case 'purchaseShopProduct':
+        return purchaseShopProduct(payload?.product || {});
+      case 'saveCustomMapNode':
+        return saveCustomMapNode(payload?.node || {});
+      case 'deleteCustomMapNode':
+        return deleteCustomMapNode(payload?.id);
+      case 'sendMessage':
+        return sendMessage(payload?.text);
+      case 'collapseHud':
+        return collapseHud();
+      case 'openPhone':
+        return openPhonePanel();
+      case 'generateDevelopmentNotes':
+        return generateDevelopmentNotes(payload);
+      case 'restoreDevelopmentNotes':
+        return writeDevelopmentNotes(String(payload?.name || '').trim(), payload?.notes || {});
+      default:
+        throw new Error('未知桥接动作: ' + action);
+    }
+  };
+
+  const onHudRequest = async (event) => {
+    const data = event.data;
+    if (!isOwner() || !data || data.channel !== CHANNEL || data.kind !== 'request') return;
+    if (event.source !== hudFrame.contentWindow) return;
+    if (hudOrigin !== '*' && event.origin !== hudOrigin) return;
+    const currentContext = manager.context();
+    if (data.action !== 'handshake' && data.context
+        && (Number(data.context.epoch) !== currentContext.epoch
+          || String(data.context.chatKey || '') !== String(currentContext.chatKey || ''))) return;
+    const reply = {
+      channel: CHANNEL,
+      kind: 'response',
+      id: data.id,
+      context: manager.context(),
+    };
+    try {
+      const payload = await handleRequest(data.action, data.payload || {});
+      event.source?.postMessage({ ...reply, ok: true, payload }, event.origin);
+      if (data.action === 'handshake' || data.action === 'patch' || data.action === 'clockIn' || data.action === 'arcadeEvent' || data.action === 'purchaseShopProduct' || data.action === 'saveCustomMapNode' || data.action === 'deleteCustomMapNode') {
+        pushSnapshot(true);
+      }
+    } catch (error) {
+      event.source?.postMessage({
+        ...reply,
+        ok: false,
+        error: error?.message || String(error),
+      }, event.origin);
+    }
+  };
+
+  /* 主体量自 geometry：dock 顶（花/耳 y≈54）到抽屉底（y=823），左右 23–1648。
+     框按这块 1640×787 加宽并放大，不带整张 941 画布的上下空板。 */
+  const BODY_W = 1640;
+  const BODY_H = 787;
+  const DESKTOP_MIN = 880;
+  const HUD_WIDTH_VW = 90;
+  /* Portrait breaks out of the reading column, but not to desktop 90vw.
+     480 is a little past the portrait k ceiling (941 × 17/36 ≈ 444): the
+     column stops growing and the extra is plate. 12px gutters keep a
+     finger-width of tavern chrome on each side. */
+  const PORTRAIT_WIDTH_MAX = 480;
+  const PORTRAIT_GUTTER = 12;
+  const MAX_VH = 0.78;
+  const HUD_LIVE_ID = 'linjiang-hud-live';
+  const HUD_STAGE_ID = 'linjiang-hud-stage';
+  const HUD_FS_ID = 'linjiang-hud-fs';
+  const HUD_SHRINK_ID = 'linjiang-hud-shrink';
+  const HUD_FS_STYLE_ID = 'linjiang-hud-fs-style';
+  const HUD_AUTOSCROLL_ID = 'linjiang-hud-autoscroll';
+  let expanded = false;
+  /* Persisted docking state. `compacted` is the current controller's local mirror,
+     while manager.dockMode carries it across message/status-frame owner handovers and
+     the HUD preference store carries it across full reloads. The shell cannot read the
+     HUD origin's localStorage directly, so startup sync travels HUD -> shell and clicks
+     on the top-right shrink button travel shell -> HUD. */
+  let compacted = false;
+  /* 这个会话的初始 compacted 由 HUD 的全局设置决定，但那个值存在 HUD origin 的
+     localStorage 里，这边跨域读不到——只能等 HUD 开机后 postMessage 过来
+     （bridge.js 的 reportDockDefault → 下面的 applyDockDefault）。
+
+     于是有个先后问题：壳层排第一次版的时候还不知道用户的偏好，所以偏好到达时是一次
+     "补正"，而不是初始值。两个标记就是为了让这次补正不越界：
+       dockDefaultApplied —— 开机通报只认第一次。HUD 会因为横竖屏切换而重新加载并
+         重新握手，那时候不该把用户中途的手动状态冲掉。
+       shrinkTouched —— 用户只要手动点过一次缩小钮，本会话就完全不再听开机通报。
+         手动操作盖过偏好，不是反过来。
+     两个标记都不管 apply=true 的通报：那是用户正在设置页里改，必须当场生效。 */
+  let dockDefaultApplied = false;
+  let shrinkTouched = false;
+  let uninstalled = false;
+  let portraitPageOpen = false;
+  /* 横向构图里 HUD 开了铺满视口的覆盖层（地图 / 街机 / CG）。见 bridge.js 的 reportOverlay：
+     那两颗浮层钮住在酒馆顶层文档、层级压过 HUD 内部的一切，不收起来就挡着覆盖层自己的
+     关闭钮。竖屏走的是 portraitPageOpen，那条路早就在做同一件事。 */
+  let overlayOpen = false;
+  let slotObserver = null;
+  let frameObserver = null;
+  let active = false;
+  let destroyed = false;
+  let controllerRecord = null;
+  /* 移动端原生流不再参加跨楼层 owner 选举：每个楼层自己的壳一执行就立即挂 HUD。
+     桌面/抬升路径仍沿用共享 owner，避免改变现有桌面行为。 */
+  const isOwner = () => active && !destroyed
+    && (MOBILE_NATIVE_FLOW || manager.owner?.id === INSTANCE_ID);
+
+  const tavernWin = () => {
+    try { if (window.top && window.top !== window) return window.top; } catch (e) {}
+    try { if (window.parent && window.parent !== window) return window.parent; } catch (e) {}
+    return window;
+  };
+
+
+
+  /* One controller per tavern page, one chat-scoped HUD runtime.  Message floors
+     only register anchors; the manager elects the newest connected anchor and keeps
+     the actual HUD iframe in the tavern document so a floor handover does not reload it. */
+  const MANAGER_KEY = '__linjiangHudManagerV2';
+  const MANAGER_VERSION = 4;
+  const INSTANCE_ID = (globalThis.crypto?.randomUUID?.() || `hud-${Date.now()}-${Math.random()}`);
+
+  /* 原生流下最多同时留几份挂好的 HUD。见 manager.noteMounted 上面那段。 */
+  const KEEP_MOUNTED = 3;
+  /* Audit a handover that is taking unusually long. This is not a visibility
+     deadline: a painted previous floor stays on screen until its replacement paints. */
+  const HANDOVER_AUDIT_MS = 15000;
+
+  const createManager = (host) => {
+    const manager = {
+      version: MANAGER_VERSION,
+      /* 生命周期事件环形日志（临时仪器）。
+         ==================================================================
+         真机症状：原生流下快速上下滑动时，状态栏有概率"像刷新了一样"整块重置 —— 打开的
+         角色详情档案消失，视口也不在状态栏那一条上了。
+
+         这两件同时发生，最像 owner 交接或者 release()（把老楼层导航成 about:blank）。但这些
+         事件全发生在**楼层文档里**，而那个文档正是被销毁的一方，所以日志不能留在它自己身上。
+         manager 挂在酒馆顶层窗口上，它活得比任何一条楼层都久 —— 所以日志放这儿。
+         查清成因后跟诊断条一起删。 */
+      log: [],
+      note(msg) {
+        try {
+          this.log.push({ t: Date.now(), msg: String(msg) });
+          if (this.log.length > 60) this.log.splice(0, this.log.length - 60);
+        } catch (e) {}
+      },
+      host,
+      sequence: 0,
+      epoch: 1,
+      chatKey: null,
+      candidates: new Map(),
+      owner: null,
+      hudFrame: null,
+      hudMode: '',
+      /* Shared by every status-frame controller. The managed HUD survives floor
+         re-renders, so its docking state must survive the owner handover too. */
+      dockMode: null,
+      /* A settings page can request a cross-document dock transition while that page
+         is still open. Keep the target shared across controller handovers, but do not
+         move/reload the HUD iframe until the page reports that it has closed. */
+      pendingDockMode: null,
+      /* 交接期间「还没交班的上一任」。原生流下新任要在自己的文档里从头挂一遍 HUD bundle，
+         那段时间里上一任是屏幕上唯一还画着东西的东西 —— 立刻收掉它，用户看到的就是一段纯黑
+         （夹具实测 4G 时延下 6.2 秒）。所以改成"新任画好了再交班"。 */
+      retiring: null,
+      /* 原生流各楼层共用的 bundle 入口解析结果（纯数据，不受 realm 影响）。 */
+      nativeEntry: null,
+      /* 已经挂好 HUD 的楼层，按当选顺序。用来把同时活着的实例数压住。 */
+      mounted: [],
+      /* 活着的控制器提供的定时器。见下面 defer 上面那段说明。 */
+      timers: new Map(),
+      eventHooksBound: false,
+      /* defer 返回的取消器（不再是数字句柄 —— 定时器是别的窗口建的，跨窗口 clearTimeout
+         那个 id 是无效的）。 */
+      contextTimer: null,
+      context() { return { chatKey: this.chatKey, epoch: this.epoch }; },
+      createHudFrame() {
+        const frame = this.host.document.createElement('iframe');
+        frame.title = '玻璃状态栏';
+        frame.loading = 'eager';
+        frame.referrerPolicy = 'strict-origin-when-cross-origin';
+        frame.allow = 'clipboard-read; clipboard-write';
+        frame.dataset.linjiangManaged = '1';
+        /* TauriTavern mobile classifies unmarked fixed body children as host overlays.
+           This iframe owns its own slot-following geometry, so host safe-area rules
+           must leave its left/top/width/height untouched. */
+        frame.dataset.ttMobileSurface = 'none';
+        frame.addEventListener('load', () => {
+          if (this.hudFrame === frame && this.hudMode) postHudMode(this.hudMode);
+        });
+        this.hudFrame = frame;
+        this.hudMode = '';
+        return frame;
+      },
+      ensureHudFrame() {
+        return this.hudFrame || this.createHudFrame();
+      },
+      resetHudFrame() {
+        try { this.hudFrame?.remove(); } catch (e) {}
+        /* 裁剪台是挂在酒馆文档上的，不是 HUD 的子节点，所以拆 HUD 不会把它带走。
+           留下来的话下一任 owner 会再建一个，酒馆 body 上就攒出一串空的 fixed 层。 */
+        try { this.host.document.getElementById(HUD_STAGE_ID)?.remove(); } catch (e) {}
+        this.hudFrame = null;
+        this.hudMode = '';
+      },
+      messageRank(frame) {
+        try {
+          const mes = frame?.closest?.('.mes');
+          const raw = mes?.getAttribute('mesid') ?? mes?.dataset?.mesid ?? mes?.dataset?.messageId;
+          const value = Number(raw);
+          if (Number.isFinite(value)) return value;
+        } catch (e) {}
+        return null;
+      },
+      /* 延迟调度必须由**活着的** realm 发起。
+         ==================================================================
+         manager 这个对象挂在酒馆顶层窗口上，但它是 createManager 在「最先启动的那个楼层
+         文档」里造出来的，所以它的每个方法都是那个 realm 的函数对象。那个楼层一被重新渲染，
+         realm 就消失了 —— 而 Chrome 不会执行一个 realm 已经消失的回调，**即使 rAF /
+         setTimeout 是挂在活着的酒馆顶层窗口上的**。直接调用不受影响（所以 elect 被 register
+         同步调进来时一切正常），被丢掉的只有交给浏览器排期的那些。
+
+         实测：重建任意一个状态栏楼层之后，host.requestAnimationFrame 照样返回句柄，回调却
+         永远不来。旧代码把句柄记在共享的 electTick 上，于是 `if (this.electTick) return`
+         从此永久命中 —— 延迟选举整条通路死掉。两个可见后果：
+           · 删除 / 重生成末条消息之后不再重新选举，抬升的 HUD 停在 visibility:hidden，
+             状态栏整块消失，要等下一条新消息（register 会同步 elect）才回来；
+           · 切换对话时 switchContext 把 epoch 加一，那个 120ms 定时器本该把仍然连着的候选
+             重新盖章；定时器被丢掉之后候选全停在旧 epoch，选举一个都选不出来，连裁剪台都不建。
+
+         对策两条：
+           一、选举本身改成同步。它很便宜（一次过滤 + 一次排序）而且幂等 —— 赢家没变就直接
+               返回。原来那次 rAF 只为合并 DOM 突发，不值得拿一个单点故障去换。
+           二、真需要延迟的地方改由注册进来的控制器代劳：控制器的文档正在跑，realm 一定活着。
+               一个可用的都没有时就立刻执行，而不是把事情推给一个不会到来的将来。 */
+      defer(fn, ms) {
+        /* 在**多个**活着的控制器上各排一次期，谁先到谁做 —— 交给 defer 的活儿都是幂等的
+           （adoptSurvivors + elect）。只押一个的话，那个楼层刚好在这 120ms 里被重新渲染，
+           这次延迟就又丢了，而这正是原来那个单点故障的形状。 */
+        const cancels = [];
+        for (const [id, timer] of [...this.timers]) {
+          try {
+            if (!timer.alive()) continue;
+            const handle = timer.defer(fn, ms);
+            if (handle) cancels.push(handle);
+            if (cancels.length >= 3) break;
+          } catch (e) {
+            this.timers.delete(id);
+          }
+        }
+        if (!cancels.length) {
+          /* 一个活着的控制器都没有 —— 那也没什么可选的了，立刻跑，别把事情推给不会到来的将来。 */
+          try { fn(); } catch (e) {}
+          return null;
+        }
+        return {
+          cancel: () => cancels.forEach((row) => { try { row.cancel?.(); } catch (e) {} }),
+        };
+      },
+      /* 把仍然连着的候选收进当前 epoch，顺手清掉已断开 / 已销毁的。
+         switchContext 的延迟收编走这里，register 也走这里 —— 后者是关键：新楼层注册这件事
+         本身就发生在 DOM 突发之后，所以就算那个延迟被丢掉，选举也不会因为候选全停在旧 epoch
+         而选不出人。 */
+      adoptSurvivors() {
+        for (const [id, row] of this.candidates) {
+          let alive = false;
+          try { alive = !!row.frame?.isConnected && !row.destroyed(); } catch (e) {}
+          if (!alive) {
+            this.candidates.delete(id);
+            this.timers.delete(id);
+            this.mounted = this.mounted.filter((entry) => entry !== id);
+            if (this.owner?.id === id) this.owner = null;
+            if (this.retiring?.id === id) this.retiring = null;
+          } else {
+            row.epoch = this.epoch;
+          }
+        }
+      },
+      register(controller) {
+        const record = {
+          ...controller,
+          sequence: ++this.sequence,
+          epoch: this.epoch,
+          rank: this.messageRank(controller.frame),
+        };
+        if (controller.defer && controller.alive) {
+          this.timers.set(controller.id, { defer: controller.defer, alive: controller.alive });
+        }
+        this.candidates.set(record.id, record);
+        this.note(`register ${String(record.id).slice(0, 4)} rank=${record.rank} 候选=${this.candidates.size}`);
+        this.adoptSurvivors();
+        if (this.owner && !this.owner.frame?.isConnected) {
+          this.note(`owner ${String(this.owner.id).slice(0, 4)} 的楼层已离开 DOM`);
+          try { this.owner.deactivate('disconnected'); } catch (e) {}
+          this.owner = null;
+        }
+        this.elect();
+        return record;
+      },
+      unregister(id) {
+        const record = this.candidates.get(id);
+        this.candidates.delete(id);
+        this.timers.delete(id);
+        this.mounted = this.mounted.filter((row) => row !== id);
+        if (this.retiring?.id === id) this.retiring = null;
+        this.note(`unregister ${String(id).slice(0, 4)}${this.owner?.id === id ? '（它是 owner）' : ''}`);
+        if (this.owner?.id === id) {
+          try { record?.deactivate('removed'); } catch (e) {}
+          this.owner = null;
+        }
+        this.scheduleElect();
+      },
+      scheduleElect() {
+        /* 同步选。理由见 defer 上面那段。 */
+        this.elect();
+      },
+      /* 落选者必须交出楼层高度。
+         ------------------------------------------------------------------
+         骨架给 html/body 涂的是 #05040a，所以一个「既不是 owner、又没折叠」的楼层在屏幕上
+         就是一块纯黑（夹具里量到 150px 高、深色像素占比 1.0）。
+
+         旧代码只在 owner 换人时收拾上一任，于是漏掉了最常见的那种落选：**带着更小 mesid
+         重新注册的楼层**。下面 `if (next?.id === this.owner?.id) return` 在赢家没变时直接
+         返回，那个新注册的旧楼层既没 activate 也没 deactivate。它的 iframe 元素往往是全新的
+         （酒馆助手重渲染这条消息时 Vue 新建 iframe；loading="lazy" 的楼层第一次滚进视口也是
+         新建），身上没有上一任留下的折叠 —— 没人替它把高度交出去。
+
+         往历史里翻的时候，每条 AI 消息都会这样留下一块黑。 */
+      retireLosers(owner) {
+        for (const row of this.candidates.values()) {
+          if (owner && row.id === owner.id) continue;
+          /* 交接期间故意留着的那一任不能碰 —— 它正是屏幕上唯一还画着东西的。 */
+          if (this.retiring && row.id === this.retiring.id) continue;
+          try { row.deactivate('not-elected'); } catch (e) {}
+        }
+      },
+      /* 上一任先别交班，等新任画好。只有需要重新挂载的新任（原生流）才用得上。 */
+      holdRetire(previous, next) {
+        if (!previous || previous.id === next?.id) return false;
+        let wants = false;
+        try { wants = !!next?.wantsHandoverHold?.(); } catch (e) {}
+        if (!wants) return false;
+        if (this.retiring && this.retiring.id !== previous.id) {
+          /* 已经留着一任了（第三条消息在第二条还没画好时就到了）。屏幕上画着东西的是老的
+             那个，所以留下画好的、收掉没画好的，而不是无脑覆盖。 */
+          let previousPainted = false;
+          try { previousPainted = !!previous.isPainted?.(); } catch (e) {}
+          if (!previousPainted) {
+            try { previous.deactivate('superseded'); } catch (e) {}
+            return true;
+          }
+          const stale = this.retiring;
+          this.retiring = previous;
+          try { stale.deactivate('superseded'); } catch (e) {}
+          return true;
+        }
+        this.retiring = previous;
+        return true;
+      },
+      commitRetire() {
+        const record = this.retiring;
+        this.retiring = null;
+        if (!record || record.id === this.owner?.id) return;
+        try { record.deactivate('superseded'); } catch (e) {}
+      },
+      /* 原生流下每次交接都会在新楼层的文档里再挂一份 HUD。挂过的那些如果只是被隐藏，实例数
+         就随消息条数线性涨（夹具实测：6 次交接后 10 份还活着、堆 +11.6MB）。手机上这条路的
+         终点是渲染进程被回收 —— 整片黑，而且只有刷新才好。
+
+         所以只保留最近 KEEP_MOUNTED 份，更老的让它自己把文档导航成 about:blank，DOM / JS /
+         module 一次性全放掉（见控制器的 release）。留 3 份而不是 1 份，是为了「删掉末条消息」
+         之后选举还能退回到一个活着的楼层。 */
+      noteMounted(id) {
+        this.mounted = this.mounted.filter((row) => row !== id);
+        this.mounted.push(id);
+        const excess = this.mounted.length - KEEP_MOUNTED;
+        if (excess <= 0) return;
+        const keep = [];
+        let released = 0;
+        for (const row of this.mounted) {
+          const guarded = row === this.owner?.id || row === this.retiring?.id;
+          if (released < excess && !guarded) {
+            released += 1;
+            const record = this.candidates.get(row);
+            this.note(`release ${String(row).slice(0, 4)} →about:blank`);
+            try { record?.release?.(); } catch (e) {}
+            continue;
+          }
+          keep.push(row);
+        }
+        this.mounted = keep;
+      },
+      elect() {
+        const rows = [...this.candidates.values()].filter((row) =>
+          row.epoch === this.epoch && row.frame?.isConnected && !row.destroyed());
+        rows.sort((a, b) => {
+          if (a.rank != null || b.rank != null) return (a.rank ?? -Infinity) - (b.rank ?? -Infinity);
+          try {
+            if (a.frame.ownerDocument === b.frame.ownerDocument) {
+              const pos = a.frame.compareDocumentPosition(b.frame);
+              if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+              if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+            }
+          } catch (e) {}
+          return a.sequence - b.sequence;
+        });
+        const next = rows.at(-1) || null;
+        if (next?.id === this.owner?.id) {
+          /* 赢家没变，但落选者仍然要交出高度。 */
+          this.retireLosers(next);
+          return;
+        }
+        const previous = this.owner;
+        this.owner = next;
+        this.note(`owner ${previous ? String(previous.id).slice(0, 4) : '(无)'}`
+          + ` → ${next ? String(next.id).slice(0, 4) : '(无)'}  候选=${rows.length}`);
+        if (!this.holdRetire(previous, next)) {
+          try { previous?.deactivate('superseded'); } catch (e) {}
+        }
+        this.retireLosers(next);
+        if (next) {
+          this.ensureHudFrame();
+          try { next.activate(this.context()); } catch (e) { console.warn('[临江状态栏] 接管失败', e); }
+        } else if (this.hudFrame) {
+          this.hudFrame.style.visibility = 'hidden';
+          this.hudFrame.style.pointerEvents = 'none';
+        }
+      },
+      switchContext(chatKey = null) {
+        this.epoch += 1;
+        this.chatKey = chatKey == null ? null : String(chatKey);
+        const previous = this.owner;
+        this.owner = null;
+        this.retiring = null;
+        try { previous?.deactivate('chat-switch'); } catch (e) {}
+        this.resetHudFrame();
+        try { this.contextTimer?.cancel?.(); } catch (e) {}
+        /* chatLoaded and the replacement status iframe are not ordered consistently.
+           Adopt whichever registered anchors are still connected after the DOM burst;
+           disconnected old-chat anchors are pruned by the same pass.
+           延迟走 defer（活着的控制器代劳），而且 register 里也会 adoptSurvivors 兜一次 ——
+           这一步以前是整个「切对话之后状态栏不见了」的单点。 */
+        this.contextTimer = this.defer(() => {
+          this.adoptSurvivors();
+          this.elect();
+        }, 120);
+      },
+      bindEventHooks(core) {
+        if (this.eventHooksBound) return;
+        this.eventHooksBound = true;
+        const chatKey = () => {
+          try {
+            const context = core?.SillyTavern?.getContext?.() || core?.getContext?.();
+            return context?.chatId ?? context?.chat_id ?? context?.groupId ?? null;
+          } catch (e) { return null; }
+        };
+        try {
+          core?.eventSource?.on?.('mvu_data_updated', () => this.owner?.pushSnapshot(false));
+          core?.eventSource?.on?.('chatUpdated', () => this.owner?.requestFollow());
+          core?.eventSource?.on?.('chatLoaded', () => this.switchContext(chatKey()));
+          core?.addEventListener?.('linjiang:opening-committed', () => this.owner?.pushSnapshot(true));
+        } catch (e) {}
+        try {
+          if (typeof core?.eventOn === 'function' && core?.Mvu?.events?.VARIABLE_UPDATE_ENDED) {
+            core.eventOn(core.Mvu.events.VARIABLE_UPDATE_ENDED, () => this.owner?.pushSnapshot(false));
+          }
+        } catch (e) {}
+      },
+    };
+    return manager;
+  };
+
+  const managerHost = tavernWin();
+  let manager;
+  if (MOBILE_NATIVE_FLOW) {
+    /* 移动端每楼独立后，manager 也必须跟着楼层文档一起死，不能再挂到 Tavern 顶层。
+       ------------------------------------------------------------------
+       把由楼层 realm 创建的函数对象存进 top window，会反向把整个旧 realm 留住：即使楼层
+       iframe 已删除，manager 的方法和 eventSource 回调仍能让旧 DOM / module / 闭包不能回收。
+       这里使用仅属于当前楼层的 manager，并且不绑定共享事件钩子、不写 MANAGER_KEY。
+
+       次级页面恢复状态只放在该消息楼层元素的 dataset 里：复用/重建 srcdoc 时仍能恢复；消息
+       楼层被删除时，状态会跟着元素一起销毁，不在 top window 留实例表或强引用。 */
+    const stale = managerHost[MANAGER_KEY];
+    if (stale) {
+      /* 从旧版热切到本版时，先让旧共享 owner/候选释放各自监听器和定时器。旧版匿名事件钩子
+         本轮页面里没有 off 句柄，但把 manager 置空后它们只会命中空操作；下次 App 启动不再创建。 */
+      try {
+        const records = new Set([stale.owner, stale.retiring, ...[...(stale.candidates?.values?.() || [])]]);
+        records.forEach((record) => { try { record?.deactivate?.('mobile-independent-upgrade'); } catch (e) {} });
+        stale.owner = null;
+        stale.retiring = null;
+        stale.candidates?.clear?.();
+        stale.timers?.clear?.();
+        stale.switchContext = () => {};
+      } catch (e) {}
+      try { stale.resetHudFrame?.(); } catch (e) {}
+      try { delete managerHost[MANAGER_KEY]; } catch (e) { managerHost[MANAGER_KEY] = null; }
+    }
+    manager = createManager(managerHost);
+    const frame = window.frameElement;
+    const stateNode = frame?.closest?.('.mes') || frame;
+    Object.defineProperty(manager, 'uiPage', {
+      configurable: true,
+      get() {
+        try {
+          const raw = stateNode?.dataset?.linjiangUiPage || '';
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+      },
+      set(value) {
+        try {
+          if (!stateNode?.dataset) return;
+          if (value && value.page) stateNode.dataset.linjiangUiPage = JSON.stringify(value);
+          else delete stateNode.dataset.linjiangUiPage;
+        } catch (e) {}
+      },
+    });
+  } else {
+    manager = managerHost[MANAGER_KEY];
+    if (!manager || manager.version !== MANAGER_VERSION) {
+      try { manager?.resetHudFrame?.(); } catch (e) {}
+      manager = createManager(managerHost);
+      managerHost[MANAGER_KEY] = manager;
+    }
+    /* Managers created by split-v1 can still be alive when a newly rendered message
+       loads split-v2. Add the field in place instead of resetting the managed HUD. */
+    if (!Object.prototype.hasOwnProperty.call(manager, 'pendingDockMode')) {
+      manager.pendingDockMode = null;
+    }
+  }
+
+  const tavernSize = () => {
+    try {
+      return {
+        w: tavernWin().innerWidth || innerWidth,
+        h: tavernWin().innerHeight || innerHeight,
+      };
+    } catch (e) {
+      return { w: innerWidth, h: innerHeight };
+    }
+  };
+
+  const isTauriTavernMobile = () => {
+    try {
+      const tavern = tavernWin();
+      if (!tavern?.__TAURITAVERN__) return false;
+      const nav = tavern.navigator;
+      const ua = String(nav?.userAgent || '');
+      if (/android|iphone|ipad|ipod/i.test(ua)) return true;
+      return Number(nav?.maxTouchPoints || 0) > 0
+        && !!tavern.matchMedia?.('(pointer: coarse)')?.matches;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  /* Phone / tablet held upright. Tauri WebViews can expose a CSS viewport wider
+     than the screenshot/device pixels, so portrait orientation remains authoritative
+     for a mobile runtime instead of relying only on the desktop width breakpoint. */
+  const isIosTauriTavernMobile = () => {
+    if (!isTauriTavernMobile()) return false;
+    try {
+      const tavern = tavernWin();
+      const ua = String(tavern.navigator?.userAgent || '');
+      if (/iphone|ipad|ipod/i.test(ua)) return true;
+      return tavern.navigator?.platform === 'MacIntel'
+        && Number(tavern.navigator?.maxTouchPoints || 0) > 1;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const portraitHud = () => {
+    const { w, h } = tavernSize();
+    return w < h && (w < DESKTOP_MIN || isTauriTavernMobile());
+  };
+
+  const isDesktop = () => !portraitHud() && tavernSize().w >= DESKTOP_MIN;
+
+  const anchorInReadingPane = (frame) => {
+    if (!frame) return false;
+    try {
+      const tavern = tavernWin();
+      const chat = tavern.document.getElementById('chat');
+      if (!chat) return true;
+      return frame.ownerDocument === tavern.document && chat.contains(frame);
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const isSafeOuterFrame = (frame) => {
+    if (!frame) return false;
+    /* TT auto/mobile-safe may move a JSR iframe into its 0x0 parking lot. The
+       detached HUD must stop following it immediately; otherwise that parking
+       rect is mistaken for a viewport/page anchor and the HUD covers the app. */
+    if (isTauriTavernMobile() && !anchorInReadingPane(frame)) return false;
+    try {
+      const inner = frame.contentDocument;
+      if (inner && inner.querySelector('.reading-content, #sheld, #chat')) return false;
+    } catch (e) {}
+    /* Phone chat is ~100vw and the portrait HUD is often >85vh, so the old
+       size heuristic treated the status slot as the tavern shell and parked
+       the HUD back inside a tall in-flow iframe.  That iframe then bled into
+       the latest messages at the bottom of #chat. */
+    try {
+      if (frame.closest && frame.closest('#chat, .mes, .TH-render, .mes_block')) return true;
+    } catch (e) {}
+    const vw = tavernWin().innerWidth || 0;
+    const vh = tavernWin().innerHeight || 0;
+    if (vw && vh && frame.offsetWidth >= vw * 0.92 && frame.offsetHeight >= vh * 0.85) {
+      return false;
+    }
+    return true;
+  };
+
+  const viewportPoint = (el) => {
+    const tavern = tavernWin();
+    const r = el.getBoundingClientRect();
+    let x = r.left;
+    let y = r.top;
+    let win = el.ownerDocument.defaultView;
+    while (win && win !== tavern) {
+      const fe = win.frameElement;
+      if (!fe) break;
+      const fr = fe.getBoundingClientRect();
+      x += fr.left;
+      y += fr.top;
+      win = win.parent;
+    }
+    return {
+      left: x,
+      top: y,
+      width: r.width,
+      height: r.height,
+      vw: tavern.innerWidth,
+      vh: tavern.innerHeight,
+      win: tavern,
+      doc: tavern.document,
+    };
+  };
+
+  const parkHudInside = () => {
+    if (hudFrame.parentNode !== document.body) {
+      document.body.insertBefore(hudFrame, hint);
+    }
+    /* 回到本页里就没有裁剪台了，顺手拆掉，免得酒馆文档上留一个空的 fixed 层。 */
+    removeHudStage();
+    hudFrame.id = 'hud';
+    hudFrame._linjiangCss = null;
+    hudFrame._linjiangOffX = 0;
+    hudFrame._linjiangOffY = 0;
+    hudFrame.style.cssText = 'display:block;width:100%;height:100%;border:0;background:#05040a;';
+  };
+
+  const cleanupLeftovers = () => {
+    const tavern = tavernWin();
+    const doc = tavern.document;
+    /* 全屏钮在 layout 里复用，不在每次重排时拆掉。 */
+    const frame = window.frameElement;
+    if (frame && (frame.parentNode === doc.body || frame.parentNode === doc.documentElement)) {
+      const chat = doc.getElementById('chat');
+      if (chat) chat.appendChild(frame);
+    }
+  };
+
+  /* 原生嵌入下「楼层高度归谁」的交接。
+     ==================================================================
+     要交出去的其实是两样东西，缺一样都不行：
+
+     一、楼层 iframe 上 setSpacer 写的那些 !important（尤其 height）。
+         adjust_iframe_height.js 写的是不带 !important 的 frameElement.style.height，抢不过它。
+
+     二、骨架里 html,body 的 `height:100%; overflow:hidden`。
+         那让本文档的高度等于楼层 iframe 的高度 —— 于是 adjust_iframe_height 量到的
+         body.scrollHeight 就是它自己刚写的值，自我循环，永远锁在旧数字上。
+         实测竖屏锁在 841px（页面态留下的），而 HUD 只有 780px。原生嵌入要的是内容决定高度。
+
+     交接必须是**一次性**的。第一版在每次重排里都撤一遍占位，等于每帧删掉酒馆助手刚写的高度，
+     它再写、我再删 —— 真机上就是「疯狂闪烁」。 */
+  let inlineDockHandedOver = false;
+  let savedDocStyle = null;
+
+  const handOverHeight = (frame) => {
+    if (inlineDockHandedOver) return;
+    inlineDockHandedOver = true;
+    if (savedDocStyle == null) {
+      savedDocStyle = {
+        html: document.documentElement.getAttribute('style'),
+        body: document.body.getAttribute('style'),
+      };
+    }
+    clearSpacer(frame);
+    const free = (el) => {
+      ['height', 'min-height', 'max-height'].forEach((p) => el.style.setProperty(p, 'auto', 'important'));
+      el.style.setProperty('overflow', 'visible', 'important');
+    };
+    free(document.documentElement);
+    free(document.body);
+  };
+
+  const takeBackHeight = () => {
+    if (!inlineDockHandedOver) return;
+    inlineDockHandedOver = false;
+    if (!savedDocStyle) return;
+    const restore = (el, value) => {
+      if (value == null) el.removeAttribute('style');
+      else el.setAttribute('style', value);
+    };
+    restore(document.documentElement, savedDocStyle.html);
+    restore(document.body, savedDocStyle.body);
+    savedDocStyle = null;
+  };
+
+  const setSpacer = (frame, height) => {
+    if (!isSafeOuterFrame(frame)) return;
+    /* 走到 setSpacer 就说明当前排版是壳层拥有高度的那一类，把交出去的东西收回来。 */
+    takeBackHeight();
+    frame.setAttribute('scrolling', 'no');
+    const apply = (prop, value) => frame.style.setProperty(prop, value, 'important');
+    apply('position', 'relative');
+    apply('transform', 'none');
+    apply('width', '100%');
+    apply('height', `${Math.round(height)}px`);
+    apply('max-width', 'none');
+    apply('margin', '0');
+    apply('border', '0');
+    apply('display', 'block');
+    apply('visibility', 'visible');
+    apply('opacity', '0');
+    apply('pointer-events', 'none');
+    apply('overflow', 'hidden');
+    apply('left', 'auto');
+    apply('top', 'auto');
+    apply('z-index', 'auto');
+    apply('background', 'transparent');
+  };
+
+  /* setSpacer 的反操作。原生嵌入时楼层 iframe 不再是透明占位，而是**真正装着 HUD 的容器**，
+     所以那些 !important 覆盖必须全部撤掉，让酒馆助手的 adjust_iframe_height 重新按内容量它。
+     dataset.linjiangH 也要清掉，否则切回生产路径时会以为占位高度没变而跳过 setSpacer。 */
+  const SPACER_PROPS = ['position', 'transform', 'width', 'height', 'max-width', 'margin',
+    'border', 'display', 'visibility', 'opacity', 'pointer-events', 'overflow',
+    'left', 'top', 'z-index', 'background'];
+  const clearSpacer = (frame) => {
+    if (!frame) return;
+    SPACER_PROPS.forEach((prop) => { try { frame.style.removeProperty(prop); } catch (e) {} });
+    try { frame.removeAttribute('scrolling'); } catch (e) {}
+    try { delete frame.dataset.linjiangH; } catch (e) {}
+  };
+
+  const FS_SIZE = 36;
+  const FS_GAP = 8;
+  /* Directly above dock close (1602,96,d=30). 12px gap; 36px circle sits on the
+     body crop's top edge (y 48) so it is not clipped. */
+  const FS_CANVAS_X = 1617;
+  const FS_CANVAS_Y = 66;
+  const FS_ICON_EXPAND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H4v4M16 3h4v4M8 21H4v-4M16 21h4v-4"/></svg>';
+  const FS_ICON_RESTORE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v4H4M16 3v4h4M8 21v-4H4M16 21v-4h4"/></svg>';
+  const SHRINK_ICON_IN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+  const SHRINK_ICON_OUT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+  const FS_CSS = [
+    '#' + HUD_FS_ID + ',#' + HUD_SHRINK_ID + '{',
+    'position:fixed;left:0;top:0;width:' + FS_SIZE + 'px;height:' + FS_SIZE + 'px;padding:0;',
+    'display:grid;place-items:center;',
+    'border:1px solid rgba(232,236,255,.55);border-radius:50%;',
+    'background:rgba(24,30,62,.82);',
+    'color:rgba(255,255,255,.94);cursor:pointer;pointer-events:auto;user-select:none;',
+    'backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);',
+    'box-shadow:0 6px 16px rgba(7,8,27,.38),inset 0 1px 0 rgba(255,255,255,.28);',
+    'will-change:transform;',
+    '}',
+    '#' + HUD_FS_ID + ' svg,#' + HUD_SHRINK_ID + ' svg{display:block;width:18px;height:18px;margin:0;}',
+    '#' + HUD_FS_ID + ':hover,#' + HUD_SHRINK_ID + ':hover{border-color:rgba(255,255,255,.82);background:rgba(48,58,110,.9);',
+    'color:#fff;filter:drop-shadow(0 0 8px rgba(255,210,240,.4));}',
+  ].join('');
+
+  const syncFsButton = (btn) => {
+    if (!btn) return;
+    btn.innerHTML = expanded ? FS_ICON_RESTORE : FS_ICON_EXPAND;
+    btn.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+    btn.setAttribute('aria-label', expanded ? '还原' : '全屏');
+    btn.title = expanded ? '还原' : '全屏';
+  };
+
+  const syncShrinkButton = (btn) => {
+    if (!btn) return;
+    btn.innerHTML = compacted ? SHRINK_ICON_OUT : SHRINK_ICON_IN;
+    btn.setAttribute('aria-pressed', compacted ? 'true' : 'false');
+    btn.setAttribute('aria-label', compacted ? '展开到页面' : '收回嵌入框');
+    btn.title = compacted ? '展开到页面' : '收回嵌入框';
+  };
+
+  const chromeBtn = (id) => {
+    try { return tavernWin().document.getElementById(id); } catch (e) { return null; }
+  };
+
+  const hideChromeButtons = () => {
+    [HUD_FS_ID, HUD_SHRINK_ID].forEach((id) => {
+      const btn = chromeBtn(id);
+      if (btn) btn.style.visibility = 'hidden';
+    });
+  };
+
+  const hudScreenRect = () => {
+    const tavern = tavernWin();
+    const r = hudFrame.getBoundingClientRect();
+    let left = r.left;
+    let top = r.top;
+    let win = hudFrame.ownerDocument.defaultView;
+    while (win && win !== tavern) {
+      const fe = win.frameElement;
+      if (!fe) break;
+      const fr = fe.getBoundingClientRect();
+      left += fr.left;
+      top += fr.top;
+      win = win.parent;
+    }
+    return { left, top, width: r.width, height: r.height };
+  };
+
+  const placeFsButton = () => {
+    /* 覆盖层期间一律收起：placeFsButton 的调用点很多（重排、跟随滚动、补正），
+       在这里挡一次比在每个调用点各判一次可靠。 */
+    if (overlayOpen) { hideChromeButtons(); return; }
+    const tavern = tavernWin();
+    const btn = tavern.document.getElementById(HUD_FS_ID);
+    if (!btn || !hudFrame || !hudFrame.parentNode) return;
+    const box = hudScreenRect();
+    if (!box.width || !box.height) return;
+    const k = Math.min(box.width / BODY_W, box.height / BODY_H);
+    const drawW = BODY_W * k;
+    const drawH = BODY_H * k;
+    const ox = box.left + (box.width - drawW) / 2;
+    const oy = box.top + (box.height - drawH) / 2;
+    const x = ox + (FS_CANVAS_X - 16) * k - FS_SIZE / 2;
+    const y = oy + (FS_CANVAS_Y - 48) * k - FS_SIZE / 2;
+    const z = expanded ? '2147483646' : '50';
+    btn.style.zIndex = z;
+    btn.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)';
+    btn.style.visibility = 'visible';
+    const shrink = tavern.document.getElementById(HUD_SHRINK_ID);
+    if (shrink) {
+      shrink.style.zIndex = z;
+      shrink.style.transform = 'translate3d(' + (x - FS_SIZE - FS_GAP) + 'px,' + y + 'px,0)';
+      shrink.style.visibility = 'visible';
+    }
+  };
+
+  const onFsClick = (event) => {
+    if (!isOwner()) return;
+    try { event.preventDefault(); event.stopPropagation(); } catch (e) {}
+    if (uninstalled) return;
+    expanded = !expanded;
+    if (expanded) compacted = false;
+    const tavern = tavernWin();
+    try { syncFsButton(tavern.document.getElementById(HUD_FS_ID)); } catch (e) {}
+    try { syncShrinkButton(tavern.document.getElementById(HUD_SHRINK_ID)); } catch (e) {}
+    fitParentFrame();
+  };
+
+  const collapseHud = () => {
+    if (!isOwner()) return false;
+    if (!expanded) return true;
+    expanded = false;
+    const tavern = tavernWin();
+    try { syncFsButton(tavern.document.getElementById(HUD_FS_ID)); } catch (e) {}
+    try { syncShrinkButton(tavern.document.getElementById(HUD_SHRINK_ID)); } catch (e) {}
+    fitParentFrame();
+    return true;
+  };
+
+  const onShrinkClick = (event) => {
+    if (!isOwner()) return;
+    try { event.preventDefault(); event.stopPropagation(); } catch (e) {}
+    if (uninstalled) return;
+    /* 手动切过之后，本会话不再接受 HUD 的开机默认值。 */
+    shrinkTouched = true;
+    compacted = !compacted;
+    if (compacted) expanded = false;
+    const mode = compacted ? 'embedded' : 'page';
+    manager.dockMode = mode;
+    /* This button and the settings row are two views of one persisted value. */
+    postToHud({
+      channel: CHANNEL,
+      kind: 'event',
+      type: 'dockState',
+      context: manager.context(),
+      payload: { mode },
+    });
+    const tavern = tavernWin();
+    try { syncFsButton(tavern.document.getElementById(HUD_FS_ID)); } catch (e) {}
+    try { syncShrinkButton(tavern.document.getElementById(HUD_SHRINK_ID)); } catch (e) {}
+    fitParentFrame();
+  };
+
+  const applyDockMode = (mode, { layout = true } = {}) => {
+    const embedded = mode === 'embedded';
+    manager.dockMode = embedded ? 'embedded' : 'page';
+    if (compacted === embedded) {
+      if (layout) fitParentFrame();
+      return false;
+    }
+    compacted = embedded;
+    if (compacted) expanded = false;
+    const tavern = tavernWin();
+    try { syncFsButton(tavern.document.getElementById(HUD_FS_ID)); } catch (e) {}
+    try { syncShrinkButton(tavern.document.getElementById(HUD_SHRINK_ID)); } catch (e) {}
+    if (layout) fitParentFrame();
+    return true;
+  };
+
+  const flushPendingDockMode = () => {
+    const mode = manager.pendingDockMode;
+    if (mode !== 'embedded' && mode !== 'page') return false;
+    manager.pendingDockMode = null;
+    return applyDockMode(mode, { layout: false });
+  };
+
+  /* Apply the persisted docking state reported by the HUD settings store. `apply`
+     means the user just changed the settings row and therefore overrides the current
+     layout immediately; the startup report is accepted once unless the top-right button
+     was already used in this controller.
+
+     The flow-inline build has one unavoidable exception to "immediately": changing the
+     mode while a portrait page is open would move the HUD iframe between documents.
+     Browsers reload an iframe when that happens. The settings page would disappear, the
+     reloaded HUD would show its base panel, and the still-true portraitPageOpen flag would
+     then lay that base panel out fullscreen. Queue only that cross-document transition;
+     the preference is already saved in the HUD, and the shell applies it as soon as the
+     page's close event clears portraitPageOpen. */
+  const applyDockDefault = (payload) => {
+    if (uninstalled) return;
+    const embedded = payload?.mode === 'embedded';
+    const mode = embedded ? 'embedded' : 'page';
+    const forced = !!payload?.apply;
+    if (!forced) {
+      if (dockDefaultApplied || shrinkTouched) return;
+      dockDefaultApplied = true;
+    }
+    if (forced && INLINE_DOCK && portraitPageOpen && compacted !== embedded) {
+      manager.pendingDockMode = mode;
+      return;
+    }
+    /* Selecting the currently applied value cancels an earlier pending choice. */
+    manager.pendingDockMode = null;
+    applyDockMode(mode);
+  };
+
+  const mountChromeButton = (id, onClick) => {
+    const doc = tavernWin().document;
+    let btn = doc.getElementById(id);
+    if (btn && (btn.dataset.linjiangOwner !== INSTANCE_ID || !btn.querySelector('svg'))) {
+      btn.remove();
+      btn = null;
+    }
+    if (!btn) {
+      btn = doc.createElement('button');
+      btn.id = id;
+      btn.type = 'button';
+      btn.dataset.linjiangOwner = INSTANCE_ID;
+      btn.dataset.ttMobileSurface = 'none';
+      btn.style.visibility = 'hidden';
+      doc.body.appendChild(btn);
+      listen(btn, 'click', onClick);
+    }
+    /* Also repair buttons retained by the current controller. */
+    btn.dataset.ttMobileSurface = 'none';
+    return btn;
+  };
+
+  const ensureFsChrome = () => {
+    const doc = tavernWin().document;
+    if (!doc || !doc.body) return;
+    let style = doc.getElementById(HUD_FS_STYLE_ID);
+    if (!style) {
+      style = doc.createElement('style');
+      style.id = HUD_FS_STYLE_ID;
+      style.dataset.linjiangOwner = INSTANCE_ID;
+      (doc.head || doc.documentElement).appendChild(style);
+    }
+    style.textContent = FS_CSS;
+    syncFsButton(mountChromeButton(HUD_FS_ID, onFsClick));
+    syncShrinkButton(mountChromeButton(HUD_SHRINK_ID, onShrinkClick));
+  };
+
+  /* 铺满视口的两种情形（全屏、竖屏整页）。裁剪台跟着铺满，HUD 归位到 (0,0)：整页时
+     HUD 自己要能滚，所以这里不提升合成层。 */
+  const paintHudFill = (vw, vh) => {
+    hudFrame.id = HUD_LIVE_ID;
+    const stage = hudFrame._linjiangStage;
+    if (stage) setStageBox(stage, 0, vh, vw, 2147483000);
+    hudFrame._linjiangOffX = 0;
+    hudFrame._linjiangOffY = 0;
+    hudFrame._linjiangCss = null;
+    hudFrame.style.cssText = [
+      'position:absolute',
+      'left:0',
+      'top:0',
+      'transform:none',
+      `width:${vw}px`,
+      `height:${vh}px`,
+      'max-width:none',
+      'margin:0',
+      'border:0',
+      'display:block',
+      'background:#05040a',
+      'pointer-events:auto',
+      'overflow:auto',
+      'will-change:auto',
+    ].join(';');
+    hudFrame.setAttribute('scrolling', 'yes');
+    hudFrame._linjiangBox = { width: vw, height: vh };
+  };
+
+  const layoutExpanded = () => {
+    const tavern = tavernWin();
+    const doc = tavern.document;
+    const vw = tavern.innerWidth || innerWidth;
+    const vh = tavern.innerHeight || innerHeight;
+    cleanupLeftovers();
+    const frame = window.frameElement;
+    if (isSafeOuterFrame(frame)) {
+      const box = hudBox(vw, vh);
+      if (frame.dataset.linjiangH !== String(box.height)) {
+        setSpacer(frame, box.height);
+        frame.dataset.linjiangH = String(box.height);
+      }
+    }
+    mountHud(doc);
+    paintHudFill(vw, vh);
+    placeFsButton();
+  };
+
+  const layoutCompact = () => {
+    const frame = window.frameElement;
+    if (!frame || !isSafeOuterFrame(frame)) return;
+    cleanupLeftovers();
+    const view = viewportPoint(frame);
+    const width = Math.max(120, Math.round(view.width || frame.getBoundingClientRect().width || 0));
+    const height = Math.min(Math.round(width * BODY_H / BODY_W), Math.round(view.vh * MAX_VH));
+    const box = { width, height };
+    if (frame.dataset.linjiangH !== String(height)) {
+      setSpacer(frame, height);
+      frame.dataset.linjiangH = String(height);
+    }
+    const after = viewportPoint(frame);
+    mountHud(after.doc);
+    paintHud(box);
+    hudFrame._linjiangAlign = 'slot';
+    hudFrame._linjiangBox = box;
+    moveHud(after, box);
+    placeFsButton();
+  };
+
+  const hudBox = (vw, vh) => {
+    let width = Math.min(Math.round(vw * HUD_WIDTH_VW / 100), vw - 40);
+    let height = Math.round(width * BODY_H / BODY_W);
+    const maxH = Math.round(vh * MAX_VH);
+    if (height > maxH) {
+      height = maxH;
+      width = Math.round(height * BODY_W / BODY_H);
+    }
+    return { width, height };
+  };
+
+  /* Wider than the reading slot when the slot is a phone-narrow column;
+     if the slot is already past PORTRAIT_WIDTH_MAX, only bleed 24px.
+     Height is the column's own content, reported by the HUD — never a
+     viewport fraction, or the iframe grows a nested scrollbar. */
+  const portraitHudBox = (vw, vh, readingW) => {
+    const maxW = Math.max(280, vw - PORTRAIT_GUTTER * 2);
+    const width = readingW >= PORTRAIT_WIDTH_MAX
+      ? Math.min(maxW, readingW + 24)
+      : Math.min(maxW, PORTRAIT_WIDTH_MAX);
+    const reported = Math.round(hudFrame._portraitRestH || 0);
+    const height = reported > 1
+      ? reported
+      : Math.max(360, Math.round(width * 0.9));
+    return { width: Math.round(width), height };
+  };
+
+  const readingPane = () => {
+    try {
+      const doc = tavernWin().document;
+      return doc.getElementById('chat') || doc.getElementById('sheld') || null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  /* 裁剪台。
+     ==================================================================
+     被抬起的 HUD 是 position:fixed，透明占位留在消息流里，所以每次宿主滚动都要把它搬到
+     新位置，并且把露出阅读区上下沿的那部分裁掉。这两件事以前都直接做在 iframe 上：写
+     left/top 挪，写 clip-path 裁。代价是每帧都要把整块玻璃重新光栅一遍 —— 390×844 的
+     手机上一段一秒的手势要 450ms 光栅、300 多个光栅任务；把 HUD 内容换成一块纯色则只剩
+     15ms，也就是说钱全花在「重画玻璃」上，而不是「移动」上。
+
+     现在把两件事分开：
+
+       裁剪台  position:fixed，钉在阅读区上，overflow:hidden，pointer-events:none。
+               它的几何只在阅读区自己变化时才写（旋转、软键盘、栏宽变化），滚动时不动。
+       HUD     裁剪台里的 position:absolute 元素，只用 transform: translate3d 平移，
+               并且 will-change:transform 提升为合成层。
+
+     于是逐帧变化的只剩一个 transform，合成器可以整块搬运已经光栅好的纹理。实测同一段手势
+     447ms → 87ms 光栅，主线程 Paint 从每帧一次（~80ms / 80 次）降到 8 次。
+
+     两点都是必要条件，缺一个就没有收益：只改 transform 不提升，层照样要重画（489ms）；
+     提升了但 clip-path 仍逐帧改，反而更慢（527ms）—— 改 clip-path 会让合成器丢掉层缓存。
+
+     原注释担心「transform 会晚一帧合成，出现可见的一格跳动」。transform 是在 scroll 事件
+     和 rAF 里同步写的，和 left/top 落在同一个样式轮次；实测 180 多帧里 HUD 顶边与栏位顶边
+     的错位始终是 0px。注意这是主线程读数，读不到合成器实际呈现的位置，真机仍值得肉眼确认。 */
+  const ensureHudStage = (doc) => {
+    let stage = hudFrame._linjiangStage;
+    if (stage && stage.isConnected && stage.ownerDocument === doc) return stage;
+    stage = doc.getElementById(HUD_STAGE_ID);
+    if (!stage) {
+      stage = doc.createElement('div');
+      stage.id = HUD_STAGE_ID;
+      /* TauriTavern 会把 body 下未标记的 fixed 子元素当成宿主浮层接管几何。裁剪台是
+         pointer-events:none，本来就不会被它的 classifySurface 选中，但显式声明一次，
+         免得将来判定规则变化。见 mobile-overlay-surface-admission.js。 */
+      stage.dataset.ttMobileSurface = 'none';
+    }
+    if (stage.parentNode !== doc.body) doc.body.appendChild(stage);
+    hudFrame._linjiangStage = stage;
+    return stage;
+  };
+
+  /** 把 HUD 挂进 doc 的裁剪台，返回裁剪台。 */
+  const mountHud = (doc) => {
+    const stage = ensureHudStage(doc);
+    if (hudFrame.parentNode !== stage) stage.appendChild(hudFrame);
+    return stage;
+  };
+
+  /** HUD 是否已经挂在酒馆文档的裁剪台里。 */
+  const hudMounted = () => {
+    const stage = hudFrame._linjiangStage;
+    return !!stage && stage.isConnected && hudFrame.parentNode === stage;
+  };
+
+  /* 只在真的变了才写：写同样的值也会触发样式失效，而这里是滚动路径上的热点。 */
+  const setStageBox = (stage, top, height, width, zIndex) => {
+    const next = `${Math.round(top)}|${Math.round(height)}|${Math.round(width)}|${zIndex}`;
+    if (stage._linjiangGeom === next) return;
+    stage._linjiangGeom = next;
+    stage.style.cssText = [
+      'position:fixed',
+      'left:0',
+      `top:${Math.round(top)}px`,
+      `width:${Math.round(width)}px`,
+      `height:${Math.round(height)}px`,
+      'margin:0',
+      'padding:0',
+      'border:0',
+      'overflow:hidden',
+      'pointer-events:none',
+      'background:transparent',
+      `z-index:${zIndex}`,
+    ].join(';');
+  };
+
+  /** HUD 在裁剪台内的位移。逐帧只走这一条。 */
+  const setHudOffset = (x, y) => {
+    const nx = Math.round(x);
+    const ny = Math.round(y);
+    if (hudFrame._linjiangOffX === nx && hudFrame._linjiangOffY === ny) return;
+    hudFrame._linjiangOffX = nx;
+    hudFrame._linjiangOffY = ny;
+    hudFrame.style.transform = `translate3d(${nx}px,${ny}px,0)`;
+  };
+
+  const removeHudStage = () => {
+    const stage = hudFrame?._linjiangStage;
+    try { stage?.remove(); } catch (e) {}
+    if (hudFrame) hudFrame._linjiangStage = null;
+  };
+
+  /* Mirror an ordinary in-flow iframe: keep every part whose spacer still intersects
+     #chat, and hide it only once it has left the reading pane entirely. Hiding as soon
+     as the slot's top 32px left the pane made the whole HUD vanish after one small
+     wheel/touch scroll while its blank spacer remained, which was especially
+     destructive on portrait phones.
+
+     裁剪本身已经交给裁剪台，这里只管「整块看不见时收起来」，不再写 clip-path。 */
+  const applySlotVisibility = (view, box, paneRect = null) => {
+    if (expanded || portraitPageOpen || hudFrame._linjiangAlign === 'page') {
+      hudFrame.style.visibility = 'visible';
+      hudFrame.style.pointerEvents = 'auto';
+      return;
+    }
+    const rr = paneRect || (() => {
+      const pane = readingPane();
+      return pane ? pane.getBoundingClientRect() : {
+        left: 0, top: 0, right: view.vw, bottom: view.vh,
+      };
+    })();
+    const hudBottom = view.top + box.height;
+    const visibleTop = Math.max(view.top, rr.top);
+    const visibleBottom = Math.min(hudBottom, rr.bottom);
+    const intersects = visibleBottom - visibleTop > 1;
+    if (!intersects) {
+      hudFrame.style.visibility = 'hidden';
+      hudFrame.style.pointerEvents = 'none';
+      try { hideChromeButtons(); } catch (e) {}
+      return;
+    }
+    hudFrame.style.visibility = 'visible';
+    hudFrame.style.pointerEvents = 'auto';
+  };
+
+  /** 当前该用的裁剪窗口，酒馆视口坐标。 */
+  const clipWindow = (view, paneRect = null) => {
+    if (expanded || portraitPageOpen || hudFrame._linjiangAlign === 'page') {
+      return { top: 0, bottom: view.vh };
+    }
+    const rr = paneRect || (() => {
+      const pane = readingPane();
+      return pane ? pane.getBoundingClientRect() : null;
+    })();
+    if (!rr) return { top: 0, bottom: view.vh };
+    return { top: rr.top, bottom: rr.bottom };
+  };
+
+  const moveHud = (view, box, paneRect = null) => {
+    const align = hudFrame._linjiangAlign || 'window';
+    let x = (view.vw - box.width) / 2;
+    if (align === 'slot') {
+      const slotW = view.width || 0;
+      x = view.left + (slotW - box.width) / 2;
+      const minX = PORTRAIT_GUTTER;
+      const maxX = view.vw - box.width - PORTRAIT_GUTTER;
+      if (maxX >= minX) x = Math.max(minX, Math.min(x, maxX));
+    }
+    const stage = hudFrame._linjiangStage;
+    if (stage) {
+      const clip = clipWindow(view, paneRect);
+      setStageBox(stage, clip.top, Math.max(0, clip.bottom - clip.top), view.vw, 40);
+      setHudOffset(x, view.top - clip.top);
+    }
+    applySlotVisibility(view, box, paneRect);
+    if (align === 'slot') {
+      try { hideChromeButtons(); } catch (e) {}
+    } else if (hudFrame.style.visibility !== 'hidden') {
+      placeFsButton();
+    }
+  };
+
+  /* HUD 在裁剪台里是 absolute，位置全部由 transform 给。两套构图都提升为合成层：竖屏
+     原来刻意不提升，怕把一块 480×78vh 的 backdrop-filter 纹理留一整场；但不提升的代价是
+     每帧重新光栅整块玻璃（447ms vs 87ms），而那块纹理本来每帧都在重新生成，常驻一份反而
+     更省。TauriTavern 移动端另外走 data-hud-performance=low，那边根本没有 backdrop 纹理。 */
+  const paintHud = (box) => {
+    hudFrame.id = HUD_LIVE_ID;
+    const cssText = [
+      'position:absolute',
+      'left:0',
+      'top:0',
+      `width:${box.width}px`,
+      `height:${box.height}px`,
+      'max-width:none',
+      'margin:0',
+      'border:0',
+      'display:block',
+      'background:#05040a',
+      'pointer-events:auto',
+      'overflow:hidden',
+      'will-change:transform',
+      `transform:translate3d(${hudFrame._linjiangOffX || 0}px,${hudFrame._linjiangOffY || 0}px,0)`,
+    ].join(';');
+    /* 每次重排都会调到这里；尺寸没变就别重写 cssText，否则等于把 transform 抹掉再设回去，
+       白白多一次样式失效。 */
+    if (hudFrame._linjiangCss !== cssText) {
+      hudFrame._linjiangCss = cssText;
+      hudFrame.style.cssText = cssText;
+    }
+    hudFrame.setAttribute('scrolling', 'no');
+  };
+
+  const layoutDesktop = () => {
+    const frame = window.frameElement;
+    if (!frame) return;
+    cleanupLeftovers();
+    const view = viewportPoint(frame);
+    const box = hudBox(view.vw, view.vh);
+    if (frame.dataset.linjiangH !== String(box.height)) {
+      setSpacer(frame, box.height);
+      frame.dataset.linjiangH = String(box.height);
+    }
+    const after = viewportPoint(frame);
+    mountHud(after.doc);
+    paintHud(box);
+    hudFrame._linjiangAlign = 'window';
+    moveHud(after, box);
+    hudFrame._linjiangBox = box;
+    placeFsButton();
+  };
+
+  const followHud = () => {
+    if (expanded || portraitPageOpen || overlayOpen) return;
+    const frame = window.frameElement;
+    if (isTauriTavernMobile() && !anchorInReadingPane(frame)) {
+      hudFrame.style.visibility = 'hidden';
+      hudFrame.style.pointerEvents = 'none';
+      try { hideChromeButtons(); } catch (e) {}
+      return;
+    }
+    const box = hudFrame._linjiangBox;
+    /* 原生嵌入没有裁剪台，hudMounted() 本来就会是 false，但把判断写在前面更直白：
+       这条路径下 HUD 是普通流内元素，滚动跟随是浏览器的事，这里一步都不该做。 */
+    if (hudFrame._linjiangAlign === 'inline') return;
+    if (!frame || !box || !hudMounted()) return;
+    if (hudFrame._linjiangAlign === 'page') return;
+    /* compacted 以前在这里单独走一条分支，只挪角上那两颗钮就 return 了 —— 于是收回
+       嵌入框之后 HUD 再也不跟着栏位走：它是 position:fixed 的，不 moveHud 就等于钉死
+       在屏幕上，滚动时脱离原位，而且 applySlotVisibility 不再重跑，连"滚出阅读区就
+       该藏起来"的裁剪也停了，所以会一直盖在别的界面上。
+
+       compacted 和竖屏/手机是同一种排版（align 'slot'，浮层跟着栏位走），本来就该走
+       同一条跟随路径，唯一的差别在下面那三行。 */
+    const view = viewportPoint(frame);
+    const pane = readingPane();
+    const paneRect = pane ? pane.getBoundingClientRect() : null;
+    moveHud(view, box, paneRect);
+    /* moveHud 对 align 'slot' 一律收掉全屏/缩小钮 —— 竖屏用不到它们。但"收回嵌入框"
+       恰恰必须留着缩小钮，否则没有任何入口能再展开回去。所以这里补放一次，
+       并且只在 applySlotVisibility 判定 HUD 还看得见时补：滚出阅读区时保持藏起来。 */
+    if (compacted && hudFrame.style.visibility !== 'hidden') placeFsButton();
+  };
+
+  const layoutPortraitCompact = () => {
+    const frame = window.frameElement;
+    if (!frame || !isSafeOuterFrame(frame)) return;
+    cleanupLeftovers();
+    const view = viewportPoint(frame);
+    const width = Math.max(120, Math.round(view.width || frame.getBoundingClientRect().width || 0));
+    const reported = Math.round(hudFrame._portraitRestH || 0);
+    const height = reported > 1 ? reported : Math.max(360, Math.round(width * 0.9));
+    const box = { width, height };
+    if (frame.dataset.linjiangH !== String(height)) {
+      setSpacer(frame, height);
+      frame.dataset.linjiangH = String(height);
+    }
+    const after = viewportPoint(frame);
+    mountHud(after.doc);
+    paintHud(box);
+    hudFrame._linjiangAlign = 'slot';
+    moveHud(after, box);
+    hudFrame._linjiangBox = box;
+    try { hideChromeButtons(); } catch (e) {}
+  };
+
+  /* 收回态的原生嵌入（只在 INLINE_DOCK 打开时走到）。
+     ==================================================================
+     它替代的是 layoutCompact 和 layoutPortraitCompact。那两支做的是：把楼层 iframe 变成透明占位、
+     把 HUD 抬进酒馆 body 上的裁剪台、paintHud 提升合成层、再 moveHud 逐帧跟随。
+     这一支反过来 —— 什么都不做，把活儿还给酒馆：
+
+       · removeHudStage()      拆掉裁剪台
+       · 把 HUD 挂进**本楼层的文档**，position:static、宽 100%
+       · clearSpacer()         撤掉楼层 iframe 上的占位覆盖，让 adjust_iframe_height 按内容量它
+       · 不 moveHud、不 applySlotVisibility、不写 clip-path、不提升合成层
+
+     高度是唯一还要算的东西，而且用的是跟生产同一个来源：竖屏取 HUD 自报的 _portraitRestH
+     （HUD 的 reportPortraitSize），横屏按 BODY_H/BODY_W 的宽高比。 */
+  const layoutInlineDock = () => {
+    const frame = window.frameElement;
+    if (!frame) return;
+    removeHudStage();
+    if (hudFrame.parentNode !== document.body) document.body.appendChild(hudFrame);
+    /* 从整页状态退回来时先还原楼层 iframe，否则它还钉在满视口上。 */
+    leaveInlineDockPage(frame);
+
+    /* 楼层 iframe 的高度在原生嵌入下**归酒馆助手**，壳层必须彻底放手。
+       ------------------------------------------------------------------
+       JS-Slash-Runner/src/iframe/adjust_iframe_height.js 跑在本文档里，由 body 上的
+       ResizeObserver 驱动，直接写 frameElement.style.height = body.scrollHeight。
+
+       所以占位覆盖只能在**进入**这个状态时撤一次。第一版在每次重排里都调 clearSpacer，
+       而它含 removeProperty('height') —— 于是每帧把酒馆助手刚写的高度删掉，它再写、我再删，
+       在真机上就是「疯狂闪烁」。夹具当时也露出了症状（楼层停在 150px 而 HUD 是 780px），
+       那是这场抢夺停在了「删掉之后 body 尺寸没再变、ResizeObserver 不再触发」的那一帧，
+       我没认出来。
+
+       交接的两样东西和它的一次性要求，都写在 handOverHeight 上面那段。 */
+    handOverHeight(frame);
+
+    const width = Math.max(120, Math.round(
+      document.documentElement.clientWidth || frame.getBoundingClientRect().width || 0,
+    ));
+    const reported = Math.round(hudFrame._portraitRestH || 0);
+    const height = portraitHud()
+      ? (reported > 1 ? reported : Math.max(360, Math.round(width * 0.9)))
+      : Math.round(width * BODY_H / BODY_W);
+
+    hudFrame.id = HUD_LIVE_ID;
+    /* 刻意不带 position / transform / will-change / clip-path —— 那些正是这一支要证明可以不要的。 */
+    const cssText = [
+      'position:static',
+      'width:100%',
+      `height:${height}px`,
+      'max-width:none',
+      'margin:0',
+      'border:0',
+      'display:block',
+      'background:#05040a',
+      'pointer-events:auto',
+      'visibility:visible',
+      'overflow:hidden',
+    ].join(';');
+    if (hudFrame._linjiangCss !== cssText) {
+      hudFrame._linjiangCss = cssText;
+      hudFrame.style.cssText = cssText;
+    }
+    hudFrame.setAttribute('scrolling', 'no');
+    hudFrame._linjiangAlign = 'inline';
+    hudFrame._linjiangBox = { width, height };
+    hudFrame._linjiangOffX = 0;
+    hudFrame._linjiangOffY = 0;
+    /* 那两颗角钮是注入酒馆顶层文档、按抬起后的 HUD 位置摆的，原生嵌入下没有对应位置。 */
+    try { hideChromeButtons(); } catch (e) {}
+  };
+
+  /* 原生嵌入下的「整页」状态（次级页面 / 全屏）。
+     ==================================================================
+     为什么不能直接复用 layoutPortraitPage / layoutExpanded：它们靠 mountHud() 把 HUD 挪到酒馆
+     文档上再铺满视口，而**挪动必重载**。重载会把 HUD 内部刚打开的那一页丢掉，于是点「日程」
+     「档案」这类按钮的结果是整个面板被全屏化、而不是那一页被打开 —— 真机上就是这个症状。
+
+     所以这里达成的是同一个状态（HUD 铺满视口），但换用这个模式下唯一可行的手段：HUD 一步不动，
+     改让**楼层 iframe** 铺满视口。楼层 iframe 在酒馆文档里，本文件与酒馆同源，改它的样式是允许的。
+     这不是新增交互，也没有新按钮 —— 触发它的仍然是 HUD 自己那两条通报（portraitPage / 全屏）。 */
+  let inlinePageOn = false;
+  let savedFloorStyle = null;
+
+  /* 让楼层 iframe 的 position:fixed 真的锚到视口。
+     ==================================================================
+     这是「点日程/档案，整个面板消失」的根因，而且只在带模糊的主题上出现。
+
+     position:fixed 默认锚视口，但只要有祖先带 transform / filter / backdrop-filter /
+     perspective / will-change / contain 之类，那个祖先就成了 fixed 后代的**包含块**，
+     fixed 于是退化成「相对该祖先的绝对定位」，跟着它的滚动走、并被它的 overflow 裁掉。
+
+     实测（scripts/_probe-fixed-cb.mjs 的受控实验，真实 ST 样式 + 真实 TT 模块）：
+     SillyTavern 自己的 #chat 带 backdrop-filter: blur(13px)，而楼层 iframe 就在 #chat 里。
+     于是把楼层设成 fixed;top:0;left:0 之后，它的 rect.top 等于 -chat.scrollTop：
+
+         chat.scrollTop  178 →  楼层 top  -96   视口内可见 259074 px²
+         chat.scrollTop  328 →  楼层 top -246   视口内可见 200724 px²
+         chat.scrollTop  628 →  楼层 top -546   视口内可见  84024 px²
+         chat.scrollTop 1117 →  楼层 top -1035  视口内可见      0 px²   ← 面板消失
+
+     同一时刻只把 #chat 的 backdrop-filter 去掉，楼层立刻回到 top:0、可见 329160 px²
+     （整个视口）。单变量、效果即时且彻底，所以因果是定的。
+     Dark Lite 这种 no-blur 主题的 #chat 没有 backdrop-filter，所以它一直是好的 ——
+     这也是为什么这个 bug 看起来时好时坏。
+
+     引导壳不受影响：它从不把楼层设成 fixed，而是把 HUD 抬到酒馆 body 下（#chat 之外）。
+
+     能逃出 #chat 的只有两条路：成为 body 的子节点，或者真正锚住视口。前者要挪 iframe，
+     而**挪动必重载**（已实测：同文档换父 1→2 次加载、跨文档 2→3），重载会丢掉 HUD 刚打开
+     的那一页 —— 那正是这一支存在的原因。所以只剩后者：把这条链上建立包含块的属性临时中和掉。
+
+     只在整页期间中和，退出时按原样精确还原（连 !important 优先级一起存）。整页把视口盖满了，
+     所以这期间 #chat 少一层模糊在视觉上看不见。 */
+  /* 第二件事：光锚住视口还不够，酒馆自己的 chrome 还压在整页上面。
+     ------------------------------------------------------------------
+     命中测试（整页开着，视口坐标）：
+         (195,70)  → div#top-bar      顶栏，z-index 3005
+         (195,830) → div#form_sheld   底部输入栏，z-index 31
+     上下各有一条被盖住且不可点，而次级页面的返回钮就在顶上那条里 —— 页面关不掉。
+
+     为什么不能靠 z-index 解决：楼层 iframe 在 #chat 里，而 #chat 是
+     position:static（z-index 对 static 无效），所以整个 #chat 子树在 #sheld 内部是按
+     常规流绘制的，排在 positioned 的 #form_sheld 之前。实测把楼层 z-index 提到
+     2147483647 仍然输给 z-index:31 的 #form_sheld；只有把 #form_sheld 自己压下去或
+     藏起来才行。也就是说这个位置根本抬不出去。
+
+     生产壳层不受影响：它把裁剪台挂在酒馆 body 下、z-index 2147483000（见 paintHudFill），
+     在根层叠上下文里比，所以它的全屏本来就盖住了顶栏和输入栏。
+     这一支不能挪（挪动必重载，会丢掉刚打开的那一页），所以改为整页期间把这几件 chrome
+     临时藏起来 —— 效果与生产的全屏一致，不是新增行为。
+
+     退出时按原样精确还原（连 !important 优先级一起存）。 */
+  /* 记在宿主元素上的还原信息。理由见 escapeFixedContainingBlock 里 patch 上面那段：
+     楼层文档会被 WebKit 重载，闭包保不住，只有 DOM 属性能跟元素同生共死。 */
+  const CB_SAVED_ATTR = 'data-linjiang-cb-saved';
+  const FLOOR_SAVED_ATTR = 'data-linjiang-floor-saved';
+  const CB_PROPS = ['backdrop-filter', '-webkit-backdrop-filter', 'filter',
+    'transform', 'perspective', 'will-change', 'contain', 'container-type'];
+  /* 中和值不能一律用 none：will-change 的初始值是 auto，contain 是 none，container-type 是 normal。 */
+  const CB_NEUTRAL = { 'will-change': 'auto', 'contain': 'none', 'container-type': 'normal' };
+  /* SillyTavern 的 chrome。整页盖不住它们，只能藏。 */
+  const HOST_CHROME_IDS = ['top-bar', 'top-settings-holder', 'form_sheld'];
+  let cbPatched = null;
+
+  const createsFixedCb = (s) => {
+    if (!s) return false;
+    const has = (v) => v && v !== 'none';
+    return has(s.transform) || has(s.perspective) || has(s.filter)
+      || has(s.backdropFilter) || has(s.webkitBackdropFilter)
+      || /transform|perspective|filter/.test(s.willChange || '')
+      || /paint|layout|strict|content/.test(s.contain || '')
+      || ((s.containerType || 'normal') !== 'normal');
+  };
+
+  const escapeFixedContainingBlock = (frame) => {
+    /* 只在进入整页时补一次。补过之后 computed 已经是中和值，再跑一遍就什么都记不下来了。 */
+    if (cbPatched) return;
+    cbPatched = [];
+    try {
+      const tavern = tavernWin();
+      const body = tavern.document.body;
+      const patch = (el, props, value) => {
+        const saved = {};
+        props.forEach((p) => {
+          saved[p] = [el.style.getPropertyValue(p), el.style.getPropertyPriority(p)];
+        });
+        cbPatched.push({ el, saved });
+        /* 还原信息同时写进**宿主 DOM**，不只留在这个闭包里。
+           ==================================================================
+           这是一次真机事故的修法。TT 移动端的「角色卡渲染管理」会把楼层运行时挪进 0×0
+           停车场，而 WebKit 会重载停在里面的文档（startInlineResumeWatch 上面那段注释
+           早就记了这件事）。文档一重载，cbPatched 就跟着消失 —— 可是 DOM 上的改动还在：
+           楼层仍然是 position:fixed 铺满视口、background:#05040a，#top-bar 和 #form_sheld
+           仍然 visibility:hidden。于是屏幕永久停在全屏近黑，而且**进程没死**，所以切后台
+           再回来照样黑（用户实测：App 响应正常、来回切很丝滑、切回来仍然黑屏）。
+
+           把 saved 序列化到元素自己身上，任何一个后来的控制器都能收拾残局，不依赖
+           「当初那个文档还活着」。attribute 选它是因为它跟元素同生共死，正是我们要的生命周期。 */
+        try {
+          el.setAttribute(CB_SAVED_ATTR, JSON.stringify(saved));
+        } catch (e) {}
+        props.forEach((p) => el.style.setProperty(p, value(p), 'important'));
+      };
+
+      /* 一、把这条链上建立 fixed 包含块的祖先中和掉，让 position:fixed 真的锚视口。 */
+      let el = frame.parentElement;
+      while (el) {
+        if (createsFixedCb(tavern.getComputedStyle(el))) {
+          patch(el, CB_PROPS, (p) => CB_NEUTRAL[p] || 'none');
+        }
+        if (el === body) break;
+        el = el.parentElement;
+      }
+
+      /* 二、藏掉盖在整页上面、又抬不出去的宿主 chrome。 */
+      HOST_CHROME_IDS.forEach((id) => {
+        const chrome = tavern.document.getElementById(id);
+        if (chrome) patch(chrome, ['visibility'], () => 'hidden');
+      });
+    } catch (e) {}
+  };
+
+  const applySavedStyles = (el, saved) => {
+    Object.keys(saved || {}).forEach((p) => {
+      const entry = saved[p];
+      const value = Array.isArray(entry) ? entry[0] : '';
+      const priority = Array.isArray(entry) ? entry[1] : '';
+      if (value) el.style.setProperty(p, value, priority);
+      else el.style.removeProperty(p);
+    });
+  };
+
+  const restoreFixedContainingBlock = () => {
+    if (!cbPatched) return;
+    const patched = cbPatched;
+    cbPatched = null;
+    for (const entry of patched) {
+      try {
+        applySavedStyles(entry.el, entry.saved);
+        entry.el.removeAttribute(CB_SAVED_ATTR);
+      } catch (e) {}
+    }
+  };
+
+  /* 收拾「上一个文档没来得及还原」的残局。
+     ==================================================================
+     只靠 restoreFixedContainingBlock 是不够的：它要求当初打补丁的那个文档还活着。楼层被
+     TT 停进停车场、被 WebKit 重载之后，那个文档没了，DOM 上的改动却留着 —— 全屏近黑、
+     顶栏和输入栏永久隐藏，而且没有任何代码还知道该怎么收。
+
+     所以每个新控制器启动时都主动扫一遍宿主：凡是带我们记号的，一律按记下来的原样还回去。
+     这样做是安全的，因为**一个刚启动的控制器身上不可能有整页开着** —— 记号只可能是残留。
+     顺带把楼层自己的几何也收回来（它可能还钉在满视口上）。 */
+  const reclaimHostLeftovers = () => {
+    try {
+      const tavern = tavernWin();
+      tavern.document.querySelectorAll(`[${CB_SAVED_ATTR}]`).forEach((el) => {
+        let saved = null;
+        try { saved = JSON.parse(el.getAttribute(CB_SAVED_ATTR) || 'null'); } catch (e) {}
+        try { applySavedStyles(el, saved); } catch (e) {}
+        el.removeAttribute(CB_SAVED_ATTR);
+      });
+      tavern.document.querySelectorAll(`[${FLOOR_SAVED_ATTR}]`).forEach((el) => {
+        const saved = el.getAttribute(FLOOR_SAVED_ATTR) || '';
+        el.removeAttribute(FLOOR_SAVED_ATTR);
+        if (saved) el.setAttribute('style', saved);
+        else el.removeAttribute('style');
+        el.removeAttribute('scrolling');
+      });
+    } catch (e) {}
+  };
+
+  const layoutInlineDockPage = () => {
+    const frame = window.frameElement;
+    if (!frame) return;
+    removeHudStage();
+    if (hudFrame.parentNode !== document.body) document.body.appendChild(hudFrame);
+
+    if (!inlinePageOn) {
+      inlinePageOn = true;
+      if (savedFloorStyle === null) savedFloorStyle = frame.getAttribute('style');
+      /* 跟原生流那边同一个理由（见 CB_SAVED_ATTR）：楼层文档会被 TT 停车 + WebKit 重载，
+         闭包里的 savedFloorStyle 保不住，得写在楼层元素身上才有人能收拾。 */
+      try { frame.setAttribute(FLOOR_SAVED_ATTR, savedFloorStyle || ''); } catch (e) {}
+    }
+    /* 必须在下面写 position:fixed 之前做：否则这一帧的 fixed 仍然锚在 #chat 上。 */
+    escapeFixedContainingBlock(frame);
+    const tavern = tavernWin();
+    const vv = tavern.visualViewport;
+    const vw = Math.round((vv && vv.width) || tavern.innerWidth || innerWidth);
+    const vh = Math.round((vv && vv.height) || tavern.innerHeight || innerHeight);
+    /* 楼层 iframe 铺满视口。跟 layoutPortraitPage 用的是同一套数字，只是作用在楼层而不是 HUD。 */
+    const floorCss = [
+      'position:fixed', 'left:0', 'top:0',
+      `width:${vw}px`, `height:${vh}px`,
+      'max-width:none', 'max-height:none',
+      'margin:0', 'border:0', 'display:block',
+      'visibility:visible', 'opacity:1', 'pointer-events:auto',
+      'overflow:hidden', 'z-index:2147483000', 'background:#05040a',
+    ].join(';');
+    if (frame.style.cssText !== floorCss) frame.style.cssText = floorCss;
+    /* TT 移动端会把 body 下未标记的 fixed 元素当宿主浮层接管几何，显式退出。 */
+    try { frame.dataset.ttMobileSurface = 'none'; } catch (e) {}
+    frame.setAttribute('scrolling', 'no');
+
+    /* 本文档现在就是视口，让它满铺；整页要能内部滚动，所以 HUD 给 scrolling=yes。 */
+    const fill = (el) => {
+      el.style.setProperty('height', '100%', 'important');
+      el.style.setProperty('overflow', 'hidden', 'important');
+    };
+    fill(document.documentElement);
+    fill(document.body);
+
+    const cssText = [
+      'position:static', 'width:100%', 'height:100%',
+      'max-width:none', 'margin:0', 'border:0', 'display:block',
+      'background:#05040a', 'pointer-events:auto', 'visibility:visible', 'overflow:auto',
+    ].join(';');
+    if (hudFrame._linjiangCss !== cssText) {
+      hudFrame._linjiangCss = cssText;
+      hudFrame.style.cssText = cssText;
+    }
+    hudFrame.setAttribute('scrolling', 'yes');
+    hudFrame.id = HUD_LIVE_ID;
+    hudFrame._linjiangAlign = 'inline';
+    hudFrame._linjiangBox = { width: vw, height: vh };
+    try { hideChromeButtons(); } catch (e) {}
+  };
+
+  /* 从整页退回普通的原生嵌入：把楼层 iframe 还原成酒馆自己设的样子，然后重新走一次交接
+     （handOverHeight 会把 html/body 放回内容决定高度）。 */
+  const leaveInlineDockPage = (frame) => {
+    if (!inlinePageOn) return;
+    inlinePageOn = false;
+    /* 先把祖先的模糊/变换还回去，再还原楼层样式：顺序不重要，但两件事必须成对，
+       漏掉这一句的后果是 #chat 永久失去 backdrop-filter。 */
+    restoreFixedContainingBlock();
+    try { frame.removeAttribute(FLOOR_SAVED_ATTR); } catch (e) {}
+    if (savedFloorStyle === null) frame.removeAttribute('style');
+    else frame.setAttribute('style', savedFloorStyle);
+    savedFloorStyle = null;
+    inlineDockHandedOver = false;   // 让 handOverHeight 重新撤一次占位与 height:100%
+    hudFrame._linjiangCss = null;
+  };
+
+  const layoutPortrait = () => {
+    const frame = window.frameElement;
+    if (!frame || !isSafeOuterFrame(frame)) {
+      layoutMobile();
+      return;
+    }
+    cleanupLeftovers();
+    const view = viewportPoint(frame);
+    const box = portraitHudBox(view.vw, view.vh, view.width);
+    if (frame.dataset.linjiangH !== String(box.height)) {
+      setSpacer(frame, box.height);
+      frame.dataset.linjiangH = String(box.height);
+    }
+    const after = viewportPoint(frame);
+    mountHud(after.doc);
+    paintHud(box);
+    hudFrame._linjiangAlign = 'slot';
+    moveHud(after, box);
+    hudFrame._linjiangBox = box;
+    try { hideChromeButtons(); } catch (e) {}
+  };
+
+  const lockTavernScroll = () => {
+    try {
+      const el = tavernWin().document.documentElement;
+      if (el.dataset.linjiangLock != null) return;
+      el.dataset.linjiangLock = el.style.overflow || '';
+      el.style.overflow = 'hidden';
+    } catch (e) {}
+  };
+
+  const unlockTavernScroll = () => {
+    try {
+      const el = tavernWin().document.documentElement;
+      if (el.dataset.linjiangLock == null) return;
+      el.style.overflow = el.dataset.linjiangLock;
+      delete el.dataset.linjiangLock;
+    } catch (e) {}
+  };
+
+  /* Same idea as 外置状态栏.js fusion-popup-overlay: pin to the visual
+     viewport (100dvh), not to the reading column. */
+  const layoutPortraitPage = () => {
+    const frame = window.frameElement;
+    if (!frame || !isSafeOuterFrame(frame)) {
+      layoutMobile();
+      return;
+    }
+    const tavern = tavernWin();
+    const vv = tavern.visualViewport;
+    const vw = Math.round((vv && vv.width) || tavern.innerWidth || innerWidth);
+    const vh = Math.round((vv && vv.height) || tavern.innerHeight || innerHeight);
+    cleanupLeftovers();
+    const rest = Math.max(1, Math.round(hudFrame._portraitRestH || 0));
+    if (rest && frame.dataset.linjiangH !== String(rest)) {
+      setSpacer(frame, rest);
+      frame.dataset.linjiangH = String(rest);
+    }
+    mountHud(tavern.document);
+    paintHudFill(vw, vh);
+    hudFrame._linjiangAlign = 'page';
+    lockTavernScroll();
+    try { hideChromeButtons(); } catch (e) {}
+  };
+
+  const applyPortraitHeight = (h) => {
+    if (portraitPageOpen || expanded || !portraitHud()) return;
+    /* 原生嵌入（INLINE_DOCK 的收回态）必须在这里就地返回，绝对不能落到下面那句 layoutPortrait()。
+       ------------------------------------------------------------------
+       这是一个真实撞出来的死循环，值得记清楚：那句兜底会调 mountHud() 把 HUD 挪回酒馆文档，
+       而 iframe 换父节点必重载；重载后的 HUD 又会报一次 portraitSize，又走到这里，又被挪回去 ——
+       同时 fitParentFrame 那边还在把它挪进楼层文档。两边对着挪，HUD 每秒重载十几次，最后停在
+       about:blank。竖屏才报 portraitSize，所以桌面完全正常，只有竖屏炸 —— 很容易误判成别的原因。
+
+       原生嵌入下高度就是普通的流内高度，直接写在 iframe 上，酒馆助手的 adjust_iframe_height
+       会跟着把楼层量对。 */
+    if (hudFrame._linjiangAlign === 'inline') {
+      const inlineNext = Math.max(1, Math.round(h));
+      if (hudFrame._linjiangBox) hudFrame._linjiangBox.height = inlineNext;
+      if (hudFrame.style.height !== `${inlineNext}px`) {
+        hudFrame.style.height = `${inlineNext}px`;
+        hudFrame._linjiangCss = null;   // cssText 缓存已失效，下次重排要重写
+      }
+      return;
+    }
+    const next = Math.max(1, Math.round(h));
+    const box = hudFrame._linjiangBox;
+    if (box && hudFrame._linjiangAlign === 'slot' && hudMounted()) {
+      if (box.height === next) return;
+      box.height = next;
+      hudFrame.style.height = `${next}px`;
+      hudFrame._linjiangBox = box;
+      const frame = window.frameElement;
+      if (isSafeOuterFrame(frame) && frame.dataset.linjiangH !== String(next)) {
+        setSpacer(frame, next);
+        frame.dataset.linjiangH = String(next);
+      }
+      followHud();
+      return;
+    }
+    layoutPortrait();
+  };
+
+  const layoutMobile = () => {
+    const frame = window.frameElement;
+    if (!frame || !isSafeOuterFrame(frame)) return;
+    cleanupLeftovers();
+    const view = viewportPoint(frame);
+    const width = Math.max(120, Math.round(view.width || frame.getBoundingClientRect().width || 0));
+    const height = Math.max(180, Math.min(Math.round(width * BODY_H / BODY_W), Math.round(view.vh * MAX_VH)));
+    const box = { width, height };
+    if (frame.dataset.linjiangH !== String(height)) {
+      setSpacer(frame, height);
+      frame.dataset.linjiangH = String(height);
+    }
+    const after = viewportPoint(frame);
+    mountHud(after.doc);
+    paintHud(box);
+    hudFrame._linjiangAlign = 'slot';
+    hudFrame._linjiangBox = box;
+    moveHud(after, box);
+    placeFsButton();
+  };
+
+  const hudSrc = () => {
+    try {
+      const url = new URL(HUD_URL, location.href);
+      const portrait = portraitHud();
+      url.searchParams.set('mode', portrait ? 'portrait' : 'landscape');
+      if (portrait) url.searchParams.delete('fit');
+      else url.searchParams.set('fit', 'body');
+      if (isTauriTavernMobile()) url.searchParams.set('host', 'tauritavern-mobile');
+      else url.searchParams.delete('host');
+      url.searchParams.set('v', 'body34-ios-flow-scroll-resume');
+      return url.toString();
+    } catch (e) {
+      return HUD_URL;
+    }
+  };
+
+  const syncHudSrc = () => {
+    const mode = portraitHud() ? 'portrait' : 'landscape';
+    const hasSrc = !!hudFrame.getAttribute('src');
+    if (!hasSrc) {
+      manager.hudMode = mode;
+      hudFrame.src = hudSrc();
+      return;
+    }
+    if (manager.hudMode === mode) return;
+    manager.hudMode = mode;
+    /* Keep the managed iframe/document alive across orientation changes. The HUD
+       bridge applies this host decision and schedules its own local layout switch. */
+    postHudMode(mode);
+  };
+
+  const fitParentFrame = () => {
+    if (!isOwner()) return;
+    try {
+      const anchor = window.frameElement;
+
+      /* 只要这一帧不该处于「原生嵌入的整页」状态，就先把它拆干净。
+         ------------------------------------------------------------------
+         必须在这里做，不能只靠 layoutInlineDock() 里那一次：整页开着的时候用户去改
+         全局设置里的「HUD 停靠方式」或「适配宽度」，compacted / portraitHud() 一变，
+         下面的分支链就直接走去生产路径了，layoutInlineDockPage 的收尾永远不会执行。
+
+         症状是「切换设置把面板主体全屏化」：楼层 iframe 会被生产路径复位，但
+         #chat 的 backdrop-filter 停在 none、#top-bar 和 #form_sheld 停在
+         visibility:hidden —— 顶栏和输入栏消失了，看起来就像整个面板铺满了屏幕。
+         而且这些是对**宿主**的改动，不还原就一直留着。
+
+         也刻意放在下面那道 TT 停车守卫之前：守卫会 return，锚点离开阅读区时同样得先拆，
+         否则会留下一个盖住整个视口的楼层。 */
+      const wantInlinePage = INLINE_DOCK && compacted && !!anchor
+        && (expanded || portraitPageOpen || overlayOpen);
+      if (!wantInlinePage && anchor) leaveInlineDockPage(anchor);
+
+      if (isTauriTavernMobile() && portraitHud() && !anchorInReadingPane(anchor)) {
+        hudFrame.style.visibility = 'hidden';
+        hudFrame.style.pointerEvents = 'none';
+        try { hideChromeButtons(); } catch (e) {}
+        return;
+      }
+      ensureFsChrome();
+      /* INLINE_DOCK 截的是「收回态」这一整支，包括它的整页/全屏子状态。
+         整页也必须由它接住：走生产的 layoutPortraitPage 会 mountHud 把 HUD 挪回酒馆文档，
+         而挪动必重载，重载会丢掉 HUD 刚打开的那一页 —— 症状是「点日程/档案变成整个面板全屏」。
+         详见 layoutInlineDockPage 上面那段。 */
+      if (overlayOpen && isDesktop()) {
+        /* Desktop iframe overlays are application surfaces, not HUD cards. Keep
+           mobile native-flow on its body portal, but restore the original PC
+           contract: map/shop/CG/arcade fill the viewport below browser chrome. */
+        if (INLINE_DOCK && compacted && window.frameElement) layoutInlineDockPage();
+        else layoutExpanded();
+      }
+      else if (INLINE_DOCK && compacted && window.frameElement) {
+        if (expanded || portraitPageOpen) layoutInlineDockPage();
+        else layoutInlineDock();
+      }
+      else if (expanded) layoutExpanded();
+      else if (compacted && isDesktop() && window.frameElement) layoutCompact();
+      else if (isDesktop() && window.frameElement) layoutDesktop();
+      else if (portraitHud() && window.frameElement) {
+        if (portraitPageOpen) layoutPortraitPage();
+        else {
+          unlockTavernScroll();
+          if (compacted) layoutPortraitCompact();
+          else layoutPortrait();
+        }
+      }
+      else layoutMobile();
+      syncHudSrc();
+    } catch (e) {}
+  };
+
+  /* ---------------------------------------------------------------- Mobile native flow
+     The HUD bundle is loaded as a module into this srcdoc document. There is no inner
+     iframe and no geometry bridge; Tavern Helper's own ResizeObserver sizes this floor. */
+  let mobileNativeMountPromise = null;
+  let mobileNativeRoot = null;
+  let mobileNativeBridge = null;
+  const MOBILE_NATIVE_STYLE_ID = 'linjiang-mobile-native-shell-style';
+  const MOBILE_NATIVE_ROOT_ID = 'linjiang-mobile-native-root';
+  const MOBILE_WRITE_ACTIONS = new Set([
+    'patch', 'clockIn', 'arcadeEvent', 'purchaseShopProduct',
+    'saveCustomMapNode', 'deleteCustomMapNode',
+  ]);
+
+  /* 原生流下的「整页」几何：次级页面、以及铺满视口的覆盖层（商店 / 地图 / 街机 / CG）。
+     ==================================================================
+     为什么原来会坏，两条，都不是「z-index 不够高」：
+
+     一、覆盖层的 position:fixed 锚的不是手机屏。 原生流下 HUD 的 DOM 就长在**楼层 srcdoc
+         文档**里，而那是一个嵌套浏览上下文 —— fixed 天生锚「本文档自己的视口」，也就是楼层
+         iframe 的内容框（宽 = 阅读栏宽，高 = 酒馆助手按 body.scrollHeight 写的那个值）。
+         于是 .shop-layer{position:fixed;inset:0} 铺满的是**那一楼**，不是屏幕。这跟祖先有没有
+         backdrop-filter 无关，因为 #chat 跟覆盖层压根不在同一个文档里。
+
+     二、次级整页会把楼层撑成超高。 整页是流内的高元素，body.scrollHeight 跟着涨，而
+         queueMobileNativeHeight 和酒馆助手的 adjust_iframe_height 都会把这个值写进楼层
+         iframe 的高度。真机上的症状是 #chat 里多出一大片空的深色区域、工具栏被挤得重叠 ——
+         也就是「破坏了酒馆本身的布局」。src/styles/portrait.css 那条
+         `is-page-open{height:100%}` 本来能拦住它，但被 ensureMobileNativeShellStyle 的
+         `height:auto!important` 盖掉了（那条 !important 是为常态的流内高度写的）。
+
+     解法沿用 layoutInlineDockPage 已经验证过的那一套，而不是把覆盖层 DOM 搬去宿主文档：
+     让**楼层 iframe 自己**铺满视口。这样楼层文档的视口就是手机屏，`position:fixed;inset:0`
+     按原样就对了，一行覆盖层 CSS 都不用改；而且楼层出了常规流，再也撑不动 #chat。
+     搬 DOM 那条路要把 HUD 的样式表、message 监听、is-page-open 标记全部跨文档重做一遍，
+     清理契约还得从头写 —— 而这一条的清理契约现成（restoreFixedContainingBlock + 存好的
+     楼层样式），deactivate 里已经有兜底。
+
+     escapeFixedContainingBlock 在这里才真正需要 backdrop-filter 那段知识：楼层一旦自己变
+     fixed，#chat 的 blur 就成了它的包含块，不中和的话楼层会跟着 #chat 滚走、直到完全消失。 */
+  let nativePageOn = false;
+  let nativeSavedFloorStyle = null;
+  let nativeSavedScrolling = null;
+  let nativeSavedChatTop = null;
+
+  /* 顶部安全区（刘海 / 状态栏）的高度。
+     ==================================================================
+     这是「次级页面和商店的顶部被遮挡、关闭钮要很用力往上滑才点得到」的成因，而且我一开始
+     找错了对象 —— 以为是 TT 的顶部导航栏压在上面。真机诊断条给出的数字否掉了那个判断：
+
+         楼层框    430x932 @0,0            ← 我们的全屏本身是对的
+         #top-bar  hidden fixed 430x35@0,59 ← 导航栏是隐藏的，没在挡
+
+     真正占着顶上那一条的是 iOS 的安全区：@0,59 里的 59 就是它。楼层钉在 top:0，于是内容
+     最上面 59px 跑到状态栏底下，而关闭钮正好在那儿。
+
+     TT 自己所有的面都靠 --tt-inset-top 避开这块（见它的 mobile-geometry-firewall：
+     `top: max(var(--tt-inset-top), 0px)`），我们这条全屏路径也必须避。
+
+     取值三级退路，因为不同宿主提供的方式不同：
+       一、TT 的 --tt-inset-top（TT 移动端一定有，是它自己的契约）
+       二、直接量一个 env(safe-area-inset-top) 探针（普通 iOS 浏览器走这条）
+       三、都拿不到就当 0（桌面、安卓大多如此），行为跟以前一样 */
+  const hostInsetTop = () => {
+    try {
+      const tavern = tavernWin();
+      const raw = tavern.getComputedStyle(tavern.document.documentElement)
+        .getPropertyValue('--tt-inset-top').trim();
+      const value = parseFloat(raw);
+      if (Number.isFinite(value) && value > 0) return Math.round(value);
+    } catch (e) {}
+    try {
+      const tavern = tavernWin();
+      const probe = tavern.document.createElement('div');
+      probe.style.cssText = 'position:fixed;left:0;top:0;width:0;'
+        + 'height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none';
+      tavern.document.body.appendChild(probe);
+      const height = Math.round(probe.getBoundingClientRect().height);
+      try { probe.remove(); } catch (e) {}
+      if (height > 0) return height;
+    } catch (e) {}
+    return 0;
+  };
+
+  const mobileNativePageBox = () => {
+    const tavern = tavernWin();
+    const vv = tavern.visualViewport;
+    const vw = Math.round((vv && vv.width) || tavern.innerWidth || innerWidth);
+    const vh = Math.round((vv && vv.height) || tavern.innerHeight || innerHeight);
+    const top = Math.min(hostInsetTop(), Math.max(0, vh - 120));
+    /* 只让开顶部：底部那条 home indicator 压在内容上是无害的，而顶部藏着关闭钮。 */
+    return { vw, vh: Math.max(1, vh - top), top };
+  };
+
+  /* 视口尺寸取 visualViewport 而不是 100dvh：移动端 vh 不等于可见高度（地址栏、软键盘），
+     TT 的 WebView 更会报出比屏幕还宽的 CSS 视口。跟 layoutInlineDockPage / layoutPortraitPage
+     用的是同一个来源。 */
+  const layoutMobileNativePage = () => {
+    const frame = window.frameElement;
+    if (!frame || !nativePageOn) return;
+    const { vw, vh, top } = mobileNativePageBox();
+    const floorCss = [
+      'position:fixed', 'left:0', `top:${top}px`,
+      `width:${vw}px`, `height:${vh}px`,
+      'max-width:none', 'max-height:none',
+      'margin:0', 'border:0', 'display:block',
+      'visibility:visible', 'opacity:1', 'pointer-events:auto',
+      'overflow:hidden', 'z-index:2147483000', 'background:#05040a',
+    ].join(';');
+    if (frame.style.cssText !== floorCss) frame.style.cssText = floorCss;
+    /* TT 移动端会把 body 下未标记的 fixed 元素当宿主浮层接管几何，显式退出。 */
+    try { frame.dataset.ttMobileSurface = 'none'; } catch (e) {}
+  };
+
+  /* 'flow' 模式：只把楼层撑到一个屏幕高，**对酒馆文档零改动**。
+     ==================================================================
+     为什么要有这条退路：真机（iPhone + TauriTavern）上，带 iframe 的覆盖层走整页几何
+     （enterMobileNativePage）会在打开后约 0.2 秒整屏全黑 —— 而且连挂在**酒馆文档**里的
+     诊断条都一起消失，说明不是"我们的近黑背景露出来了"，是整个 WebView 停止了绘制。
+     纯 DOM 的次级页面走同一条整页几何一直正常，两者唯一的差别是里面有没有跨源 iframe。
+
+     整页几何对宿主做了三件事：楼层变 position:fixed、中和祖先的 backdrop-filter、
+     藏掉 #top-bar / #form_sheld。这条 'flow' 一件都不做，只写楼层的 height ——
+     而高度本来就是这个模式下唯一由我们管的量（酒馆助手也在写它，写同一个数不打架）。
+
+     代价是覆盖层不再铺满屏幕，只铺满"一个屏幕高的楼层"，需要时用户还得滚一下对齐。
+     不好看，但不会让人手机变一块黑。真全屏的正确做法是把覆盖层挂到酒馆 body 下当子节点
+     （根层叠上下文，能盖住顶栏而不需要藏任何东西，嵌套层数还从 3 降到 2）—— 那条路另做。 */
+  /* 记住 HUD 当前打开的是哪一页，记在**酒馆窗口**上（manager 身上）。
+     ==================================================================
+     真机症状：TT 的「角色卡渲染管理 = 自动」时，打开主播完整档案、来回上下滑几次，面板会
+     突然像刷新一样消失，视口回到滚动条中央；把渲染管理关掉就不会。
+
+     成因：渲染管理会随滚动把楼层运行时挪进/挪出停车场，被挪的那条楼层**文档会被销毁重建**
+     （壳层里 startInlineResumeWatch 上面那段早就记过 WebKit 会重载停车场里的文档）。
+     而原生流下 HUD 的整个 DOM —— 包括"当前打开哪一页"这个状态 —— 就住在那个文档里。
+     文档一没，用户正在看的档案面板就凭空消失；同时重新选举把 owner 换到另一条楼层，
+     那条在聊天里的位置不同，于是视口也"跳"了。
+
+     所以状态不能只存在楼层文档里。manager 挂在酒馆顶层窗口上，活得比任何一条楼层都久，
+     把页名和参数记在它身上；新楼层挂载前再塞回去（见 mountMobileNativeHud 里那句
+     __linjiangRestorePage），HUD 首帧就能把这一页重新打开 —— 对用户来说等于没发生过。
+
+     只记竖屏路径的页面。横向的 overlay 事件不带 page，rememberNativePage 会原样忽略。 */
+  const rememberNativePage = (payload) => {
+    try {
+      if (!payload) return;
+      if (!payload.open) { manager.uiPage = null; return; }
+      /* 没带页名的通报（比如横向的 overlay）不覆盖已记住的值 —— 宁可不记，也不能记错。 */
+      if (!payload.page) return;
+      manager.uiPage = { page: String(payload.page), arg: payload.arg ?? null };
+    } catch (e) {}
+  };
+
+  let nativeTallOn = false;
+  let nativeTallSavedChatTop = null;
+
+  const enterMobileNativeTallFloor = () => {
+    const frame = window.frameElement;
+    if (!frame) return;
+    const first = !nativeTallOn;
+    nativeTallOn = true;
+    /* 目标不是"填满屏幕"，是**填满阅读区**。
+       ------------------------------------------------------------------
+       'flow' 模式刻意不藏宿主 chrome，所以屏幕顶上那条顶栏和底下那条输入栏仍然在，它们会
+       盖住楼层。实测（elementFromPoint 问出来的）：楼层顶端对齐到安全区 47px 时，覆盖层
+       右上角的关闭钮落在 y=78，而 #top-bar 占 47..82 —— 那个点上最上面的是 div#top-bar，
+       按钮点不到。这跟之前「被安全区盖住」是同一个症状，但这次挡路的是顶栏本身。
+
+       楼层活在 #chat 里，能安全占用的正是 #chat 的可视框。所以高度取 #chat.clientHeight、
+       顶端对齐 #chat 的顶端 —— 手机上这块约占屏幕八成（实测 430x728 / 932），
+       不是真全屏，但完整可见、完整可点，而且一个字节都没动酒馆文档。 */
+    let paneTop = mobileNativePageBox().top;
+    let height = Math.max(240, mobileNativePageBox().vh);
+    try {
+      const chat = tavernWin().document.getElementById('chat');
+      if (chat) {
+        paneTop = Math.round(chat.getBoundingClientRect().top);
+        height = Math.max(240, Math.round(chat.clientHeight));
+      }
+    } catch (e) {}
+    if (frame.style.height !== `${height}px`) frame.style.height = `${height}px`;
+    if (!first) return;
+    const top = paneTop;
+
+    /* 把楼层顶端滚到视口顶端。
+       ------------------------------------------------------------------
+       楼层留在聊天流里，它在屏幕上的位置由当前阅读位置决定 —— 完全可能是负的。实测（回归里
+       量到的）top=-48：覆盖层顶部连同它右上角的关闭钮一起跑到视口外面，点不到。这跟之前
+       「被安全区盖住所以关闭钮点不到」是同一类问题，只是这次的偏移来自滚动而不是安全区。
+
+       这里只改 #chat 的 scrollTop —— 不动任何样式、不藏任何东西，也就不会走上整页几何那条
+       让 WebView 停止绘制的路。滚动位置存下来，关闭时放回去。 */
+    try {
+      const tavern = tavernWin();
+      const chat = tavern.document.getElementById('chat');
+      if (!chat) return;
+      nativeTallSavedChatTop = Number(chat.scrollTop) || 0;
+      /* 等高度那一笔生效之后再量，否则量到的是旧位置。 */
+      requestAnimationFrame(() => {
+        try {
+          const rect = frame.getBoundingClientRect();
+          chat.scrollTop += Math.round(rect.top - top);
+        } catch (e) {}
+      });
+    } catch (e) {}
+  };
+
+  const exitMobileNativeTallFloor = () => {
+    if (!nativeTallOn) return;
+    nativeTallOn = false;
+    /* 高度交回「内容决定」那条路。 */
+    queueMobileNativeHeight();
+    const back = nativeTallSavedChatTop;
+    nativeTallSavedChatTop = null;
+    if (back == null) return;
+    /* 等楼层缩回内容高度之后再放回阅读位置，否则这一下会被夹掉。 */
+    requestAnimationFrame(() => {
+      try {
+        const chat = tavernWin().document.getElementById('chat');
+        if (chat) chat.scrollTop = back;
+      } catch (e) {}
+    });
+  };
+
+  const enterMobileNativePage = () => {
+    const frame = window.frameElement;
+    if (!frame) return;
+    if (!nativePageOn) {
+      nativePageOn = true;
+      nativeSavedFloorStyle = frame.getAttribute('style');
+      nativeSavedScrolling = frame.getAttribute('scrolling');
+      /* 跟 CB_SAVED_ATTR 同一个理由：楼层的原始样式也要写在楼层元素身上，否则这个文档
+         一被重载，它就永久钉在满视口的近黑上，没人知道原来长什么样。 */
+      try { frame.setAttribute(FLOOR_SAVED_ATTR, nativeSavedFloorStyle || ''); } catch (e) {}
+      /* 楼层一离开常规流，#chat 的内容就短掉一截、滚动位置会被夹。整页盖着屏幕时看不见，
+         但关掉之后读者会发现自己被挪走了，所以存下来照原样放回去。 */
+      try {
+        const chat = tavernWin().document.getElementById('chat');
+        nativeSavedChatTop = chat ? Number(chat.scrollTop) || 0 : null;
+      } catch (e) { nativeSavedChatTop = null; }
+      /* 必须在下面写 position:fixed 之前做：否则这一帧的 fixed 仍然锚在 #chat 上。
+         它同时会把盖在整页上面、又抬不出去的宿主 chrome（顶栏、输入栏）藏起来。 */
+      escapeFixedContainingBlock(frame);
+      document.documentElement.dataset.linjiangNativePage = '1';
+      frame.setAttribute('scrolling', 'no');
+    }
+    layoutMobileNativePage();
+  };
+
+  const exitMobileNativePage = () => {
+    if (!nativePageOn) return;
+    nativePageOn = false;
+    const frame = window.frameElement;
+    /* 先把祖先的模糊和宿主 chrome 还回去，再还原楼层样式。两件事必须成对 ——
+       漏掉前者的后果是 #chat 永久失去 backdrop-filter、顶栏和输入栏一直隐藏。 */
+    restoreFixedContainingBlock();
+    delete document.documentElement.dataset.linjiangNativePage;
+    if (frame) {
+      if (nativeSavedFloorStyle === null) frame.removeAttribute('style');
+      else frame.setAttribute('style', nativeSavedFloorStyle);
+      if (nativeSavedScrolling === null) frame.removeAttribute('scrolling');
+      else frame.setAttribute('scrolling', nativeSavedScrolling);
+    }
+    nativeSavedFloorStyle = null;
+    nativeSavedScrolling = null;
+    try { frame?.removeAttribute(FLOOR_SAVED_ATTR); } catch (e) {}
+    /* 高度重新交回「内容决定」那条路（酒馆助手的 ResizeObserver 也会跟着量一次）。 */
+    queueMobileNativeHeight();
+    const chatTop = nativeSavedChatTop;
+    nativeSavedChatTop = null;
+    if (chatTop == null) return;
+    /* 等楼层重新回到流里、#chat 的 scrollHeight 恢复之后再放回去，否则这一下会被夹掉。 */
+    requestAnimationFrame(() => {
+      try {
+        const chat = tavernWin().document.getElementById('chat');
+        if (chat) chat.scrollTop = chatTop;
+      } catch (e) {}
+    });
+  };
+
+  const onMobileNativeViewport = () => {
+    /* 转屏、地址栏收起、软键盘弹出都会改可见高度。整页期间要跟着重排，否则底部会露出
+       一条 #chat；不在整页时这就是普通的重新量高。 */
+    if (nativePageOn) { layoutMobileNativePage(); return; }
+    queueMobileNativeHeight();
+  };
+
+  const restoreMobileNativeAnchor = () => {
+    const frame = window.frameElement;
+    if (!frame || nativePageOn) return;
+    for (const name of ['height', 'min-height', 'opacity', 'pointer-events']) {
+      frame.style.removeProperty(name);
+    }
+    delete frame.dataset.linjiangH;
+    requestAnimationFrame(() => {
+      try {
+        const height = Math.max(1, Math.ceil(document.body?.scrollHeight || 0));
+        frame.style.height = `${height}px`;
+      } catch (e) {}
+    });
+  };
+
+  const queueMobileNativeHeight = () => {
+    requestAnimationFrame(() => {
+      try {
+        const frame = window.frameElement;
+        if (!frame || !isOwner()) return;
+        /* 整页期间楼层由 layoutMobileNativePage 钉在视口上，高度不再由内容决定。
+           照旧写 scrollHeight 就是和整页几何对着写 —— 那种互抢在真机上表现为疯狂闪烁
+           （同一类事故的记录在 layoutInlineDock 里 handOverHeight 上面那段）。 */
+        if (nativePageOn) return;
+        /* 'flow' 模式同理：那时楼层高度由 enterMobileNativeTallFloor 定（一个屏幕高），
+           照旧写 scrollHeight 会把它压回内容高度，覆盖层就又被挤扁了。 */
+        if (nativeTallOn) return;
+        const height = Math.max(1, Math.ceil(document.body?.scrollHeight || 0));
+        if (frame.style.height !== `${height}px`) frame.style.height = `${height}px`;
+      } catch (e) {}
+    });
+  };
+
+  const installMobileNativeBridge = () => {
+    const bridge = {
+      owner: INSTANCE_ID,
+      async request(action, payload) {
+        if (!isOwner()) throw new Error('这一楼已不是当前 owner，请求作废');
+        /* Docking belongs only to the desktop lifted architecture. */
+        if (action === 'collapseHud') return true;
+        const result = await handleRequest(action, payload || {});
+        if (MOBILE_WRITE_ACTIONS.has(action)) queueMicrotask(() => pushSnapshot(true));
+        return result;
+      },
+      event(type, payload) {
+        /* 整页 / 覆盖层：楼层要暂时离开常规流去铺满视口，理由写在 nativePageOn 上面那段。
+           竖屏路径（原生流恒为竖屏）对次级页面和覆盖层报的都是 portraitPage；overlay 是横向
+           路径的通报，这里一并接住只是防御，语义相同。 */
+        if (type === 'portraitPage' || type === 'overlay') {
+          rememberNativePage(payload);
+          if (payload && payload.open) {
+            /* geometry='flow'：只撑高楼层，绝不碰酒馆文档。带 iframe 的覆盖层走这条 ——
+               理由（真机全黑）写在 enterMobileNativeTallFloor 上面那段。 */
+            if (payload.geometry === 'portal') {
+              /* The overlay already lives in a fixed portal under Tavern document.body.
+                 Keep the message floor in normal flow; the portal out-stacks host chrome. */
+              exitMobileNativePage();
+              exitMobileNativeTallFloor();
+            } else if (payload.geometry === 'flow') {
+              exitMobileNativePage();
+              enterMobileNativeTallFloor();
+            } else {
+              exitMobileNativeTallFloor();
+              enterMobileNativePage();
+            }
+          } else {
+            exitMobileNativePage();
+            exitMobileNativeTallFloor();
+          }
+          return;
+        }
+        /* 常态：文档就在常规流里，自报高度只需要让酒馆助手重新量一次 body。 */
+        if (type === 'portraitSize') queueMobileNativeHeight();
+      },
+    };
+    mobileNativeBridge = bridge;
+    window.__linjiangMobileDirectBridge = bridge;
+  };
+
+  const removeMobileNativeBridge = () => {
+    if (window.__linjiangMobileDirectBridge === mobileNativeBridge) {
+      try { delete window.__linjiangMobileDirectBridge; }
+      catch (e) { window.__linjiangMobileDirectBridge = null; }
+    }
+    mobileNativeBridge = null;
+  };
+
+  const ensureMobileNativeShellStyle = () => {
+    if (document.getElementById(MOBILE_NATIVE_STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = MOBILE_NATIVE_STYLE_ID;
+    style.textContent = `
+      html[data-linjiang-mobile-native="1"],
+      html[data-linjiang-mobile-native="1"] body {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow-x: hidden !important;
+        overflow-y: visible !important;
+        background: #05040a !important;
+      }
+      #${MOBILE_NATIVE_ROOT_ID} { display:block; width:100%; min-height:1px; }
+      #${MOBILE_NATIVE_ROOT_ID}[hidden] { display:none !important; }
+      /* 整页期间楼层文档的视口就是手机屏（见 nativePageOn）。
+         滚动条给根节点而不是给 document：酒馆助手的 adjust_iframe_height 会照着
+         body.scrollHeight 写楼层高度，document 一旦可滚，scrollHeight 就是内容高度，
+         它就会把我们钉好的 vh 覆盖掉 —— 又是一次对着写。让 html/body 严格等于视口、
+         把溢出交给根节点，scrollHeight 就恒等于视口高，两边写的是同一个数。
+         overscroll-behavior 防止滚到尽头后把滚动链传给 #chat。 */
+      html[data-linjiang-native-page="1"],
+      html[data-linjiang-native-page="1"] body {
+        height: 100% !important;
+        min-height: 100% !important;
+        overflow: hidden !important;
+      }
+      html[data-linjiang-native-page="1"] #${MOBILE_NATIVE_ROOT_ID} {
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+      html[data-linjiang-native-active="0"] #${MOBILE_NATIVE_ROOT_ID} *,
+      html[data-linjiang-native-active="0"] #${MOBILE_NATIVE_ROOT_ID} *::before,
+      html[data-linjiang-native-active="0"] #${MOBILE_NATIVE_ROOT_ID} *::after {
+        animation-play-state: paused !important;
+      }
+      #hud { display:none !important; }
+    `;
+    document.head.appendChild(style);
+  };
+
+  /* 各楼层共用 bundle 入口的解析结果。
+     ------------------------------------------------------------------
+     每次 owner 交接都重新取一遍 HUD 首页是纯浪费：那份 HTML 只用来找出 bundle 入口和样式表
+     清单，而这两样在一次会话里不会变。结果放在 manager 上 —— 它挂在酒馆顶层窗口，而且是纯
+     数据（字符串和数组），不受"realm 消失"的影响。于是只有第一层付那次往返。
+
+     顺带去掉 cache:'no-store'：它强制每次都走网络，而这份 HTML 完全可以按 Pages 给的
+     max-age 走缓存。原来「每条消息一次不可缓存的往返 + 整份 bundle」正是交接黑屏的主体。 */
+  const resolveNativeEntry = async () => {
+    if (manager.nativeEntry) return manager.nativeEntry;
+    const response = await fetch(new URL(HUD_URL, location.href).toString());
+    if (!response.ok) throw new Error(`HUD 首页 HTTP ${response.status}`);
+    const parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
+    const entries = [...parsed.querySelectorAll('script[type="module"][src]')];
+    const entry = entries.find((item) => !String(item.getAttribute('src') || '').includes('/@vite/client'))
+      || entries.at(-1);
+    if (!entry) throw new Error('HUD 首页里找不到 module script');
+    const resolved = {
+      /* HUD 自己的目录。原生流下 HUD 的 DOM 长在楼层 srcdoc 文档里，而 srcdoc 的 baseURI
+         继承的是**酒馆的地址** —— HUD 里那些 `${BASE_URL}shop/index.html` 之类的相对地址
+         如果按 baseURI 解析，就会指到酒馆域下一个不存在的路径，iframe 空白、屏幕整片黑。
+         真机上正是这样炸的（商店 / CG 打不开），而夹具因为酒馆和 HUD 同源一直看不出来。
+         所以由壳层把真实来源交给 HUD（见 src/asset.js 的 hudBase）。
+         用 response.url 而不是 HUD_URL：它是跟过重定向之后的最终地址。 */
+      base: new URL('.', response.url).toString(),
+      src: new URL(entry.getAttribute('src'), response.url).toString(),
+      css: [...parsed.querySelectorAll('link[rel="stylesheet"]')]
+        .map((link) => ({
+          href: link.getAttribute('href') ? new URL(link.getAttribute('href'), response.url).toString() : '',
+          media: link.media || '',
+          crossOrigin: link.crossOrigin || '',
+        }))
+        .filter((row) => row.href),
+    };
+    manager.nativeEntry = resolved;
+    return resolved;
+  };
+
+  const applyNativeStyles = (rows) => {
+    rows.forEach((row) => {
+      if ([...document.styleSheets].some((sheet) => sheet.href === row.href)) return;
+      if (document.querySelector(`link[rel="stylesheet"][href="${CSS.escape(row.href)}"]`)) return;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = row.href;
+      if (row.media) link.media = row.media;
+      if (row.crossOrigin) link.crossOrigin = row.crossOrigin;
+      document.head.appendChild(link);
+    });
+  };
+
+  /* 「script 触发了 load」不等于「HUD 起来了」。module 在执行期间抛异常时 script 照样 fire
+     load，而根节点会一直空着 —— 屏幕上就是永久黑，而且没有任何一处会去重试。所以挂载的终点
+     判据是根节点真的长出东西来。 */
+  const nativeHudPainted = () => {
+    try { return (mobileNativeRoot?.querySelectorAll('*').length || 0) > 40; }
+    catch (e) { return false; }
+  };
+
+  const waitForNativePaint = (timeoutMs) => new Promise((resolve, reject) => {
+    const started = Date.now();
+    const tick = () => {
+      if (nativeHudPainted()) { resolve(true); return; }
+      if (Date.now() - started > timeoutMs) { reject(new Error('HUD 脚本加载了但没有画出来')); return; }
+      setTimeout(tick, 80);
+    };
+    tick();
+  });
+
+  let mobileNativeMountAttempt = 0;
+  let mobileNativeRetryTimer = 0;
+
+  const mountMobileNativeHud = () => {
+    restoreMobileNativeAnchor();
+    ensureMobileNativeShellStyle();
+    document.documentElement.dataset.linjiangMobileNative = '1';
+    window.__linjiangNativeFlow = true;
+    window.__linjiangHostMode = 'portrait';
+    try { localHudFrame?.remove(); } catch (e) {}
+
+    mobileNativeRoot = document.getElementById(MOBILE_NATIVE_ROOT_ID);
+    if (!mobileNativeRoot) {
+      mobileNativeRoot = document.createElement('div');
+      mobileNativeRoot.id = MOBILE_NATIVE_ROOT_ID;
+      document.body.insertBefore(mobileNativeRoot, hint || null);
+    }
+    mobileNativeRoot.hidden = false;
+    if (mobileNativeMountPromise) return mobileNativeMountPromise;
+
+    const attempt = ++mobileNativeMountAttempt;
+    if (!nativeHudPainted()) mobileNativeRoot.innerHTML = '<div class="viewport"></div>';
+    showHint('正在加载 HUD…');
+    mobileNativeMountPromise = (async () => {
+      const entry = await resolveNativeEntry();
+      /* 必须在注入 bundle **之前**写：HUD 一跑起来就可能去解析内嵌页面的地址。 */
+      if (entry.base) window.__linjiangHudBase = entry.base;
+      /* 同理要在 bundle 之前：HUD 首帧就会读它，把上一条楼层被销毁前打开的那一页恢复回来。
+         理由见 rememberNativePage —— TT 的渲染管理会销毁重建楼层文档，用户正在看的档案面板
+         不该因此消失。 */
+      try {
+        const restore = manager.uiPage;
+        if (restore && restore.page) window.__linjiangRestorePage = { ...restore };
+        else delete window.__linjiangRestorePage;
+      } catch (e) {}
+      applyNativeStyles(entry.css);
+      /* 重试时给入口加一个查询串。同一个 URL 一旦进了本文档的 module map 就不会再执行，
+         所以"加载成功但没画出来"那种失败必须换 URL 才有第二次机会。 */
+      const src = attempt > 1
+        ? `${entry.src}${entry.src.includes('?') ? '&' : '?'}shellRetry=${attempt}`
+        : entry.src;
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = src;
+        script.crossOrigin = 'anonymous';
+        script.onload = resolve;
+        script.onerror = () => reject(new Error('取不到 HUD 的入口脚本'));
+        document.head.appendChild(script);
+      });
+      await waitForNativePaint(6000);
+      try { manager.note(`mounted ${INSTANCE_ID.slice(0, 4)} 第${attempt}次`); } catch (e) {}
+      showHint('');
+      queueMobileNativeHeight();
+      pushSnapshot(true);
+      return true;
+    })().catch((error) => {
+      console.error('[临江状态栏] HUD 挂载失败', error);
+      showHint('HUD 加载失败，正在重试…');
+      /* 失败的 promise 绝不能留在缓存里。
+         ------------------------------------------------------------------
+         原来这里只打日志就把 rejected promise 留下了，于是这一楼永久停在纯黑：之后每次重新
+         当选都拿到同一个已 reject 的 promise，一次都不会再试。夹具里这条是「挂载失败一次之后
+         12 秒都不自愈」。
+
+         重试由本文档自己安排 —— 它正在跑，所以不会像 manager 自己 schedule 的那样被丢掉。
+         上一任故意不在这里交班：让它继续显示旧数据，也比一块黑好。 */
+      mobileNativeMountPromise = null;
+      if (mobileNativeMountAttempt <= 6) {
+        const delay = Math.min(8000, 600 * 2 ** (mobileNativeMountAttempt - 1));
+        clearTimeout(mobileNativeRetryTimer);
+        mobileNativeRetryTimer = setTimeout(() => {
+          if (active && !destroyed) mountMobileNativeHud().catch(() => {});
+        }, delay);
+      } else {
+        showHint('HUD 加载失败，检查网络后重开对话');
+      }
+      throw error;
+    });
+    return mobileNativeMountPromise;
+  };
+
+  let followTick = 0;
+  let inlineResumeTimer = 0;
+
+  /* TauriTavern mobile parks message runtimes by moving the outer JSR iframe into
+     a hidden 0x0 container. The inline HUD hides itself there, but moving it back
+     is not guaranteed to emit resize/pageshow; its ordinary observer also routes
+     through followHud(), which intentionally returns for align=inline. Recover the
+     owning layout as soon as the anchor is back inside #chat. */
+  const recoverInlineDock = () => {
+    if (!isOwner() || !INLINE_DOCK || !compacted || !isTauriTavernMobile()) return;
+    const frame = window.frameElement;
+    if (!frame || !anchorInReadingPane(frame)) return;
+    const needsLayout = hudFrame._linjiangAlign !== 'inline'
+      || hudFrame.ownerDocument !== document
+      || hudFrame.parentNode !== document.body
+      || hudFrame.style.visibility === 'hidden'
+      || hudFrame.style.pointerEvents === 'none';
+    if (needsLayout) fitParentFrame();
+  };
+
+  const startInlineResumeWatch = () => {
+    if (inlineResumeTimer || !INLINE_DOCK || !isTauriTavernMobile()) return;
+    /* WebKit may reload the JSR document while it is in TT's parking lot. The new
+       controller starts hidden there, then receives no reliable lifecycle event on
+       the move back. This owner-only 4Hz check is dormant work outside that mode and
+       bounds the black interval to at most one tick. */
+    inlineResumeTimer = setInterval(() => {
+      try { recoverInlineDock(); } catch (e) {}
+    }, 250);
+  };
+
+  const requestFollow = () => {
+    if (!isOwner() || followTick) return;
+    followTick = requestAnimationFrame(() => {
+      followTick = 0;
+      try { followHud(); } catch (e) {}
+    });
+  };
+
+  const followNow = () => {
+    if (!isOwner()) return;
+    if (followTick) {
+      cancelAnimationFrame(followTick);
+      followTick = 0;
+    }
+    try { followHud(); } catch (e) {}
+  };
+
+  /* A moving top-level iframe forces every backdrop-filter inside it to be
+     recomposited against a new screen position. Temporarily ask the HUD to use
+     its flat glass fills while the tavern scrolls; restore the blur shortly
+     after the last scroll event. The tint/rims stay visible, so the transient
+     downgrade is hard to notice in motion but removes the expensive blur pass. */
+  let hostScrollIdleTimer = 0;
+  let hostScrollActive = false;
+  let lastScrollEventStamp = -1;
+  let lastReadingScrollTop = null;
+  /* A forwarded touch keeps scrolling the same host pane even though the lifted
+     HUD moves under the finger during the gesture. */
+  let touchScrollPoint = null;
+  const setHostScrollActive = (next) => {
+    const activeNow = !!next;
+    if (hostScrollActive === activeNow) return;
+    hostScrollActive = activeNow;
+    /* Tauri mobile uses a permanently flat glass surface. Toggling a universal
+       backdrop-filter selector at gesture boundaries makes Android WebView
+       reallocate the iframe layer and appear to flash. */
+    if (isTauriTavernMobile() && !isIosTauriTavernMobile()) return;
+    postToHud({
+      channel: CHANNEL,
+      kind: 'event',
+      type: 'hostScrollState',
+      context: manager.context(),
+      payload: { active: activeNow },
+    });
+  };
+  const nudgePortraitHud = (before, after) => {
+    const delta = (Number(after) || 0) - (Number(before) || 0);
+    lastReadingScrollTop = Number(after) || 0;
+    if (!delta || !portraitHud() || hudFrame._linjiangAlign !== 'slot') return;
+    /* 这一步是「不读布局就把 HUD 挪到手指位置上」，所以只能动 transform，绝不能读 rect。
+       以前它改的是 style.top —— 那是布局属性，逐帧写等于逐帧重排 + 重画整块玻璃，
+       而且会把 followHud 里刚提升好的合成层废掉。 */
+    const y = hudFrame._linjiangOffY;
+    if (Number.isFinite(y)) setHudOffset(hudFrame._linjiangOffX || 0, y - delta);
+  };
+  const noteHostScroll = (event) => {
+    if (!isOwner()) return;
+    const stamp = Number(event?.timeStamp);
+    if (Number.isFinite(stamp) && stamp === lastScrollEventStamp) return;
+    if (Number.isFinite(stamp)) lastScrollEventStamp = stamp;
+    setHostScrollActive(true);
+    const pane = readingPane();
+    if (portraitHud() && pane) {
+      const current = Number(pane.scrollTop) || 0;
+      if (lastReadingScrollTop != null) nudgePortraitHud(lastReadingScrollTop, current);
+      else lastReadingScrollTop = current;
+    }
+    clearTimeout(hostScrollIdleTimer);
+    hostScrollIdleTimer = setTimeout(() => {
+      hostScrollIdleTimer = 0;
+      setHostScrollActive(false);
+    }, 160);
+    /* Scroll and layout in one animation frame. Calling followHud synchronously
+       from every scroll event forces a frame -> layout -> style cycle on phones,
+       and touch forwarding can call this twice for one gesture update. */
+    if (portraitHud()) requestFollow();
+    else followNow();
+  };
+
+  const wheelPixels = (payload, win) => {
+    const dy = Number(payload?.deltaY) || 0;
+    const mode = Number(payload?.deltaMode) || 0;
+    if (mode === 1) return dy * 40;
+    if (mode === 2) return dy * ((win && win.innerHeight) || 800);
+    return dy;
+  };
+
+  const isRootScroller = (el, doc) => (
+    el === doc.scrollingElement || el === doc.documentElement || el === doc.body
+  );
+
+  const isWheelScrollable = (el, doc) => {
+    if (!el || !doc) return false;
+    const room = (el.scrollHeight || 0) - (el.clientHeight || 0);
+    if (room <= 1) return false;
+    if (isRootScroller(el, doc)) return true;
+    try {
+      const overflowY = doc.defaultView.getComputedStyle(el).overflowY;
+      return overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay';
+    } catch (e) {
+      return false;
+    }
+  };
+
+  /* Return the unconsumed part of a wheel delta.  Keeping the remainder is
+     important near a nested scroller's edge: native wheel scrolling chains the
+     rest into its parent instead of dropping the whole gesture. */
+  const applyScroll = (el, dy, doc) => {
+    if (!dy || !isWheelScrollable(el, doc)) return dy;
+    const max = Math.max(0, (el.scrollHeight || 0) - (el.clientHeight || 0));
+    const before = Number(el.scrollTop) || 0;
+    const target = Math.max(0, Math.min(max, before + dy));
+    if (Math.abs(target - before) < 0.01) return dy;
+    el.scrollTop = target;
+    const consumed = (Number(el.scrollTop) || 0) - before;
+    return dy - consumed;
+  };
+
+  /* 转发滚动的天花板：装着阅读区的那些祖先，一个都不许滚。
+     ==================================================================
+     用户反馈「PC 下往下滚动有时候把酒馆整个输入框滚上去」，就是这里漏出来的。
+
+     壳层转发滚轮时按原生的滚动链语义把余量往父节点喂。问题是在宿主文档里，阅读区
+     （#chat）的父节点是 #sheld，而**#sheld 同时装着 #form_sheld（输入栏）**，
+     并且真实 ST 给它的是 overflow-y:auto。实测（scripts/check-host-scroll-containment.mjs，
+     真实 ST 1.18.0 桌面 1440x900）：
+
+         节点        overflowY   余量   壳层判定可滚
+         div#chat    scroll      1061   会
+         div#sheld   auto           0   不会（默认没余量，所以大多数人碰不到）
+         body        hidden         0   不会
+         html        visible        0   不会
+
+     #sheld 平时余量是 0，所以本地复现不出来。但只要有东西把它撑出余量 —— 比如 Quick Reply
+     工具条多出一排（反馈截图里输入栏上方那排自定义按钮就是）、浏览器缩放、或 #chat 有
+     min-height 让 flex 缩不下去 —— 它就变成可滚的。这时把 #chat 滚到底再继续往下滚，余量
+     就溢出到 #sheld 上：实测 #sheld.scrollTop 0 → 226，输入栏从 y=867 被推到 y=641。
+     而 ST 自己从不滚 #sheld，所以没有任何东西会把它滚回来 —— 输入栏就那么留在上面了。
+
+     所以边界不是「别滚文档根」那么窄（实测 body 是 overflow:hidden，scrollTop 压根写不动，
+     根本不是这条路）。真正的规则是：**转发滚动只作用于阅读区及其内部，凡是「包含阅读区」的
+     祖先都是宿主自己的外壳，不属于我们**。用 contains 表达而不是列一串 id，是因为主题和扩展
+     完全可能在中间插进别的层，列 id 迟早漏。
+
+     嵌套 iframe（正文里那些）不受这条限制：它们是另一个文档，那个文档的根本来就是它自己的
+     滚动器，滚它是正确的 —— 所以 bound 只在宿主文档这一层传。 */
+  const holdsReadingPane = (el, bound) => {
+    if (!bound || !el || el === bound) return false;
+    try { return !!el.contains && el.contains(bound); } catch (e) { return false; }
+  };
+
+  const scrollChain = (start, dy, doc, bound = null) => {
+    let remaining = dy;
+    let node = start && start.nodeType === 1 ? start : start?.parentElement;
+    const seen = new Set();
+    while (node && node !== doc && Math.abs(remaining) > 0.01) {
+      if (holdsReadingPane(node, bound)) break;
+      if (!seen.has(node)) {
+        seen.add(node);
+        remaining = applyScroll(node, remaining, doc);
+      }
+      if (node === bound) break;
+      if (node === doc.documentElement || node === doc.body) break;
+      node = node.parentElement;
+    }
+    /* 有边界时不再兜底去试文档根：那正是「把宿主外壳滚走」的另一半。 */
+    if (bound) return remaining;
+    const root = doc.scrollingElement || doc.documentElement;
+    if (root && !seen.has(root) && Math.abs(remaining) > 0.01) {
+      remaining = applyScroll(root, remaining, doc);
+    }
+    return remaining;
+  };
+
+  const pointInFrame = (iframe, x, y) => {
+    const r = iframe.getBoundingClientRect();
+    return { x: x - r.left, y: y - r.top, win: iframe.contentWindow };
+  };
+
+  const scrollAtPoint = (win, x, y, dy) => {
+    if (!win || !dy) return dy;
+    try {
+      const doc = win.document;
+      let target = null;
+      try { target = doc.elementFromPoint(x, y); } catch (e) {}
+      if (!target) target = doc.scrollingElement || doc.documentElement;
+
+      let remaining = dy;
+      if (target && target.tagName === 'IFRAME') {
+        try {
+          const p = pointInFrame(target, x, y);
+          remaining = scrollAtPoint(p.win, p.x, p.y, remaining);
+        } catch (e) {}
+        target = target.parentElement;
+      }
+      return scrollChain(target, remaining, doc);
+    } catch (e) {
+      return dy;
+    }
+  };
+
+  const hudPointerPoint = (payload) => {
+    const box = hudScreenRect();
+    const px = Number(payload?.clientX);
+    const py = Number(payload?.clientY);
+    const x = Number.isFinite(px) ? Math.max(0, Math.min(box.width - 1, px)) : box.width / 2;
+    const y = Number.isFinite(py) ? Math.max(0, Math.min(box.height - 1, py)) : Math.min(80, box.height / 4);
+    return { x: box.left + x, y: box.top + y };
+  };
+
+  const nearestWheelScroller = (start, doc, bound = null) => {
+    let node = start && start.nodeType === 1 ? start : start?.parentElement;
+    while (node && node !== doc) {
+      /* 跟 scrollChain 同一条边界，理由写在 holdsReadingPane 上面那段。自动滚动比滚轮更
+         需要它：滚轮是一次性的，自动滚动会**持续**滚，把宿主外壳一路推出屏幕。 */
+      if (holdsReadingPane(node, bound)) return null;
+      if (isWheelScrollable(node, doc)) return node;
+      if (node === bound) return null;
+      if (node === doc.documentElement || node === doc.body) break;
+      node = node.parentElement;
+    }
+    if (bound) return null;
+    const root = doc.scrollingElement || doc.documentElement;
+    return isWheelScrollable(root, doc) ? root : null;
+  };
+
+  const scrollTargetAtPoint = (win, x, y) => {
+    if (!win) return null;
+    try {
+      const doc = win.document;
+      let target = doc.elementFromPoint(x, y);
+      if (target && target.tagName === 'IFRAME') {
+        try {
+          const p = pointInFrame(target, x, y);
+          const nested = scrollTargetAtPoint(p.win, p.x, p.y);
+          if (nested) return nested;
+        } catch (e) {}
+        target = target.parentElement;
+      }
+      const el = nearestWheelScroller(target, doc);
+      return el ? { el, doc } : null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const readingTargetAtPoint = (payload) => {
+    const tavern = tavernWin();
+    try {
+      const point = hudPointerPoint(payload);
+      const stack = tavern.document.elementsFromPoint(point.x, point.y) || [];
+      for (let i = 0; i < stack.length; i++) {
+        let el = stack[i];
+        if (!el || el === hudFrame || el.id === HUD_LIVE_ID
+            || el.id === HUD_FS_ID || el.id === HUD_AUTOSCROLL_ID) continue;
+        if (el.tagName === 'IFRAME') {
+          try {
+            const p = pointInFrame(el, point.x, point.y);
+            const nested = scrollTargetAtPoint(p.win, p.x, p.y);
+            if (nested) return { ...nested, point };
+          } catch (e) {}
+          el = el.parentElement;
+        }
+        const target = nearestWheelScroller(el, tavern.document, readingPane());
+        if (target) return { el: target, doc: tavern.document, point };
+        break;
+      }
+
+      const wins = [window.parent, tavern];
+      const visited = new Set();
+      for (let i = 0; i < wins.length; i++) {
+        const win = wins[i];
+        if (!win || visited.has(win)) continue;
+        visited.add(win);
+        try {
+          const doc = win.document;
+          /* 跟 scrollReading 的兜底同一条理由：只认阅读区，绝不退回文档根。自动滚动一旦
+             latch 在宿主外壳上会持续滚，比滚轮更难收场。 */
+          const chat = doc.getElementById('chat');
+          if (!chat) continue;
+          const target = nearestWheelScroller(chat, doc, chat);
+          if (target) return { el: target, doc, point };
+        } catch (e) {}
+      }
+    } catch (e) {}
+    return null;
+  };
+
+  const toTavernPoint = (win, x, y) => {
+    const tavern = tavernWin();
+    let current = win;
+    let px = x;
+    let py = y;
+    try {
+      while (current && current !== tavern) {
+        const frame = current.frameElement;
+        if (!frame) break;
+        const rect = frame.getBoundingClientRect();
+        px += rect.left;
+        py += rect.top;
+        current = current.parent;
+      }
+    } catch (e) {}
+    return { x: px, y: py };
+  };
+
+  const autoscroll = {
+    active: false,
+    target: null,
+    doc: null,
+    anchorX: 0,
+    anchorY: 0,
+    pointerX: 0,
+    pointerY: 0,
+    raf: 0,
+    lastTime: 0,
+  };
+
+  const notifyAutoscrollState = (active) => {
+    try {
+      hudFrame.contentWindow?.postMessage({
+        channel: CHANNEL,
+        kind: 'event',
+        context: manager.context(),
+        type: 'autoscrollState',
+        payload: { active },
+      }, hudOrigin === '*' ? '*' : hudOrigin);
+    } catch (e) {}
+  };
+
+  const removeAutoscrollMarker = () => {
+    try { tavernWin().document.getElementById(HUD_AUTOSCROLL_ID)?.remove(); } catch (e) {}
+  };
+
+  const syncAutoscrollCursor = (overlay) => {
+    if (!overlay) return;
+    const dy = autoscroll.pointerY - autoscroll.anchorY;
+    overlay.style.cursor = Math.abs(dy) < 12 ? 'all-scroll' : (dy < 0 ? 'n-resize' : 's-resize');
+  };
+
+  const stopAutoscroll = () => {
+    if (!autoscroll.active && !autoscroll.raf) {
+      removeAutoscrollMarker();
+      return;
+    }
+    if (autoscroll.raf) {
+      try { tavernWin().cancelAnimationFrame(autoscroll.raf); } catch (e) {}
+    }
+    autoscroll.active = false;
+    autoscroll.target = null;
+    autoscroll.doc = null;
+    autoscroll.raf = 0;
+    autoscroll.lastTime = 0;
+    removeAutoscrollMarker();
+    notifyAutoscrollState(false);
+  };
+
+  const autoscrollSpeed = (offset) => {
+    const DEAD_ZONE = 12;
+    const distance = Math.abs(offset) - DEAD_ZONE;
+    if (distance <= 0) return 0;
+    const pxPerSecond = Math.min(2400, distance * 5 + distance * distance * 0.025);
+    return Math.sign(offset) * pxPerSecond;
+  };
+
+  const autoscrollFrame = (time) => {
+    if (!autoscroll.active || !autoscroll.target || !autoscroll.doc) return;
+    const last = autoscroll.lastTime || time;
+    const elapsed = Math.min(50, Math.max(0, time - last));
+    autoscroll.lastTime = time;
+    const speed = autoscrollSpeed(autoscroll.pointerY - autoscroll.anchorY);
+    if (speed && elapsed) {
+      const dy = speed * elapsed / 1000;
+      const remaining = applyScroll(autoscroll.target, dy, autoscroll.doc);
+      if (Math.abs(remaining - dy) > 0.01) {
+        try { followHud(); } catch (e) {}
+      }
+    }
+    autoscroll.raf = tavernWin().requestAnimationFrame(autoscrollFrame);
+  };
+
+  const startAutoscroll = (payload) => {
+    const found = readingTargetAtPoint(payload);
+    if (!found) {
+      notifyAutoscrollState(false);
+      return;
+    }
+    stopAutoscroll();
+    autoscroll.active = true;
+    autoscroll.target = found.el;
+    autoscroll.doc = found.doc;
+    autoscroll.anchorX = found.point.x;
+    autoscroll.anchorY = found.point.y;
+    autoscroll.pointerX = found.point.x;
+    autoscroll.pointerY = found.point.y;
+
+    try {
+      const doc = tavernWin().document;
+      const overlay = doc.createElement('div');
+      overlay.id = HUD_AUTOSCROLL_ID;
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.style.cssText = [
+        'position:fixed',
+        'inset:0',
+        'z-index:2147483647',
+        'cursor:all-scroll',
+        'background:transparent',
+      ].join(';');
+      overlay.innerHTML = [
+        '<div data-origin="1">',
+        '<svg viewBox="0 0 32 32" width="36" height="36">',
+        '<circle cx="16" cy="16" r="14.5" fill="rgba(18,20,28,.78)" stroke="rgba(255,255,255,.72)" stroke-width="1.2"/>',
+        '<path d="M16 5.5l5.2 7.2H10.8z" fill="rgba(255,255,255,.92)"/>',
+        '<path d="M16 26.5l-5.2-7.2h10.4z" fill="rgba(255,255,255,.92)"/>',
+        '<circle cx="16" cy="16" r="2.1" fill="rgba(255,255,255,.92)"/>',
+        '</svg></div>',
+      ].join('');
+      const origin = overlay.querySelector('[data-origin]');
+      origin.style.cssText = [
+        'position:absolute',
+        `left:${found.point.x}px`,
+        `top:${found.point.y}px`,
+        'width:36px',
+        'height:36px',
+        'margin:-18px 0 0 -18px',
+        'pointer-events:none',
+        'filter:drop-shadow(0 2px 8px rgba(0,0,0,.45))',
+      ].join(';');
+      const onMove = (event) => {
+        autoscroll.pointerX = event.clientX;
+        autoscroll.pointerY = event.clientY;
+        syncAutoscrollCursor(overlay);
+      };
+      const onCancel = (event) => {
+        try { event.preventDefault(); event.stopPropagation(); } catch (e) {}
+        stopAutoscroll();
+      };
+      overlay.addEventListener('mousemove', onMove, { passive: true });
+      overlay.addEventListener('mousedown', onCancel, true);
+      overlay.addEventListener('wheel', onCancel, { capture: true, passive: false });
+      overlay.addEventListener('contextmenu', onCancel, true);
+      overlay.addEventListener('auxclick', (event) => {
+        try { event.preventDefault(); } catch (e) {}
+      }, true);
+      doc.body.appendChild(overlay);
+    } catch (e) {}
+
+    notifyAutoscrollState(true);
+    autoscroll.raf = tavernWin().requestAnimationFrame(autoscrollFrame);
+  };
+
+  const toggleAutoscroll = (payload) => {
+    if (autoscroll.active) stopAutoscroll();
+    else startAutoscroll(payload);
+  };
+
+  const moveAutoscrollFromHud = (payload) => {
+    if (!autoscroll.active) return;
+    try {
+      const point = hudPointerPoint(payload);
+      autoscroll.pointerX = point.x;
+      autoscroll.pointerY = point.y;
+    } catch (e) {}
+  };
+
+  const onHudAutoscroll = (event) => {
+    const data = event.data;
+    if (!isOwner() || !data || data.channel !== CHANNEL || data.kind !== 'event') return;
+    if (event.source !== hudFrame.contentWindow) return;
+    if (data.type !== 'autoscrollToggle' && data.type !== 'autoscrollMove') return;
+    if (hudOrigin !== '*' && event.origin !== hudOrigin) return;
+    if (data.type === 'autoscrollToggle') toggleAutoscroll(data.payload || {});
+    else moveAutoscrollFromHud(data.payload || {});
+  };
+
+  const onHostMouseMove = (event) => {
+    if (!autoscroll.active) return;
+    const point = toTavernPoint(event.view || event.currentTarget?.defaultView, event.clientX, event.clientY);
+    autoscroll.pointerX = point.x;
+    autoscroll.pointerY = point.y;
+  };
+
+  const onHostMouseDown = (event) => {
+    if (!autoscroll.active) return;
+    event.preventDefault();
+    event.stopPropagation();
+    stopAutoscroll();
+  };
+
+  const onHostKeyDown = (event) => {
+    if (autoscroll.active && event.key === 'Escape') stopAutoscroll();
+  };
+
+  const scrollReading = (payload, stablePoint = null) => {
+    const tavern = tavernWin();
+    const dy = wheelPixels(payload, tavern);
+    if (!dy) return;
+    const pane = readingPane();
+    const paneBefore = Number(pane?.scrollTop) || 0;
+    noteHostScroll();
+
+    let remaining = dy;
+    try {
+      const point = stablePoint || hudPointerPoint(payload);
+      const stack = tavern.document.elementsFromPoint(point.x, point.y) || [];
+      for (let i = 0; i < stack.length && Math.abs(remaining) > 0.01; i++) {
+        let el = stack[i];
+        /* 裁剪台也要跳过：它是 HUD 的父节点，会跟着出现在命中栈里；落到 scrollChain
+           上就会去滚文档根而不是 #chat，转发出来的滚动量就错了。 */
+        if (!el || el === hudFrame || el.id === HUD_LIVE_ID || el.id === HUD_STAGE_ID
+            || el.id === HUD_FS_ID) continue;
+        if (el.tagName === 'IFRAME') {
+          try {
+            const p = pointInFrame(el, point.x, point.y);
+            remaining = scrollAtPoint(p.win, p.x, p.y, remaining);
+          } catch (e) {}
+          el = el.parentElement;
+        }
+        remaining = scrollChain(el, remaining, tavern.document, pane);
+        /* elementsFromPoint contains the same ancestor chain repeatedly.  Once
+           the hit target has been handled, the chain above already reached the
+           document scroller, so continuing would apply the delta twice. */
+        break;
+      }
+    } catch (e) {}
+
+    if (Math.abs(remaining) > 0.01) {
+      const fallback = [window.parent, tavern];
+      const visited = new Set();
+      for (let i = 0; i < fallback.length && Math.abs(remaining) > 0.01; i++) {
+        try {
+          const win = fallback[i];
+          if (!win || visited.has(win)) continue;
+          visited.add(win);
+          const doc = win.document;
+          /* 只认阅读区。原来这里退回 doc.scrollingElement || doc.documentElement，等于
+             「找不到阅读区就去滚整个宿主页面」—— 而宿主页面一被滚走，顶栏和输入栏就跟着
+             消失，且没有任何东西会把它滚回来。找不到就不滚，把余量丢掉才是对的。 */
+          const chat = doc.getElementById('chat');
+          if (!chat) continue;
+          remaining = scrollChain(chat, remaining, doc, chat);
+        } catch (e) {}
+      }
+    }
+
+    /* On portrait the chat scroll delta is already known. Move the detached
+       iframe by that delta immediately without a layout read, then reconcile its
+       exact geometry/clip once in RAF. This keeps the compositor-facing layer on
+       the finger while avoiding synchronous getBoundingClientRect work. */
+    if (Math.abs(remaining - dy) > 0.01) {
+      if (portraitHud()) {
+        const paneAfter = Number(pane?.scrollTop) || 0;
+        nudgePortraitHud(paneBefore, paneAfter);
+        requestFollow();
+      } else followNow();
+    }
+  };
+
+  const onHudLayout = (event) => {
+    const data = event.data;
+    if (!isOwner() || !data || data.channel !== CHANNEL || data.kind !== 'event') return;
+    if (event.source !== hudFrame.contentWindow) return;
+    if (data.type !== 'portraitSize' && data.type !== 'portraitPage'
+        && data.type !== 'dockDefault' && data.type !== 'overlay') return;
+    if (hudOrigin !== '*' && event.origin !== hudOrigin) return;
+    if (data.type === 'dockDefault') {
+      try { applyDockDefault(data.payload || {}); } catch (e) {}
+      return;
+    }
+    if (data.type === 'overlay') {
+      const next = !!data.payload?.open;
+      const page = !!data.payload?.page;
+      if (next === overlayOpen && !page) return;
+      overlayOpen = next;
+      /* On a portrait mobile host, a modal/overlay must be promoted to the
+         viewport page path even if the HUD initially booted in landscape mode. */
+      if (isTauriTavernMobile() && tavernSize().w < tavernSize().h
+          && (page || next || portraitPageOpen)) {
+        portraitPageOpen = next || page;
+        try { fitParentFrame(); } catch (e) {}
+        return;
+      }
+      /* A secondary page is an application page, not a shell overlay. Keep the
+         desktop chrome visible and only use the signal for mobile promotion. */
+      if (page) return;
+      /* Desktop iframe overlays used to be promoted to the full viewport.
+         Re-run layout on both edges: opening selects layoutExpanded/
+         layoutInlineDockPage, closing restores the normal HUD geometry. */
+      if (isDesktop()) {
+        try { fitParentFrame(); } catch (e) {}
+        if (overlayOpen) { try { hideChromeButtons(); } catch (e) {} }
+        return;
+      }
+      if (overlayOpen) { try { hideChromeButtons(); } catch (e) {} }
+      else if (!portraitPageOpen && hudFrame._linjiangAlign !== 'slot'
+               && hudFrame.style.visibility !== 'hidden') {
+        try { placeFsButton(); } catch (e) {}
+      }
+      return;
+    }
+    if (data.type === 'portraitSize') {
+      const h = Math.round(Number(data.payload?.height) || 0);
+      if (h <= 1 || portraitPageOpen) return;
+      hudFrame._portraitRestH = h;
+      try { applyPortraitHeight(h); } catch (e) {}
+      return;
+    }
+    portraitPageOpen = !!data.payload?.open;
+    if (!portraitPageOpen) {
+      try { flushPendingDockMode(); } catch (e) {}
+    }
+    try { fitParentFrame(); } catch (e) {}
+  };
+
+  const onHudWheel = (event) => {
+    const data = event.data;
+    if (!isOwner() || !data || data.channel !== CHANNEL || data.kind !== 'event') return;
+    if (event.source !== hudFrame.contentWindow) return;
+    if (hudOrigin !== '*' && event.origin !== hudOrigin) return;
+    if (data.type === 'touchScrollEnd') {
+      touchScrollPoint = null;
+      return;
+    }
+    if (data.type !== 'wheel' && data.type !== 'touchScroll') return;
+    if (autoscroll.active) stopAutoscroll();
+    const payload = data.payload || {};
+    if (data.type === 'touchScroll' && (payload.gestureStart || !touchScrollPoint)) {
+      touchScrollPoint = hudPointerPoint(payload);
+    }
+    scrollReading(payload, data.type === 'touchScroll' ? touchScrollPoint : null);
+  };
+
+  let pollTimer = 0;
+  const hostWins = [];
+  const hostListens = [];
+  const listen = (target, type, fn, opts) => {
+    if (!target || !target.addEventListener) return;
+    target.addEventListener(type, fn, opts);
+    hostListens.push({ target, type, fn, opts });
+  };
+
+  const bindHostMessages = (win) => {
+    if (!win || hostWins.indexOf(win) !== -1) return;
+    hostWins.push(win);
+    listen(win, 'message', onHudRequest);
+    listen(win, 'message', onHudWheel);
+    listen(win, 'message', onHudAutoscroll);
+    listen(win, 'message', onHudLayout);
+    /* 小手机的 ack 回到发信的那个窗口（也就是本页），但顺手也在酒馆窗口上听一份：
+       多绑一次没有副作用，phoneAcks 认 id，先到的那条把它取走。 */
+    listen(win, 'message', onPhoneAck);
+    listen(win, 'message', onCGUnlockRecord);
+  };
+
+  const clearHostListeners = () => {
+    while (hostListens.length) {
+      const item = hostListens.pop();
+      try { item.target.removeEventListener(item.type, item.fn, item.opts); } catch (e) {}
+    }
+    hostWins.length = 0;
+  };
+
+  const removeOwnedChrome = () => {
+    try {
+      const doc = tavernWin().document;
+      for (const id of [HUD_FS_ID, HUD_SHRINK_ID, HUD_AUTOSCROLL_ID]) {
+        const element = doc.getElementById(id);
+        if (element?.dataset.linjiangOwner === INSTANCE_ID || id === HUD_AUTOSCROLL_ID) element?.remove();
+      }
+      const style = doc.getElementById(HUD_FS_STYLE_ID);
+      if (style?.dataset.linjiangOwner === INSTANCE_ID) style.remove();
+    } catch (e) {}
+  };
+
+  const collapseAnchor = () => {
+    try {
+      const frame = window.frameElement;
+      if (!frame) return;
+      frame.style.setProperty('height', '0px', 'important');
+      frame.style.setProperty('min-height', '0px', 'important');
+      frame.style.setProperty('opacity', '0', 'important');
+      frame.style.setProperty('pointer-events', 'none', 'important');
+      frame.dataset.linjiangH = '0';
+    } catch (e) {}
+  };
+
+  const deactivate = (reason = '?') => {
+    try { manager.note(`deactivate ${INSTANCE_ID.slice(0, 4)} 原因=${reason} active=${active}`); } catch (e) {}
+    /* 从来没被激活过的控制器也要走这里：它唯一要做的事就是把楼层高度交出去。
+       落选的楼层不折叠 = 屏幕上一块纯黑，详见 manager.retireLosers 上面那段。 */
+    if (!active) { collapseAnchor(); return; }
+    if (MOBILE_NATIVE_FLOW) {
+      active = false;
+      try { clearInterval(pollTimer); } catch (e) {}
+      pollTimer = 0;
+      try { clearTimeout(mobileNativeRetryTimer); } catch (e) {}
+      mobileNativeRetryTimer = 0;
+      clearHostListeners();
+      removeMobileNativeBridge();
+      /* 跟抬升那边 leaveInlineDockPage 同一类：对宿主做过的改动，交还控制权时必须撤干净。
+         漏掉它的后果是这一楼被换掉之后 #chat 永久失去 backdrop-filter、顶栏和输入栏一直
+         隐藏 —— 而这一楼的整页 DOM 早就跟着 srcdoc 一起没了，没人再有机会还原。
+         必须在 collapseAnchor 之前：楼层还钉在 fixed 上时给它写占位高度是没有意义的。 */
+      try { exitMobileNativePage(); } catch (e) {}
+      document.documentElement.dataset.linjiangNativeActive = '0';
+      if (mobileNativeRoot) mobileNativeRoot.hidden = true;
+      collapseAnchor();
+      return;
+    }
+    clearTimeout(hostScrollIdleTimer);
+    hostScrollIdleTimer = 0;
+    setHostScrollActive(false);
+    active = false;
+    portraitPageOpen = false;
+    try { unlockTavernScroll(); } catch (e) {}
+    /* 跟 unlockTavernScroll 同一类：对宿主做过的改动，交还控制权时必须撤干净。
+       漏掉它的后果是壳层卸载/换主时 #chat 永久失去 backdrop-filter、顶栏和输入栏一直隐藏。
+       走完整的 leaveInlineDockPage 而不是只还原祖先样式，楼层自己的样式也要交回去。 */
+    try {
+      const anchor = window.frameElement;
+      if (anchor) leaveInlineDockPage(anchor);
+      else restoreFixedContainingBlock();
+    } catch (e) {}
+    try { stopAutoscroll(); } catch (e) {}
+    try { slotObserver?.disconnect(); } catch (e) {}
+    slotObserver = null;
+    try { clearInterval(pollTimer); } catch (e) {}
+    pollTimer = 0;
+    try { clearInterval(inlineResumeTimer); } catch (e) {}
+    inlineResumeTimer = 0;
+    if (followTick) {
+      try { cancelAnimationFrame(followTick); } catch (e) {}
+      followTick = 0;
+    }
+    clearHostListeners();
+    removeOwnedChrome();
+    /* 共用的那个 HUD 只有在「现在没人接手」时才由我来藏。
+       别人已经接手的时候藏它，就是把新任刚摆好的东西按下去 —— 而 deactivate 完全可能来得晚
+       （楼层被删时 pagehide 可能在新任 activate 之后才到），那一下就是状态栏整块消失。
+       真正"没有候选了"的情况由 manager.elect 自己收尾。 */
+    if (hudFrame && (!manager.owner || manager.owner.id === INSTANCE_ID)) {
+      hudFrame.style.visibility = 'hidden';
+      hudFrame.style.pointerEvents = 'none';
+    }
+    collapseAnchor();
+  };
+
+  const bindMobileNativeRuntime = () => {
+    /* Only cross-feature messages remain. Scroll, wheel, geometry and pointer
+       listeners belong to the desktop lifted HUD and stay completely unbound here. */
+    listen(window, 'message', onPhoneAck);
+    listen(window, 'message', onCGUnlockRecord);
+    try {
+      const tavern = tavernWin();
+      if (tavern && tavern !== window) {
+        listen(tavern, 'message', onPhoneAck);
+        listen(tavern, 'message', onCGUnlockRecord);
+      }
+    } catch (e) {}
+    listen(window, 'resize', onMobileNativeViewport, { passive: true });
+    /* 整页期间楼层被钉在视口上，本文档的 resize 不再反映屏幕变化 —— 转屏和软键盘要从宿主
+       的 visualViewport 听。常态下这几个也只是多量一次高，没有副作用。 */
+    try {
+      const tavern = tavernWin();
+      if (tavern && tavern !== window) {
+        listen(tavern, 'resize', onMobileNativeViewport, { passive: true });
+        listen(tavern, 'orientationchange', onMobileNativeViewport, { passive: true });
+        if (tavern.visualViewport) {
+          listen(tavern.visualViewport, 'resize', onMobileNativeViewport, { passive: true });
+        }
+      }
+    } catch (e) {}
+  };
+
+  const bindActiveRuntime = () => {
+    bindHostMessages(window);
+    try { bindHostMessages(tavernWin()); } catch (e) {}
+    listen(window, 'resize', fitParentFrame);
+    try {
+      const tavern = tavernWin();
+      const opts = { passive: true, capture: true };
+      const pointerDocs = [tavern.document];
+      try {
+        if (window.parent?.document && window.parent.document !== tavern.document) pointerDocs.push(window.parent.document);
+      } catch (e) {}
+      pointerDocs.forEach((doc) => {
+        listen(doc, 'mousemove', onHostMouseMove, opts);
+        listen(doc, 'mousedown', onHostMouseDown, { capture: true, passive: false });
+        listen(doc, 'keydown', onHostKeyDown, true);
+        listen(doc, 'wheel', () => { if (autoscroll.active) stopAutoscroll(); }, opts);
+      });
+      listen(tavern, 'mousedown', onHostMouseDown, { capture: true, passive: false });
+      listen(tavern, 'keydown', onHostKeyDown, true);
+      listen(tavern, 'blur', () => { if (autoscroll.active) stopAutoscroll(); });
+      listen(tavern, 'resize', fitParentFrame);
+      listen(tavern, 'orientationchange', fitParentFrame);
+      if (tavern.visualViewport) listen(tavern.visualViewport, 'resize', fitParentFrame, { passive: true });
+      listen(tavern, 'scroll', noteHostScroll, opts);
+      listen(tavern.document, 'scroll', noteHostScroll, opts);
+      const chat = tavern.document.getElementById('chat');
+      if (chat) {
+        lastReadingScrollTop = Number(chat.scrollTop) || 0;
+        listen(chat, 'scroll', noteHostScroll, opts);
+      }
+      if (window.parent && window.parent !== window && window.parent !== tavern) {
+        listen(window.parent, 'scroll', noteHostScroll, opts);
+        listen(window.parent.document, 'scroll', noteHostScroll, opts);
+        listen(window.parent, 'resize', fitParentFrame);
+      }
+      const frame = window.frameElement;
+      const pane = readingPane();
+      if (frame && typeof IntersectionObserver === 'function') {
+        slotObserver = new IntersectionObserver(() => {
+          if (INLINE_DOCK && hudFrame._linjiangAlign === 'inline') recoverInlineDock();
+          else requestFollow();
+        }, {
+          root: pane && pane.contains(frame) ? pane : null,
+          threshold: [0, 0.01, 0.08, 0.2, 0.5, 1],
+        });
+        slotObserver.observe(frame);
+      }
+      if (INLINE_DOCK && isTauriTavernMobile()) {
+        startInlineResumeWatch();
+        listen(window, 'pageshow', recoverInlineDock, { passive: true });
+        listen(window, 'focus', recoverInlineDock, { passive: true });
+        listen(document, 'visibilitychange', recoverInlineDock, { passive: true });
+      }
+      [50, 150, 400, 900].forEach((ms) => {
+        setTimeout(() => { if (isOwner()) requestFollow(); }, ms);
+      });
+    } catch (e) {}
+  };
+
+  const activate = (context) => {
+    if (destroyed) return;
+    active = true;
+    uninstalled = false;
+    if (MOBILE_NATIVE_FLOW) {
+      /* 原生流每个楼层都拥有自己的文档和 HUD。这里刻意绕开跨楼层 owner / 交接 /
+         实例回收：壳层一执行就开始解析入口和挂载，不再等选举或下一帧。 */
+      try { manager.resetHudFrame?.(); } catch (e) {}
+      /* 先收拾上一任留下的残局，再做任何自己的排版。
+         这一楼可能就是「刚被 TT 停进停车场、被 WebKit 重载」的那一楼：DOM 上还挂着整页
+         状态（楼层钉在满视口的近黑、顶栏和输入栏隐藏），而当初记着怎么还原的那个文档已经
+         没了。不先收，用户看到的就是永久黑屏 —— 进程没死，所以切后台也回不来。 */
+      try { reclaimHostLeftovers(); } catch (e) {}
+      manager.dockMode = 'embedded';
+      installMobileNativeBridge();
+      document.documentElement.dataset.linjiangNativeActive = '1';
+      bindMobileNativeRuntime();
+      restoreMobileNativeAnchor();
+      pollTimer = setInterval(() => pushSnapshot(false), POLL_MS);
+      /* 已经画过的楼层只刷新高度和数据；新楼层则在当前调用栈里立即发起入口加载。
+         不排 requestAnimationFrame，也不等待别的楼层交班。 */
+      if (nativeHudPainted()) {
+        showHint('');
+        queueMobileNativeHeight();
+        pushSnapshot(true);
+      }
+      mountMobileNativeHud().catch(() => {});
+      return;
+    }
+    /* 同原生流：先收拾上一任在宿主上留下的整页残局。抬升这边 deactivate 里有
+       leaveInlineDockPage 兜底，但那同样要求上一个文档还活着 —— 被 TT 停车后重载的那一楼
+       不会执行任何清理，顶栏和输入栏就那么一直隐藏着。 */
+    try { reclaimHostLeftovers(); } catch (e) {}
+    /* A message/status re-render elects a new controller without reloading the
+       managed HUD iframe. Restore the shared docking state before the first layout,
+       otherwise the new owner falls back to the viewport-wide desktop box. If a page
+       disappeared as part of the handover, its deferred choice can now be committed. */
+    if (manager.pendingDockMode === 'embedded' || manager.pendingDockMode === 'page') {
+      manager.dockMode = manager.pendingDockMode;
+      manager.pendingDockMode = null;
+    }
+    if (manager.dockMode === 'embedded' || manager.dockMode === 'page') {
+      compacted = manager.dockMode === 'embedded';
+      dockDefaultApplied = true;
+    }
+    /* 新接手的 HUD 身上没有覆盖层；上一任留下的标记不能带过来，否则两颗钮再也不出现。 */
+    overlayOpen = false;
+    hudFrame = manager.ensureHudFrame();
+    hudFrame.dataset.linjiangOwner = INSTANCE_ID;
+    /* Repair a managed frame that survived a message-floor handover from an
+       earlier controller before the mobile-surface opt-out was introduced. */
+    hudFrame.dataset.ttMobileSurface = 'none';
+    hudFrame.removeAttribute('data-tt-mobile-surface-admitted');
+    hudFrame.style.removeProperty('--tt-original-top');
+    try { localHudFrame.remove(); } catch (e) {}
+    bindActiveRuntime();
+    fitParentFrame();
+    showHint('等 HUD / MVU…');
+    pollTimer = setInterval(() => pushSnapshot(false), POLL_MS);
+    postToHud({ channel: CHANNEL, kind: 'event', type: 'context', context });
+    pushSnapshot(true);
+  };
+
+  const uninstall = () => {
+    if (destroyed) return;
+    let disposalFrame = null;
+    try { disposalFrame = window.frameElement; } catch (e) {}
+    destroyed = true;
+    uninstalled = true;
+    try { manager.note(`uninstall ${INSTANCE_ID.slice(0, 4)}`); } catch (e) {}
+    deactivate('removed');
+    try { frameObserver?.disconnect(); } catch (e) {}
+    frameObserver = null;
+    if (!MOBILE_NATIVE_FLOW) manager.unregister(INSTANCE_ID);
+    /* 只写在已经脱离 DOM 的旧 iframe 上，供回归夹具确认主动清理完整执行；真实页面没有残留。
+       这几项都为 0/false 才表示轮询、重试、宿主监听和直接 bridge 已释放。 */
+    try {
+      if (disposalFrame) {
+        disposalFrame.dataset.linjiangDisposed = '1';
+        disposalFrame.dataset.linjiangDisposedListeners = String(hostListens.length);
+        disposalFrame.dataset.linjiangDisposedPoll = String(pollTimer || 0);
+        disposalFrame.dataset.linjiangDisposedRetry = String(mobileNativeRetryTimer || 0);
+        disposalFrame.dataset.linjiangDisposedBridge = String(!!window.__linjiangMobileDirectBridge);
+      }
+    } catch (e) {}
+  };
+
+  addEventListener('pagehide', uninstall);
+  addEventListener('unload', uninstall);
+  try {
+    const fe = window.frameElement;
+    if (fe && fe.parentNode && typeof MutationObserver === 'function') {
+      frameObserver = new MutationObserver(() => {
+        if (!fe.isConnected) {
+          /* 楼层 iframe 被从 DOM 里摘掉 —— TT 的渲染管理停车、或者酒馆重渲染这条消息。
+             这一步会 unregister 并触发重新选举，是"状态栏像刷新一样重置"的头号嫌疑。 */
+          try { manager.note(`楼层离开 DOM ${INSTANCE_ID.slice(0, 4)}`); } catch (e) {}
+          uninstall();
+          return;
+        }
+        if (!MOBILE_NATIVE_FLOW && isOwner()) fitParentFrame();
+      });
+      frameObserver.observe(fe.parentNode, { childList: true });
+    }
+  } catch (e) {}
+
+  localHudFrame.style.display = 'none';
+  /* 共享事件钩子只属于桌面 manager。移动端每楼的轮询和直接 bridge 已覆盖数据更新，
+     把匿名回调挂到 Tavern eventSource 反而会在楼层删除后保活旧 realm。 */
+  if (!MOBILE_NATIVE_FLOW) manager.bindEventHooks(getCoreWindow());
+  const controller = {
+    id: INSTANCE_ID,
+    frame: window.frameElement,
+    activate,
+    deactivate,
+    pushSnapshot,
+    requestFollow,
+    destroyed: () => destroyed,
+    /* 下面两个能力给桌面共享 manager 调度使用；移动端原生流不注册候选。 */
+    alive: () => {
+      try { return !destroyed && !!window.frameElement; } catch (e) { return false; }
+    },
+    defer: (fn, ms) => {
+      const id = setTimeout(() => { try { fn(); } catch (e) {} }, ms);
+      return { cancel: () => { try { clearTimeout(id); } catch (e) {} } };
+    },
+    wantsHandoverHold: () => false,
+    isPainted: () => !!active,
+  };
+
+  if (MOBILE_NATIVE_FLOW) {
+    /* 关键路径：每个 TT 移动端楼层独立、同步激活。没有 register/elect、没有上一任交接、
+       没有 KEEP_MOUNTED/about:blank 回收；网络请求从本次壳层执行的当前调用栈立即开始。 */
+    controllerRecord = controller;
+    activate(manager.context());
+  } else {
+    controllerRecord = manager.register(controller);
+  }
+
+})();
+</script>
+</body>
+</html>
+```

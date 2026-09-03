@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>临江市 · 开始生活</title>
+<script>
+  /* Google Fonts is optional decoration. Load it only after the opening app has
+     announced readiness, so an unreachable fonts host never holds window.load or
+     the Tavern overlay at 92%. */
+  window.__loadLinjiangOpeningFonts = () => {
+    if (document.querySelector('link[data-opening-fonts]')) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.dataset.openingFonts = '1';
+    link.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600&family=Pinyon+Script&display=swap';
+    document.head.appendChild(link);
+  };
+</script>
+<link rel="stylesheet" href="./opening.css?v=20260826-opening-tablet-ime-v20">
+</head>
+<body>
+<div class="app"><div class="shell">
+<header class="header">
+  <div class="brand"><div class="brand-mark"><img src="./assets/mark-sakura.png" alt=""></div><div class="brand-script">Linjiang</div><div class="brand-copy"><h1>在临江开始生活</h1><p>Opening Profile · 2026</p></div></div>
+</header>
+<nav class="steps" id="steps"></nav>
+<main class="main">
+<section class="panel active" data-panel="1">
+  <div class="section-head"><div><div class="eyebrow">01 / Player</div><h2>关于你</h2></div></div>
+  <div class="grid-two">
+    <div class="card card-pad"><div class="card-title"><b>玩家资料</b><small>PLAYER PROFILE</small></div><div class="fields">
+      <div class="field"><label>姓名／常用称呼</label><input class="control" id="player-name" placeholder="例如：林舟"></div>
+      <div class="field"><label>直播平台网名</label><input class="control" id="player-handle" placeholder="例如：江边不下雨"></div>
+      <div class="field"><label>年龄</label><input class="control" id="player-age" type="number" min="18" max="99" value="24"></div>
+      <div class="field"><label>性别</label><div class="segment" id="gender-segment"><button class="on" data-value="男性">男性</button><button data-value="女性">女性</button></div></div>
+      <div class="field wide"><label>补充设定（选填）</label><textarea class="control" id="player-note" placeholder="只写希望 AI 明确认识的外貌、经历或身份事实。"></textarea></div>
+    </div></div>
+    <aside class="card side-story"><div class="story-art"><div class="story-copy"><div class="script">Your story</div><h3>生活从一份普通档案开始</h3><p>姓名用于现实交往，网名用于直播间、弹幕和粉丝社区。</p></div></div><div class="mini-facts">
+      <div class="fact"><span>初始日期</span><b>2026年4月1日 · 朝</b></div><div class="fact"><span>初始体力</span><b>100 / 100</b></div><div class="fact"><span>初始存款</span><b>￥20,000</b></div>
+    </div></aside>
+  </div>
+</section>
+<section class="panel" data-panel="2">
+  <div class="section-head"><div><div class="eyebrow">02 / Life</div><h2>在一张大地图上定下住处和工作</h2><p>住所和工作可以随时切换选择，不再强制按顺序。选齐后，地图会直接画出通勤路线。</p></div></div>
+  <div class="life-map-layout">
+    <div class="card opening-map-card" id="opening-map-card">
+      <div class="opening-map-head">
+        <div class="opening-map-copy"><div class="pinline">◉ LIVE CITY MAP</div><b id="map-mode-title">挑一个开局住处</b><span id="map-mode-hint">拖动地图查看其他城区；点击粉色节点查看租金和住处特点。</span></div>
+        <div class="map-current-picks" id="map-current-picks"><span><i>住所</i><b id="map-pick-home">未选择</b></span><span><i>工作</i><b id="map-pick-work">暂时无业</b></span></div>
+        <div class="opening-map-actions"><button type="button" class="map-fullscreen-btn" id="map-fullscreen">⛶ 全屏地图</button><div class="map-mode-tabs"><button type="button" class="on" id="map-home-mode">选住所</button><button type="button" id="map-work-mode">挑工作</button></div></div>
+      </div>
+      <div class="opening-map-viewport"><iframe id="opening-map-iframe" title="临江市开局地图" loading="eager"></iframe><div class="map-legend"><span><i class="legend-dot home"></i>住宅</span><span><i class="legend-dot work"></i>工作</span><span><i class="legend-dot route"></i>已选路线</span></div></div>
+    </div>
+    <aside class="life-inspector">
+      <div class="card life-selection-card"><div class="inspector-kicker">HOME / 当前住所</div><h3 id="home-name">尚未选择住所</h3><p id="home-meta">点击地图中的粉色住宅节点，这里会显示城区、租住方式和住处特点。</p><div class="selection-cost" id="home-cost">租金与押金将在这里显示</div><button class="secondary inspector-action" id="change-home" type="button">去地图上选住所</button></div>
+      <div class="card life-selection-card work-selection-card"><div class="inspector-kicker">WORK / 当前工作</div><h3 id="work-name">暂时无业</h3><p id="work-meta">可以先挑工作，也可以保持暂时无业；选好住所后会补全通勤估算。</p><div class="commute-card" id="commute-card"></div><button class="secondary inspector-action" id="change-work" type="button">去地图上挑工作</button></div>
+    </aside>
+  </div>
+</section>
+<section class="panel" data-panel="3">
+  <div class="section-head">
+    <div><div class="eyebrow">03 / Oshi</div><h2>挑出你推的主播</h2></div>
+    <div class="oshi-counter"><span>已选</span><b id="oshi-count">0</b><i>/ 1</i></div>
+  </div>
+  <div class="oshi-grid" id="oshi-grid"></div>
+  <div class="oshi-pagination" aria-label="主播页码"><i></i><span><b>1</b><em>/</em>1</span><i></i></div>
+  <div class="card opening-picker" id="opening-picker">
+    <div class="opening-picker-head">
+      <div><div class="eyebrow">OPENING SCENE</div><h3>选择开局</h3></div>
+      <span>预留标题、简介与详细内容，之后可直接补充正式开局。</span>
+    </div>
+    <div class="opening-switcher">
+      <button class="opening-arrow" id="opening-prev" type="button" aria-label="上一个开局"><span>‹</span></button>
+      <div class="opening-stage">
+        <button class="opening-neighbor opening-neighbor-prev" id="opening-prev-preview" type="button" aria-label="选择上一个开局">
+          <span>PREVIOUS</span><b id="opening-prev-title">自定义开局</b><small id="opening-prev-summary">由玩家直接输入开局内容</small>
+        </button>
+        <div class="opening-slide" id="opening-slide">
+          <div class="opening-number"><b id="opening-index">01</b><span>/ <i id="opening-total">05</i></span></div>
+          <div class="opening-slide-copy"><em>SELECTED OPENING</em><b id="opening-title">回家看直播</b><p id="opening-summary">玩家结束一天的工作，回家进入关注主播的直播间。</p></div>
+          <div class="opening-dots" id="opening-dots" aria-hidden="true"></div>
+        </div>
+        <button class="opening-neighbor opening-neighbor-next" id="opening-next-preview" type="button" aria-label="选择下一个开局">
+          <span>NEXT</span><b id="opening-next-title">意外碰面</b><small id="opening-next-summary">一次短暂离开直播间的取件，让线上注视与线下现实意外重叠。</small>
+        </button>
+      </div>
+      <button class="opening-arrow" id="opening-next" type="button" aria-label="下一个开局"><span>›</span></button>
+    </div>
+    <div class="custom-opening hidden" id="custom-opening-box">
+      <label for="custom-opening-text">自定义开局内容</label>
+      <textarea class="control" id="custom-opening-text" maxlength="2000" placeholder="直接输入希望故事从哪里、以什么事件开始……"></textarea>
+      <small><span id="custom-opening-count">0</span> / 2000</small>
+    </div>
+  </div>
+</section>
+<section class="panel" data-panel="4">
+  <div class="section-head">
+    <div><div class="eyebrow">04 / Streamer</div><h2>追加自定义主播</h2></div>
+    <button class="primary compact-action" id="new-custom" type="button">＋ 新增主播</button>
+  </div>
+  <div class="card custom-manager">
+    <div class="custom-manager-head"><div><b>本次追加</b><span><strong id="custom-count">0</strong> 位</span></div><button class="secondary compact-action" id="archive-toggle" type="button">主播存档 <i id="archive-count">0</i></button></div>
+    <div class="custom-roster" id="custom-roster"><span class="custom-empty">尚未添加自定义主播</span></div>
+    <div class="archive-panel hidden" id="archive-panel"><div class="archive-head"><b>主播存档</b><button class="secondary compact-action" id="archive-save" type="button">保存当前主播</button></div><div class="archive-list" id="archive-list"></div></div>
+  </div>
+  <div class="stream-layout" id="stream-layout">
+    <div class="card art-card"><div class="art-preview" id="art-preview"><div class="art-monogram" id="art-monogram">S</div><img id="art-img" alt=""><div class="art-caption"><b id="art-name">新主播</b><span id="art-handle">STREAMER</span></div></div><div class="art-tools">
+      <input class="control" id="art-url" placeholder="网络立绘链接 https://..."><div class="file-row"><button class="secondary" id="apply-art-url" type="button">引用链接</button><label class="file-pick">上传本地立绘<input type="file" id="art-file" accept="image/*"></label></div><small>&#x652F;&#x6301;&#x7F51;&#x7EDC;&#x56FE;&#x7247;&#x6216;&#x672C;&#x5730;&#x4E0A;&#x4F20;&#x3002;</small>
+    </div></div>
+    <div class="card stream-form"><div class="fields">
+      <div class="field"><label>姓名</label><input class="control" id="streamer-name" placeholder="例如：沈遥"></div><div class="field"><label>主播网名</label><input class="control" id="streamer-handle" placeholder="例如：遥夜"></div>
+      <div class="field"><label>年龄</label><input class="control" id="streamer-age" type="number" min="18" max="99" value="23"></div><div class="field"><label>住所</label><button class="control select-control" type="button" data-open-map="streamer" id="streamer-home">从地图选择住所</button></div>
+      <div class="field wide"><label>主播分类</label><div class="tags" id="category-tags"></div></div>
+      <div class="field wide"><label>主播体量</label><div class="tier-panel">
+        <div class="range-box tier-dial"><label><span>体量档位</span><b id="tier-value">42</b></label><input id="streamer-tier" type="range" min="0" max="100" value="42"><small id="tier-label">稳定主播</small></div>
+        <div class="tier-out">
+          <div class="tier-metric"><span>粉丝数</span><b id="tier-followers">—</b><small>关注她的账号总数</small></div>
+          <div class="tier-metric"><span>底盘热度</span><b id="tier-base">—</b><small>常态热度，礼物虚火加在它上面</small></div>
+          <div class="tier-metric"><span>大航海</span><b id="tier-guards">—</b><small>舰长为主，提督总督很稀</small></div>
+        </div>
+      </div><small class="tier-hint">拖动档位即可自动计算。</small></div>
+      <div class="field"><label>&#x6C14;&#x8D28;&#x5173;&#x952E;&#x8BCD;&#xFF08;&#x9009;&#x586B;&#xFF09;</label><input class="control" id="streamer-tone" placeholder="例如：慢热、生活感强"></div>
+      <div class="field wide theme-field"><label>代表色（选填）</label><div class="theme-options" id="streamer-theme-options" aria-label="自定义主播代表色"></div><small>用于主 HUD 角色卡与状态栏染色；自动会按主播姓名固定分配。</small></div>
+      <div class="field time-field"><label>常用直播时间（选填）</label><div class="time-picker" id="streamer-hours-picker">
+        <div class="time-range-row"><label class="time-slot"><span>开始</span><input id="streamer-hours-start" type="time" step="1800" aria-label="直播开始时间"></label><i aria-hidden="true">至</i><label class="time-slot"><span>结束</span><input id="streamer-hours-end" type="time" step="1800" aria-label="直播结束时间"></label></div>
+        <div class="time-presets" id="streamer-hours-presets"><button type="button" data-start="" data-end="">不固定</button><button type="button" data-start="18:00" data-end="22:00">傍晚</button><button type="button" data-start="20:00" data-end="00:00">晚间</button><button type="button" data-start="22:00" data-end="02:00">深夜</button></div>
+        <small id="streamer-hours-summary">未设置时按不固定处理</small>
+      </div></div>
+      <div class="field"><label>粉丝牌子名（选填）</label><input class="control" id="streamer-medal" placeholder="例如：遥夜众。弹幕里会带等级显示"></div>
+      <div class="field wide"><label>玩家提供的人设素材</label><textarea class="control" id="streamer-seed" placeholder="写几条已经确定的事实、气质、说话习惯或直播特点。"></textarea></div>
+    </div><div class="generate-row"><button class="primary" id="generate-profile" type="button">生成人设档案</button><button class="secondary" id="save-custom" type="button" disabled>保存修改</button><span id="generate-status">调用结果与错误会显示在这里</span></div></div>
+    <!-- YAML 是 .stream-layout 的第三个直接子元素，不是表单内部的一段：宽屏时它跟
+         立绘、表单并排成三列，一屏就装得下；窄屏照旧落到最后一行。 -->
+    <div class="generated" id="generated"><div class="generated-head"><b>世界书条目预览</b><span id="generated-meta">角色详情：—</span></div><textarea class="control yaml-editor" id="profile-yaml" spellcheck="false" placeholder="生成后可在这里继续编辑"></textarea><small class="yaml-hint">确认无误后会随开局保存。</small></div>
+  </div>
+</section>
+<section class="panel" data-panel="5">
+  <div class="section-head"><div><div class="eyebrow">05 / Finish</div><h2>&#x4ECE;&#x8FD9;&#x91CC;&#x5F00;&#x59CB;</h2></div></div>
+  <div class="confirm-grid confirm-only">
+    <div class="card identity-card">
+      <div class="confirm-scene"><div class="confirm-title"><em>Ready</em><h3 id="confirm-player">&#x672A;&#x547D;&#x540D;&#x73A9;&#x5BB6;</h3></div></div>
+      <div class="confirm-lines" id="confirm-lines"></div>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="footer"><div class="footer-note">Linjiang &middot; Opening Profile</div><div class="footer-actions"><button class="secondary" id="prev" type="button">&#x8FD4;&#x56DE;</button><button class="primary" id="next" type="button">&#x7EE7;&#x7EED;</button></div></footer>
+</div></div>
+<div class="map-modal" id="map-modal"><div class="map-dialog"><div class="map-head"><div><h3 id="map-title">选择住所</h3><p>在地图中点击地点；标准住所也可从下方快速选择。</p></div><button class="icon-btn" id="map-close" type="button">×</button></div><div class="map-frame"><iframe id="map-iframe" title="临江市地图" loading="eager"></iframe></div><div class="map-foot" id="quick-homes"></div></div></div>
+<div class="toast" id="toast"></div>
+<script src="./opening.js?v=20260826-opening-tablet-ime-v20"></script>
+</body></html>

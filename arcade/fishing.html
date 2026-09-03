@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>深海寻宝</title>
+<style>
+:root,body[data-theme="dark"]{color-scheme:dark;--stage:#11101e;--stage2:#221c36;--page:#fff;--muted:#bcb3d0;--panel:#211b31;--line:#ffffff1f;--shadow:#05040db3}
+body[data-theme="warm-white"]{color-scheme:light;--stage:#eee9f5;--stage2:#fbf9fd;--page:#30283a;--muted:#796f84;--panel:#fffaff;--line:#39274420;--shadow:#38284232}
+body[data-theme="green"]{color-scheme:light;--stage:#dcebe5;--stage2:#f4fbf7;--page:#27372f;--muted:#68796f;--panel:#f8fffb;--line:#244d3925;--shadow:#224b3630}
+body[data-theme="classic-dark"]{color-scheme:dark;--stage:#171410;--stage2:#28231e;--page:#eee2d1;--muted:#ad9d89;--panel:#29231e;--line:#dfc89e22;--shadow:#000a}
+*{box-sizing:border-box}[hidden]{display:none!important}html,body{margin:0;min-width:0;background:transparent}body{padding:10px;overflow-x:hidden;color:var(--page);font:14px/1.45 "Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}button{font:inherit;color:inherit}.stage{width:min(100%,1080px);margin:auto;padding:17px;border:1px solid #ffffff12;border-radius:29px;background:radial-gradient(circle at 10% 8%,#7ff2dc27,transparent 27%),radial-gradient(circle at 92% 20%,#ff97d123,transparent 28%),linear-gradient(145deg,var(--stage2),var(--stage));box-shadow:0 25px 72px var(--shadow);isolation:isolate}.cabinet{--ink:#28223f;--mint:#9ce8dc;--blue:#9bdcf0;--violet:#aaa0ed;--pink:#f1a9d2;position:relative;overflow:hidden;padding:16px 20px 21px;border:5px solid var(--ink);border-radius:34px 34px 25px 25px;background:radial-gradient(circle at 8% 12%,#fff9 0 2px,transparent 3px),radial-gradient(circle at 91% 29%,#fff8 0 2px,transparent 3px),linear-gradient(120deg,#cafff4,#9fe6de 25%,#b9dff3 58%,#e8c5ed 83%,#f2b7d8);background-size:58px 58px,79px 74px,auto;box-shadow:inset 0 0 0 4px #ffffff86,inset 13px 0 25px #ffffff45,inset -13px 0 25px #4d6b9320,0 13px 0 #393250,0 28px 49px #07061070}.cabinet:before,.cabinet:after{content:"";position:absolute;z-index:8;top:90px;bottom:23px;width:15px;border:3px solid var(--ink);border-radius:999px;background:radial-gradient(circle,#fff 0 3px,#7ce8e0 3.5px 5.5px,#655991 6px 7px,transparent 7.5px) center 3px/12px 25px repeat-y,#82d9d2;box-shadow:inset 0 0 0 2px #ffffff61}.cabinet:before{left:5px}.cabinet:after{right:5px}.marquee{position:relative;overflow:hidden;margin:0 7px 10px;padding:14px 18px 13px;border:4px solid var(--ink);border-radius:24px 24px 16px 16px;background:radial-gradient(circle at 15% 28%,#fff 0 2px,transparent 2.8px),radial-gradient(circle at 84% 67%,#75eff2 0 1.5px,transparent 2.5px),linear-gradient(135deg,#3f467e,#465c9b 44%,#7760b5 73%,#b06bad);background-size:48px 48px,67px 67px,auto;box-shadow:inset 0 0 0 4px #ffffff30,5px 7px 0 #423a60;text-align:center}.marquee h1{position:relative;z-index:1;margin:0;color:#fffdf9;font-size:clamp(38px,6vw,65px);font-weight:1000;line-height:.92;letter-spacing:-.08em;-webkit-text-stroke:clamp(2px,.35vw,4px) #26203b;text-shadow:4px 5px 0 #61ddd4,8px 9px 0 #26203b;transform:rotate(-1deg)}.status-strip{display:grid;grid-template-columns:1.1fr 1fr 1fr 1.15fr;gap:8px;margin:10px 12px;padding:9px;border:4px solid var(--ink);border-radius:16px;background:linear-gradient(135deg,#8ce2da,#b9c7ed 51%,#efaed3);box-shadow:inset 0 0 0 3px #ffffff66,0 5px 0 #504873}.status-card{display:flex;min-width:0;min-height:54px;flex-direction:column;align-items:center;justify-content:center;border:2px solid var(--ink);border-radius:10px;background:#fbfbff;box-shadow:inset 0 -4px 0 #e8e6f4;color:#514874}.status-card small{color:#8b82a4;font-size:8px;font-weight:900;letter-spacing:.08em}.status-card b{max-width:100%;overflow:hidden;margin-top:1px;font:1000 18px ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums;text-overflow:ellipsis;white-space:nowrap}.status-card.balance b{color:#189ca2}.status-card.reward b{color:#ed5a94}.status-card.target b{font-family:inherit;font-size:14px}.aquarium-frame{position:relative;margin:12px 10px 0;padding:13px;border:5px solid var(--ink);border-radius:23px;background:linear-gradient(145deg,#8fe2d9,#5c557f 9%,#d9d2f4 16%,#8f85bf 50%,#ffd0e6 84%,#5a5078 92%);box-shadow:inset 0 0 0 4px #ffffff9c,0 8px 0 #453c5c}.screen-bezel{position:relative;overflow:hidden;border:4px solid #201b34;border-radius:16px;background:#071c30;box-shadow:inset 0 0 20px #020811,0 0 0 3px #6f668f}.screen-bezel:after{content:"";position:absolute;inset:0;z-index:5;pointer-events:none;background:linear-gradient(115deg,#fff1,transparent 25%,transparent 70%,#bfefff0a)}canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;touch-action:none;cursor:crosshair}.screen-tip{position:absolute;z-index:7;left:50%;top:11px;padding:5px 10px;border:2px solid #28213e;border-radius:999px;background:#ffffffdf;color:#5b5176;box-shadow:2px 3px 0 #302943;font-size:9px;font-weight:1000;pointer-events:none;transform:translateX(-50%);transition:.2s}.screen-tip.locked{background:#fff0f8;color:#d74682}.pause-mask{position:absolute;z-index:9;inset:0;display:grid;place-items:center;background:#161329b5;color:#fff;font-size:28px;font-weight:1000;letter-spacing:.1em;backdrop-filter:blur(3px)}
+.control-deck{display:grid;grid-template-columns:minmax(0,1fr) 150px 118px;gap:12px;align-items:center;margin:14px 10px 0;padding:14px 15px 16px;border:5px solid var(--ink);border-radius:20px;background:linear-gradient(145deg,#b9f3e9,#9bdbe8 45%,#d8c9ef 73%,#f2b6da);box-shadow:inset 0 0 0 4px #ffffff6b,0 7px 0 #435269}.chip-area{min-width:0;padding-top:5px}.chip-caption{display:block;margin:0 0 0 3px;color:#504765;font-size:9px;font-weight:1000;letter-spacing:.08em}.chip-rack{display:flex;align-items:flex-end;gap:8px;overflow:visible;min-width:0;padding:12px 4px 7px;margin-top:-5px}.chip{--chip:#78d7cd;--chip-dark:#32978f;position:relative;width:58px;height:58px;flex:0 0 58px;border:3px solid var(--ink);border-radius:50%;background:repeating-conic-gradient(from -7deg,#fff 0 9deg,transparent 9deg 28deg),radial-gradient(circle at 50% 47%,var(--chip) 0 44%,var(--chip-dark) 45% 59%,#fff 60% 67%,var(--chip) 68% 100%);box-shadow:0 5px 0 #423b59,0 9px 13px #324d5e48,inset 0 0 0 2px #ffffff65;cursor:pointer;transition:transform .16s,filter .16s,box-shadow .16s}.chip:before{content:"";position:absolute;inset:10px;border:2px dashed #ffffffd9;border-radius:50%}.chip span{position:relative;z-index:1;display:block;color:#fff;font-size:11px;font-weight:1000;text-shadow:0 2px 0 #302944}.chip strong{display:block;margin-top:1px;font-size:15px}.chip:hover{filter:brightness(1.08);transform:translateY(-2px)}.chip[aria-pressed="true"]{transform:translateY(-5px) rotate(-4deg) scale(1.07);box-shadow:0 8px 0 #423b59,0 13px 17px #4a3d6552,0 0 0 3px #fff,0 0 0 6px #ff8fc4}.chip:disabled{filter:grayscale(.55);opacity:.62;cursor:default}.fire-button{position:relative;min-height:76px;border:4px solid var(--ink);border-radius:21px;background:linear-gradient(#ff94b3,#ff638d);color:#fff;box-shadow:inset 0 -9px 0 #d94770,inset 0 4px 0 #ffc4d4,0 7px 0 #3c3553;cursor:pointer;font-size:18px;font-weight:1000;letter-spacing:.06em;text-shadow:0 2px 0 #a82b52}.fire-button small{display:block;font-size:9px;letter-spacing:.1em;opacity:.85}.fire-button:disabled{filter:none;opacity:.78}.fire-button:active,.fire-button.active{transform:translateY(5px);box-shadow:inset 0 -4px 0 #d94770,inset 0 3px 0 #ffc4d4,0 2px 0 #3c3553}.fire-button:disabled{filter:grayscale(.6);opacity:.62;cursor:default}.side-controls{display:grid;gap:7px}.small-control{min-height:34px;border:3px solid var(--ink);border-radius:11px;background:#f9fffd;color:#554d6e;box-shadow:inset 0 -4px 0 #dcebe7,0 3px 0 #504966;cursor:pointer;font-size:10px;font-weight:1000}.small-control[aria-pressed="true"]{background:#7cded5;color:#27374b}.small-control:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 #dcebe7,0 1px 0 #504966}.footer{margin:13px 15px 0;padding:10px 13px;border:3px solid var(--ink);border-radius:13px;background:linear-gradient(145deg,#fafffd,#f4efff 53%,#ffeef8);box-shadow:inset 0 -4px 0 #ded8ef,3px 4px 0 #554c70;color:#514864;text-align:center}.footer b{font-size:12px}.footer div{margin-top:2px;color:#8a819e;font-size:9px}.drawer{margin:34px auto 0;border:1px solid var(--line);border-radius:16px;background:color-mix(in srgb,var(--panel) 96%,transparent);box-shadow:0 12px 30px #0002;overflow:hidden}.drawer summary{padding:11px 14px;color:var(--muted);cursor:pointer;font-size:11px;font-weight:800;list-style-position:inside}.drawer-body{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;padding:0 12px 12px}.drawer-panel{padding:12px;border:1px solid var(--line);border-radius:12px;background:#ffffff08}.drawer-title{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:12px;font-weight:900}.drawer-title span{color:var(--muted);font-size:9px;font-weight:500}.history{display:grid;gap:5px;max-height:215px;overflow:auto}.empty{padding:23px 8px;color:var(--muted);text-align:center;font-size:11px}.history-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:7px 8px;border-bottom:1px solid var(--line);font-size:10px}.history-row small{color:var(--muted)}.history-row .gain{color:#59d8aa;font-weight:1000}.history-row .miss{color:#ea87a5}.stats{display:grid;grid-template-columns:1fr 1fr;gap:7px}.stat{padding:9px;border:1px solid var(--line);border-radius:9px;background:#ffffff08}.stat small{display:block;color:var(--muted);font-size:8px}.stat b{display:block;margin-top:2px;font-size:14px;font-variant-numeric:tabular-nums}.fish-table{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}.fish-note{padding:9px;border:1px solid var(--line);border-radius:10px;background:#ffffff08;text-align:center}.fish-note i{display:block;width:26px;height:15px;margin:2px auto 6px;border:3px solid #2d2743;border-radius:60% 45%;background:var(--fish)}.fish-note b{display:block;font-size:10px}.fish-note small{color:var(--muted);font-size:8px}.toast{position:fixed;z-index:100;left:50%;bottom:24px;padding:10px 16px;border:3px solid #28213e;border-radius:999px;background:#fff;color:#3a334f;box-shadow:4px 5px 0 #5a5279,0 14px 30px #0004;font-weight:1000;opacity:0;pointer-events:none;transform:translate(-50%,14px);transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:760px){body{padding:5px}.stage{padding:10px;border-radius:20px}.cabinet{padding:12px 13px 17px;border-radius:27px 27px 21px 21px}.cabinet:before,.cabinet:after{display:none}.marquee{margin:0 3px 8px;padding:11px 9px}.status-strip{margin:8px 4px;padding:6px;gap:5px}.status-card{min-height:45px}.status-card b{font-size:13px}.status-card.target b{font-size:10px}.aquarium-frame{margin:8px 2px 0;padding:8px}.control-deck{grid-template-columns:minmax(0,1fr) 116px;margin:11px 2px 0;padding:11px;gap:7px}.side-controls{display:none}.chip-rack{gap:4px;padding-left:2px;padding-right:2px}.chip{width:43px;height:43px;flex-basis:43px;border-width:2px}.chip:before{inset:6px}.chip span{font-size:9px}.chip strong{font-size:12px}.fire-button{min-height:59px;font-size:14px}.drawer-body{grid-template-columns:1fr}.fish-table{grid-column:auto;grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:470px){.stage{padding:5px}.cabinet{padding:9px 8px 14px;border-width:4px}.marquee h1{font-size:34px}.status-strip{grid-template-columns:1fr 1fr}.status-card:nth-child(3),.status-card:nth-child(4){display:none}.aquarium-frame{border-width:4px;padding:5px}.screen-tip{top:7px;font-size:8px}.control-deck{grid-template-columns:minmax(0,1fr) 103px;padding:9px 8px}.chip-caption{font-size:8px}.chip{width:38px;height:38px;flex-basis:38px}.chip strong{font-size:10px}.fire-button{min-height:54px;font-size:13px}.footer{margin:10px 5px 0}.drawer{margin-top:28px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+.combo-display{--combo:#68f3ff;--combo2:#37aef5;position:absolute;z-index:8;left:18px;top:76px;width:clamp(142px,16vw,190px);padding:5px 14px 9px;pointer-events:none;text-align:center;opacity:0;filter:drop-shadow(0 8px 12px #00142488);transform:translateX(-12px) scale(.86);transition:opacity .18s,transform .18s;isolation:isolate}.combo-display[data-tier="mid"]{--combo:#ffe572;--combo2:#ff9f43}.combo-display[data-tier="high"]{--combo:#ff75c8;--combo2:#ffe76a}.combo-display:before{content:"";position:absolute;z-index:-2;inset:-7px -18px;background:radial-gradient(ellipse at center,#062c48e8 0,#062840cc 43%,#031b2b88 61%,transparent 74%);filter:blur(1px)}.combo-display:after{content:"";position:absolute;z-index:-1;left:6%;right:6%;top:20px;height:39px;border-top:1px solid color-mix(in srgb,var(--combo) 72%,transparent);border-bottom:1px solid color-mix(in srgb,var(--combo2) 58%,transparent);clip-path:polygon(7% 0,93% 0,100% 50%,93% 100%,7% 100%,0 50%);background:linear-gradient(90deg,transparent,#072d48b8 16%,#092f4bd9 50%,#072d48b8 84%,transparent);box-shadow:inset 0 1px #ffffff1f,inset 0 -1px #0008,0 0 13px color-mix(in srgb,var(--combo) 25%,transparent)}.combo-display.active{opacity:1;transform:translateX(0) scale(1);animation:comboHoloIn .38s cubic-bezier(.16,1.45,.3,1)}.combo-kicker{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:8px;height:14px;color:#d9faff;font-size:clamp(6px,.8vw,9px);font-weight:900;letter-spacing:.22em;text-shadow:0 0 8px var(--combo)}.combo-kicker i{width:21px;height:1px;background:linear-gradient(90deg,transparent,var(--combo))}.combo-kicker i:last-child{background:linear-gradient(90deg,var(--combo),transparent)}.combo-main{position:relative;z-index:2;display:flex;height:46px;align-items:center;justify-content:center;gap:8px;line-height:1}.combo-main strong{min-width:.75em;color:#eefeff;font:italic 1000 clamp(35px,4.5vw,52px)/.8 Impact,"Arial Black",sans-serif;letter-spacing:-.08em;-webkit-text-stroke:1px #08253d;text-shadow:2px 2px 0 var(--combo2),0 0 7px var(--combo),0 0 18px color-mix(in srgb,var(--combo) 65%,transparent)}.combo-copy{display:flex;flex-direction:column;align-items:flex-start;transform:skewX(-7deg)}.combo-copy em{color:#f5fdff;font:1000 clamp(14px,2vw,22px)/.9 "Arial Black","Microsoft YaHei",sans-serif;font-style:normal;letter-spacing:.02em;-webkit-text-stroke:1px #08253d;text-shadow:2px 2px 0 var(--combo2),0 0 8px var(--combo)}.combo-copy b{margin-top:5px;color:var(--combo);font-size:clamp(5px,.7vw,8px);letter-spacing:.35em;text-shadow:0 0 7px var(--combo)}.combo-timer{position:relative;z-index:2;display:block;overflow:hidden;width:68%;height:3px;margin:3px auto 0;border-radius:999px;background:#7fa4b842;box-shadow:0 0 0 1px #d8faff24}.combo-timer i{display:block;width:100%;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--combo2),#fff,var(--combo));box-shadow:0 0 7px var(--combo)}.combo-display.active .combo-timer i{animation:comboDrain 1.5s linear forwards}.combo-display.active .combo-main:before,.combo-display.active .combo-main:after{content:"";position:absolute;width:5px;height:5px;border:1px solid var(--combo);border-radius:50%;box-shadow:0 0 7px var(--combo),18px -13px 0 -1px var(--combo2),-14px 14px 0 -1px #fff;animation:comboSpark 1.1s ease-out both}.combo-display.active .combo-main:before{left:8px;top:3px}.combo-display.active .combo-main:after{right:6px;bottom:5px;animation-delay:.1s}@keyframes comboHoloIn{0%{opacity:0;transform:translateX(-18px) scale(.58);filter:blur(5px) drop-shadow(0 8px 12px #00142488)}55%{opacity:1;transform:translateX(3px) scale(1.05)}100%{transform:translateX(0) scale(1);filter:blur(0) drop-shadow(0 8px 12px #00142488)}}@keyframes comboSpark{0%{opacity:0;transform:scale(.3) rotate(0)}30%{opacity:1}100%{opacity:0;transform:scale(1.7) rotate(35deg)}}@keyframes comboDrain{to{width:0}}@media(max-width:600px){.combo-display{left:9px;top:57px;width:132px;padding:4px 10px 7px}.combo-display:after{top:17px;height:34px}.combo-kicker{height:12px;gap:4px}.combo-kicker i{width:14px}.combo-main{height:39px;gap:4px}.combo-copy b{margin-top:3px}.combo-timer{margin-top:3px}}
+</style>
+<style id="aquarium-layout-rework">
+body{padding:10px;background:transparent}
+.stage{width:min(100%,1180px);padding:0;border:0;border-radius:0;background:none;box-shadow:none}
+.cabinet{position:relative;overflow:visible;padding:0;border:0;border-radius:0;background:none;box-shadow:none}
+.cabinet:before,.cabinet:after,.marquee{display:none}
+.aquarium-frame{margin:0;padding:0;border:0;border-radius:28px;background:none;box-shadow:none}
+.screen-bezel{position:relative;overflow:hidden;border:1px solid #bdf9ff66;border-radius:28px;background:#08233d;box-shadow:0 24px 55px #0307138f,inset 0 0 0 2px #ffffff12}
+.screen-bezel:after{border-radius:28px}
+canvas{border-radius:28px}
+.game-name{position:absolute;z-index:7;left:20px;top:17px;padding:7px 13px;border:1px solid #ffffff48;border-radius:13px;background:#071d35ad;color:#fff;font-size:22px;font-weight:1000;letter-spacing:.04em;text-shadow:0 2px 0 #24335f,0 0 15px #67e9e0;backdrop-filter:blur(8px);pointer-events:none}
+.status-strip{position:absolute;z-index:12;top:17px;right:18px;width:min(66%,690px);display:grid;grid-template-columns:1.1fr .9fr .9fr 1.2fr;gap:7px;margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;pointer-events:none}
+.status-card{min-height:51px;border:1px solid #ffffff45;border-radius:13px;background:#071d35b8;box-shadow:0 7px 18px #04102055,inset 0 0 0 1px #ffffff12;color:#f8fdff;backdrop-filter:blur(8px)}
+.status-card small{color:#b9dbe8}.status-card b{font-size:16px}.status-card.balance b{color:#70efe2}.status-card.reward b{color:#ff92bd}
+.screen-tip{top:80px;border:1px solid #ffffff5c;background:#071d35bd;color:#e9fbff;box-shadow:0 7px 18px #04102055;backdrop-filter:blur(8px)}
+.screen-tip.locked{background:#712d5cc7;color:#fff}
+.control-deck{margin:12px 0 0;padding:12px 15px 14px;border:1px solid #ffffff50;border-radius:23px;background:linear-gradient(115deg,#9ee9dfed,#a8d8e9ed 47%,#d8c6efed 73%,#f0b4d8ed);box-shadow:0 14px 32px #08102255,inset 0 0 0 2px #ffffff45;backdrop-filter:blur(8px)}
+.chip{border-width:2px;box-shadow:0 4px 0 #423b59,0 8px 12px #324d5e48,inset 0 0 0 2px #ffffff65}
+.chip[aria-pressed="true"]{box-shadow:0 7px 0 #423b59,0 12px 17px #4a3d6552,0 0 0 3px #fff,0 0 0 6px #ff8fc4}
+.fire-button{border-width:3px;border-radius:999px;box-shadow:inset 0 -7px 0 #d94770,inset 0 4px 0 #ffc4d4,0 5px 0 #3c3553}
+.small-control{border-width:2px;box-shadow:inset 0 -3px 0 #dcebe7,0 2px 0 #504966}
+.footer{display:none}
+.drawer{margin-top:14px}
+@media(max-width:760px){body{padding:5px}.game-name{left:12px;top:11px;padding:5px 9px;font-size:18px}.status-strip{top:53px;left:11px;right:11px;width:auto;grid-template-columns:1fr 1fr}.status-card:nth-child(3),.status-card:nth-child(4){display:none}.status-card{min-height:42px}.status-card b{font-size:13px}.screen-tip{display:none}.control-deck{margin-top:8px;border-radius:19px}}
+@media(max-width:470px){.game-name{font-size:15px}.status-strip{top:44px}.status-card{min-height:36px}.status-card small{font-size:7px}.status-card b{font-size:11px}.control-deck{margin-top:7px}}
+</style>
+<style id="fishing-visual-final">
+body{padding:8px;background:transparent}.stage{width:min(100%,1180px);margin:auto;padding:0;background:none;border:0;box-shadow:none}.game-scene{position:relative}.aquarium-frame{margin:0;padding:0;border:0;background:none;box-shadow:none}.screen-bezel{position:relative;overflow:hidden;border:1px solid #bdefff52;border-radius:25px;background:#062b49;box-shadow:0 25px 58px #020713a8,inset 0 0 0 2px #ffffff12}.screen-bezel:after{border-radius:25px;background:linear-gradient(120deg,#fff0 55%,#d8ffff09)}canvas{width:100%;height:auto;border-radius:25px;cursor:crosshair}.top-hud{position:absolute;z-index:12;top:15px;left:16px;right:16px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;pointer-events:none}.hud-pill{display:flex;align-items:center;gap:9px;min-height:48px;padding:7px 12px;border:1px solid #c9fbff4a;border-radius:16px;background:linear-gradient(135deg,#061b31cf,#092e4bd1);box-shadow:0 8px 22px #03122575,inset 0 0 0 1px #ffffff0c;color:#fff;backdrop-filter:blur(12px)}.hud-pill small{display:block;color:#a9d1de;font-size:8px;font-weight:800}.hud-pill b{display:block;margin-top:1px;color:#82eee1;font:1000 17px ui-monospace,Consolas,monospace}.hud-icon{display:grid;width:31px;height:31px;place-items:center;border:1px solid #cfffff66;border-radius:50%;background:linear-gradient(145deg,#ffe995,#dba84c);color:#514126;font-size:17px;font-weight:1000;box-shadow:inset 0 0 0 3px #fff4a877}.target-pill{gap:16px;min-width:260px;justify-content:space-between}.target-pill>span:first-child b{max-width:155px;overflow:hidden;color:#fff;font-family:inherit;font-size:13px;text-overflow:ellipsis;white-space:nowrap}.reward-mini{padding-left:14px;border-left:1px solid #ffffff24;text-align:right}.reward-mini b{color:#ff91b8}.screen-tip{display:none;top:77px;padding:5px 10px;border:1px solid #c9fbff48;background:#071a2bc7;color:#dffaff;box-shadow:0 6px 18px #0210216b;font-size:9px;backdrop-filter:blur(10px)}.screen-tip.locked{background:#6e2452d6;color:#fff}.action-message{position:absolute;z-index:12;left:50%;bottom:105px;max-width:54%;overflow:hidden;padding:6px 12px;border:1px solid #cbfaff36;border-radius:999px;background:#061b2fc4;color:#e7fbff;box-shadow:0 6px 18px #020c1b66;font-size:10px;font-weight:900;text-overflow:ellipsis;white-space:nowrap;pointer-events:none;transform:translateX(-50%);backdrop-filter:blur(9px)}.control-deck{position:absolute;z-index:15;left:15px;right:15px;bottom:14px;backdrop-filter:none;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:0;padding:0;border:0;background:none;box-shadow:none;pointer-events:none}.chip-area{min-width:0;padding:8px 11px 7px;border:1px solid #c9fbff3d;border-radius:19px;background:#061c31c9;box-shadow:0 9px 24px #02112672,inset 0 0 0 1px #ffffff0d;backdrop-filter:blur(12px);pointer-events:auto}.chip-caption{display:flex;align-items:center;justify-content:space-between;margin:0 3px;color:#bfe3eb;font-size:8px;font-weight:900}.chip-caption b{color:#fff;font:1000 11px ui-monospace,Consolas,monospace}.chip-rack{gap:6px;margin-top:0;padding:7px 2px 2px;overflow:visible}.chip{width:48px;height:48px;flex-basis:48px;border:2px solid #292440;box-shadow:0 4px 0 #312b49,0 7px 11px #020b1880,inset 0 0 0 2px #ffffff62}.chip:before{inset:7px}.chip span{font-size:9px}.chip strong{font-size:12px}.chip[aria-pressed="true"]{transform:translateY(-4px) rotate(-4deg) scale(1.06);box-shadow:0 7px 0 #312b49,0 11px 15px #020b1880,0 0 0 2px #fff,0 0 0 5px #ff7fb5}.fire-cluster{display:flex;align-items:flex-end;gap:8px;pointer-events:auto}.fire-button{width:92px;height:92px;min-height:0;padding:0;border:4px solid #302440;border-radius:50%;background:radial-gradient(circle at 36% 27%,#ffd9e6 0 6%,#ff7ca6 23%,#ea4f7d 58%,#9b2856 100%);box-shadow:inset -8px -10px 0 #94244f,inset 5px 6px 0 #ffc0d4,0 7px 0 #29223e,0 10px 24px #020b188c;color:#fff;font-size:17px;text-shadow:0 2px 0 #8f244e}.fire-button small{font-size:7px;letter-spacing:.08em}.fire-button:disabled{filter:none;opacity:.78}.fire-button:active,.fire-button.active{transform:translateY(4px);box-shadow:inset -6px -7px 0 #94244f,inset 4px 5px 0 #ffc0d4,0 3px 0 #29223e}.side-controls{display:grid;gap:6px}.small-control{min-width:76px;min-height:31px;padding:4px 8px;border:1px solid #c9fbff45;border-radius:11px;background:#061c31d8;color:#dffaff;box-shadow:0 5px 12px #020b185e;font-size:9px;backdrop-filter:blur(9px)}.small-control[aria-pressed="true"]{background:#2a988fdb;color:#fff}.footer{display:none}.drawer{margin-top:12px;background:#151328de}.pause-mask{background:#071425b8}.fish-note i{border-width:1px}.toast{border-width:2px}
+@media(max-width:760px){body{padding:4px}.screen-bezel{border-radius:18px}canvas{border-radius:18px}.top-hud{top:8px;left:8px;right:8px}.hud-pill{min-height:37px;padding:5px 8px;border-radius:12px}.hud-icon{width:25px;height:25px;font-size:13px}.hud-pill small{font-size:6px}.hud-pill b{font-size:12px}.target-pill{min-width:0}.target-pill>span:first-child b{max-width:105px;font-size:10px}.reward-mini{padding-left:8px}.screen-tip{display:none}.control-deck{left:8px;right:8px;bottom:7px;gap:8px}.chip-area{padding:5px 7px 5px;border-radius:14px}.chip-caption{font-size:7px}.chip-rack{gap:3px;padding-top:5px}.chip{width:35px;height:35px;flex-basis:35px}.chip:before{inset:5px}.chip span{font-size:7px}.chip strong{font-size:9px}.fire-button{width:66px;height:66px;border-width:3px;font-size:13px}.fire-button small{font-size:6px}.small-control{min-width:58px;min-height:25px;padding:2px 5px;font-size:7px}.action-message{bottom:77px;padding:4px 8px;font-size:8px}.drawer{margin-top:8px}}
+@media(max-width:600px){.side-controls{display:none}.action-message{display:none}.target-pill .reward-mini{display:none}.target-pill{min-width:112px}}@media(max-width:470px){.target-pill .reward-mini{display:none}.target-pill{min-width:112px}.top-hud{gap:6px}.hud-pill{gap:5px}.control-deck{align-items:flex-end}.side-controls{display:none}.chip{width:31px;height:31px;flex-basis:31px}.chip strong{font-size:8px}.fire-button{width:58px;height:58px}.action-message{display:none}}
+</style>
+
+<style id="turret-controls-v2">
+.fire-cluster{align-items:flex-end;gap:9px}
+.fire-button{position:relative;display:flex;width:118px;height:72px;min-height:0;align-items:center;justify-content:center;gap:9px;overflow:hidden;padding:0 13px;border:0;border-radius:0;clip-path:polygon(11% 0,89% 0,100% 22%,100% 78%,89% 100%,11% 100%,0 78%,0 22%);background:linear-gradient(145deg,#6ff9f0 0 2%,#28365f 3% 9%,#0b1730 10% 100%);box-shadow:0 9px 22px #020813a6;isolation:isolate;color:#fff;cursor:pointer;transform:translateY(0);transition:transform .16s ease,filter .16s ease}
+.fire-button:before{content:"";position:absolute;z-index:-2;inset:4px;clip-path:inherit;background:radial-gradient(circle at 24% 35%,#ffb9cf55 0 10%,transparent 31%),linear-gradient(135deg,#cf3568,#7e214e 54%,#351b48);box-shadow:inset 0 2px 0 #ffc4d688,inset 0 -5px 0 #43152f}
+.fire-button:after{content:"";position:absolute;z-index:-1;left:11px;right:11px;top:7px;height:1px;background:linear-gradient(90deg,transparent,#fff9,transparent);box-shadow:0 44px 0 #ff9fbd36;pointer-events:none}
+.fire-button:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-2px)}
+.fire-button:active:not(:disabled),.fire-button.active{transform:translateY(3px);filter:brightness(1.08);box-shadow:0 4px 12px #020813a6}
+.fire-button:disabled{filter:grayscale(.35) brightness(.72);opacity:.76;cursor:default}
+.fire-icon{position:relative;display:grid;width:35px;height:35px;flex:0 0 35px;place-items:center;border:2px solid #8ffff3;border-radius:10px;background:radial-gradient(circle,#f8ffff 0 8%,#55f4ec 9% 15%,#123d59 17% 47%,#06172b 49%);box-shadow:inset 0 0 0 3px #ffffff14,0 0 13px #4affec88;transform:rotate(45deg)}
+.fire-icon:before,.fire-icon:after{content:"";position:absolute;background:#bafff9;box-shadow:0 0 5px #6ffff5}.fire-icon:before{width:18px;height:2px}.fire-icon:after{width:2px;height:18px}.fire-icon i{width:7px;height:7px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 8px #fff}
+.fire-copy{display:flex;min-width:49px;flex-direction:column;align-items:flex-start;line-height:1}.fire-copy small{display:block;color:#ffd8e6;font-size:7px;font-weight:900;letter-spacing:.12em;text-shadow:none}.fire-copy strong{margin-top:5px;color:#fff;font-size:18px;font-weight:1000;letter-spacing:.12em;text-shadow:0 2px 0 #771c48,0 0 10px #ff8caf}
+.fire-button.active .fire-icon{animation:firePulse .7s ease-in-out infinite alternate}
+@keyframes firePulse{to{box-shadow:inset 0 0 0 3px #ffffff22,0 0 20px #72fff3;filter:brightness(1.25)}}
+@media(max-width:760px){.fire-button{width:94px;height:60px;padding:0 9px;gap:7px}.fire-icon{width:29px;height:29px;flex-basis:29px;border-radius:8px}.fire-copy{min-width:41px}.fire-copy small{font-size:6px}.fire-copy strong{font-size:15px}.fire-icon:before{width:15px}.fire-icon:after{height:15px}}
+@media(max-width:470px){.fire-button{width:82px;height:54px;padding:0 7px;gap:6px}.fire-icon{width:25px;height:25px;flex-basis:25px}.fire-copy strong{font-size:13px}.fire-copy small{font-size:5px}}
+</style>
+<style id="game-audio-controls">.audio-dock{position:absolute;z-index:20;display:flex;gap:5px}.fishing-audio-dock{top:15px;left:50%;transform:translateX(-50%);align-items:center}.fish-fortune-badge{padding:4px 7px;border:1px solid #f1d18a55;border-radius:8px;background:#07213bd9;color:#ffe29c;font-size:7px;font-weight:900;white-space:nowrap;backdrop-filter:blur(8px)}.audio-dock button{min-width:54px;height:25px;padding:0 8px;border:1px solid #bdfcff55;border-radius:9px;background:linear-gradient(145deg,#06182be8,#122d47e8);box-shadow:inset 0 1px 0 #ffffff18,0 4px 10px #02061166;color:#ddfbff;font-size:8px;font-weight:900;letter-spacing:.04em;cursor:pointer;backdrop-filter:blur(8px)}.audio-dock button[aria-pressed="true"]{border-color:#80fff0aa;background:linear-gradient(145deg,#12485bed,#157c75ed);color:#fff;box-shadow:inset 0 1px 0 #ffffff26,0 0 11px #54f6e944}.audio-dock button:hover{filter:brightness(1.12)}.audio-dock button:active{transform:translateY(1px)}@media(max-width:760px){.fish-fortune-badge{display:none}.fishing-audio-dock{top:8px}.audio-dock{gap:3px}.audio-dock button{min-width:42px;height:21px;padding:0 5px;font-size:6px;border-radius:7px}}@media(max-width:500px){.fishing-audio-dock{top:49px}}</style><style id="phone-landscape-fit">
+@media (orientation: landscape) and (max-height: 520px) {
+  html, body { height: 100%; overflow: hidden; }
+  body { padding: 0 !important; }
+  .stage, .game-scene, .aquarium-frame { width: 100%; max-width: none; height: 100%; margin: 0; }
+  /* 位图是写死的 960x540，object-fit 又是默认的 fill，所以画布盒子一旦
+     不是 16:9，整幅画面就被拉变形。约束盒子、而不是拉伸画面：
+     按高度定尺寸、宽度自适应，两侧留黑边。
+     这样 canvasPoint() 里 W/r.width 的换算也依然成立。 */
+  .aquarium-frame { display: grid; place-items: center; }
+  .screen-bezel {
+    height: 100%; width: auto; max-width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 0;
+  }
+  /* WKWebView resolves height:100% + width:auto + aspect-ratio from the
+     intrinsic canvas width and produces a box taller than the iframe. Give it
+     explicit contain bounds: 16:9 by viewport height, capped by viewport width. */
+  html.is-ios-webkit .screen-bezel{
+    width:min(100%,177.777778dvh)!important;
+    height:min(100%,56.25dvw)!important;
+  }
+  canvas { width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; }
+  .drawer { display: none !important; }
+  /* 62px 是给大厅那条浮动图标坞让位的。单开这一页时没有坞，
+     HUD 就该贴着顶边；余额也只在大厅里才该隐藏（大厅自己有钱包）。 */
+  .top-hud { top: 10px; left: 10px !important; right: auto; gap: 6px; }
+  html.is-hud .top-hud { top: 56px; }
+  .hud-pill { min-height: 30px; padding: 3px 7px; }
+  .target-pill { min-width: 0 !important; max-width: none; }
+  .reward-mini { display: none !important; }
+  .control-deck {
+    position: absolute; z-index: 15;
+    display: flex !important; align-items: flex-end; justify-content: space-between;
+    left: 10px; right: 10px; bottom: 10px; gap: 8px;
+    margin: 0; padding: 6px 8px;
+    pointer-events: none;
+  }
+  .chip-area, .fire-cluster, .side-controls { pointer-events: auto; }
+  .side-controls {
+    display: grid !important;
+    gap: 4px;
+    flex: 0 0 auto;
+  }
+  .small-control {
+    display: block !important;
+    min-width: 54px;
+    min-height: 26px;
+    padding: 4px 6px;
+    font-size: 9px;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+  .fire-cluster {
+    display: flex !important;
+    align-items: flex-end;
+    gap: 6px;
+  }
+  .fire-button { width: 88px; height: 48px; flex-shrink: 0; }
+  .chip-rack { gap: 4px; overflow-x: auto; padding: 4px 2px 2px; }
+  .chip { width: 30px; height: 30px; flex-basis: 30px; }
+  .fishing-audio-dock { top: 10px; left: 50%; bottom: auto; transform: translateX(-50%); }
+  /* 大厅那条浮动图标坞盖在画面顶部，音效键得让到坞下面去。 */
+  html.is-hud .fishing-audio-dock { top: 56px; }
+  .chip-caption { font-size: 8px; }
+}
+@media (orientation: landscape) and (max-height: 360px) {
+  .hud-pill small { display: none; }
+  .chip-caption { display: none; }
+  .control-deck { bottom: 6px; }
+  .fire-button { width: 70px; height: 42px; }
+  .chip { width: 28px; height: 28px; flex-basis: 28px; }
+  .audio-dock button { min-width: 36px; height: 20px; }
+}
+/* 竖屏是直接打开本页时的兜底（大厅会把整页转成横屏）。
+   同样不能拉伸画布：按宽度定尺寸，做成一条 16:9 的横带并垂直居中。 */
+@media (orientation: portrait) and (max-width: 600px) {
+  html, body { height: 100%; overflow: hidden; }
+  body { padding: 0 !important; }
+  .stage, .game-scene, .aquarium-frame { width: 100%; max-width: none; height: 100%; margin: 0; }
+  .aquarium-frame { display: grid; place-items: center; }
+  .screen-bezel {
+    width: 100%; height: auto; max-height: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 0;
+  }
+  canvas { width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 0; }
+  .drawer { display: none !important; }
+  .side-controls {
+    display: grid !important;
+    gap: 4px;
+    pointer-events: auto;
+  }
+  .small-control {
+    display: block !important;
+    min-width: 52px;
+    min-height: 24px;
+    font-size: 8px;
+  }
+}
+html.is-hud .wallet-pill { display: none !important; }
+</style>
+<style id="mobile-fit-pass">
+/* 手机适配收尾：命中区。
+   音乐/音效键 42x21、连续/暂停键 52x24、最小筹码 31px —— 都在指尖下限以下。
+   用 ::after 撑开命中区而不改绘制尺寸：这些控件浮在鱼池画面上，
+   真放大会挡住鱼。 */
+.audio-dock button,.small-control,.chip{position:relative}
+.audio-dock button:after,.small-control:after{
+  content:"";position:absolute;left:50%;top:50%;
+  min-width:44px;min-height:44px;width:100%;height:100%;
+  transform:translate(-50%,-50%);
+}
+/* 筹码横向排列，命中区只撑高不撑宽，避免相邻筹码互相盖住。 */
+.chip:after{
+  content:"";position:absolute;left:0;right:0;top:50%;
+  min-height:44px;height:100%;
+  transform:translateY(-50%);
+}
+@media (hover:hover) and (pointer:fine){
+  .audio-dock button:after,.small-control:after,.chip:after{display:none}
+}
+@media(max-width:760px){
+  .small-control{min-height:28px}
+}
+
+/* 可读性下限。手机上这些标签被压到 5~8px —— 汉字到这个尺寸只剩一团灰。 */
+@media(max-width:760px),(orientation:landscape) and (max-height:520px){
+  /* These panels sit directly over an animated canvas. Mobile WebViews would
+     otherwise re-raster every backdrop blur on every game frame. */
+  .hud-pill,.chip-area,.action-message,.small-control,.screen-tip{
+    backdrop-filter:none;-webkit-backdrop-filter:none;
+  }
+  /* 「♫ 音乐」在 6px 下读不出来，改成纯图标。 */
+  .audio-dock button{
+    min-width:40px;height:30px;padding:0;
+    font-size:0;letter-spacing:0;
+  }
+  .audio-dock button:before{font-size:15px;line-height:1}
+  #fishMusicToggle:before{content:"♫"}
+  #fishSfxToggle:before{content:"◉"}
+  .fish-fortune-badge{display:none!important}
+
+  .hud-pill small{font-size:9px}
+  .chip-caption{font-size:9px}
+  .chip-caption b{font-size:11px}
+  /* 筹码上的金额是玩家唯一能确认下注额的地方，原来只有 8px。
+     筹码同时放大到 38px，既装得下 11px 的「500」，也够指尖点。 */
+  .chip span{font-size:9px}
+  .chip strong{font-size:11px}
+  /* 发射键上的小字压到 5px，留着只是噪点，图标+「发射」已经说清了。 */
+  .fire-copy small{display:none}
+  .fire-copy strong{margin-top:0}
+  .small-control{font-size:10px}
+  .action-message{font-size:10px}
+  .drawer summary{font-size:11px}
+  .drawer-title span{font-size:9px}
+  .stat small{font-size:9px}
+  .fish-note small{font-size:9px}
+  .history-row{font-size:10px}
+  .history-row small{font-size:9px}
+}
+@media (orientation: portrait) and (max-width: 600px){
+  .chip{width:38px;height:38px;flex-basis:38px}
+  .chip:before{inset:6px}
+}
+@media (orientation: landscape) and (max-height: 520px){
+  .chip{width:36px;height:36px;flex-basis:36px}
+  .chip:before{inset:6px}
+}
+@media (orientation: landscape) and (max-height: 360px){
+  .chip{width:32px;height:32px;flex-basis:32px}
+  .chip strong{font-size:10px}
+}
+/* WKWebView pays heavily for compositing CSS shadows and rounded clipping over
+   a continuously changing canvas. Keep the full 960x540 buffer and flatten only
+   the iOS presentation layer; Chromium/desktop retain the original styling. */
+html.is-ios-webkit *,html.is-ios-webkit *::before,html.is-ios-webkit *::after{
+  box-shadow:none!important;text-shadow:none!important;filter:none!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+html.is-ios-webkit .stage,html.is-ios-webkit .game-scene,
+html.is-ios-webkit .aquarium-frame,html.is-ios-webkit .screen-bezel{
+  overflow:visible!important;border-radius:0!important;clip-path:none!important;
+}
+html.is-ios-webkit .screen-bezel:after{display:none!important}
+html.is-ios-webkit canvas{border-radius:0!important}
+html.is-ios-webkit .drawer{display:none!important}
+</style>
+<script>try{const ua=navigator.userAgent||'';if(/iP(?:hone|ad|od)/.test(ua)&&/AppleWebKit/.test(ua))document.documentElement.classList.add('is-ios-webkit');if(parent!==window)document.documentElement.classList.add('is-hud')}catch(_){}</script>
+</head>
+<body>
+<div class="stage">
+  <main class="game-scene">
+    <section class="aquarium-frame">
+      <div class="screen-bezel">
+        <canvas id="gameCanvas" width="960" height="540" aria-label="捕鱼游戏区域"></canvas><div class="audio-dock fishing-audio-dock" role="group" aria-label="声音控制"><span class="fish-fortune-badge" id="fishFortuneBadge">&#26410;&#25277;&#31614; &middot; 96%</span><button id="fishMusicToggle" type="button" aria-pressed="true">♫ 音乐</button><button id="fishSfxToggle" type="button" aria-pressed="true">◉ 音效</button></div>
+        <div class="top-hud">
+          <div class="hud-pill wallet-pill"><span class="hud-icon">¥</span><span><small>当前余额</small><b id="balanceDisplay">¥1,000</b></span></div>
+          <div class="hud-pill target-pill"><span><small>锁定目标</small><b id="targetDisplay">尚未锁定</b></span><span class="reward-mini"><small>最近奖励</small><b id="rewardDisplay">¥0</b></span></div>
+        </div>
+        <div class="combo-display" id="comboDisplay" data-tier="low" hidden aria-live="polite">
+          <div class="combo-kicker"><i></i><span>连续捕获</span><i></i></div>
+          <div class="combo-main"><strong id="comboCount">2</strong><span class="combo-copy"><em>COMBO</em><b>CHAIN</b></span></div>
+          <span class="combo-timer"><i></i></span>
+        </div>
+        <div class="screen-tip" id="screenTip">点击鱼进行锁定</div>
+        <div class="action-message" id="footerStatus">选择一条鱼作为目标</div>
+        <section class="control-deck">
+          <div class="chip-area"><span class="chip-caption">炮弹 <b id="betDisplay">¥10</b></span><div class="chip-rack" id="chipRack" role="group" aria-label="选择炮弹金额"></div></div>
+          <div class="fire-cluster">
+            <div class="side-controls">
+              <button class="small-control" id="autoButton" type="button" aria-pressed="false">连续：关</button>
+              <button class="small-control" id="pauseButton" type="button" aria-pressed="false">暂停</button>
+            </div>
+            <button class="fire-button" id="fireButton" type="button"><span class="fire-icon" aria-hidden="true"><i></i></span><span class="fire-copy"><small>锁定目标</small><strong>发射</strong></span></button>
+          </div>
+        </section>
+        <div class="pause-mask" id="pauseMask" hidden>游戏暂停</div>
+      </div>
+    </section>
+  </main>
+  <details class="drawer">
+    <summary>捕获记录、游戏统计和鱼类倍率</summary>
+    <div class="drawer-body">
+      <section class="drawer-panel"><div class="drawer-title">最近记录 <span>最多 16 条</span></div><div class="history" id="history"></div></section>
+      <section class="drawer-panel"><div class="drawer-title">游戏统计 <span>本地保存</span></div><div class="stats"><div class="stat"><small>发射次数</small><b id="statShots">0</b></div><div class="stat"><small>捕获次数</small><b id="statCaught">0</b></div><div class="stat"><small>累计投入</small><b id="statSpent">¥0</b></div><div class="stat"><small>累计奖励</small><b id="statPaid">¥0</b></div></div></section>
+      <section class="fish-table" id="fishTable"></section>
+    </div>
+  </details>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(()=>{'use strict';
+const VERSION='1.4.9',STATE_KEY='airp_fishing_state_v1',WALLET_KEY='airp_arcade_wallet_v1',SLOT_KEY='airp_physical_slot_state_v2',SCRATCH_KEY='airp_scratch_card_state_v2',FORTUNE_KEY='airp_shrine_fortune_v1';
+const W=960,H=540,DEFAULT_RTP=.96,MIN_RTP=.94,MAX_RTP=1.04,MAX_EFFECTIVE_RTP=1.055,LOW_FISH_RTP_OFFSET=.02,LOW_FISH_MAX_MULTIPLIER=3,MIN_FIRE_INTERVAL_MS=300,REWARD_HOLD_MS=1800,BETS=[10,50,100,200,500],HISTORY_LIMIT=16,THEMES=new Set(['warm-white','dark','green','classic-dark']),IOS_WEBKIT=document.documentElement.classList.contains('is-ios-webkit'),LOW_POWER=IOS_WEBKIT||matchMedia('(max-height: 520px), (max-width: 760px)').matches;
+const FISH_TYPES=[
+{id:'clown',name:'小丑鱼',multiplier:2,weight:38,size:28,speed:[.055,.075],body:'#ff8275',accent:'#fff1d0'},
+{id:'jelly',name:'水母',multiplier:3,weight:24,size:30,speed:[.045,.062],body:'#a88bea',accent:'#eddcff'},
+{id:'puffer',name:'河豚',multiplier:5,weight:18,size:32,speed:[.038,.055],body:'#f4ca66',accent:'#fff0b0'},
+{id:'turtle',name:'海龟',multiplier:10,weight:11,size:38,speed:[.031,.045],body:'#59c69a',accent:'#bdf0cf'},
+{id:'shark',name:'鲨鱼',multiplier:30,weight:6,size:52,speed:[.026,.038],body:'#6fa7c9',accent:'#cce9ef'},
+{id:'whale',name:'黄金鲸',multiplier:100,weight:2,size:64,speed:[.019,.029],body:'#b08ae6',accent:'#ffe082'},
+{id:'gold_clown',name:'黄金小丑鱼',multiplier:4,weight:2.2,size:30,speed:[.05,.069],body:'#e7b83e',accent:'#fff1a6',sprite:'clown',variant:'gold',rtpBonus:.01,unlock:'fish_golden_clown'},
+{id:'star_jelly',name:'星光水母',multiplier:8,weight:1.1,size:34,speed:[.04,.056],body:'#7968df',accent:'#dff6ff',sprite:'jelly',variant:'star',rtpBonus:.015,unlock:'fish_starlight_jelly'},
+{id:'deep_bomb',name:'深海炸弹',multiplier:10,weight:.65,size:35,speed:[.032,.046],body:'#24304f',accent:'#73f7ff',special:'clear',unlock:'fish_deep_bomb'}
+];
+const TYPE_MAP=Object.fromEntries(FISH_TYPES.map(x=>[x.id,x]));
+const CHIP_COLORS=[['#60d4c7','#258e87'],['#7395ea','#435eb9'],['#a57de2','#6945aa'],['#ef79ae','#b93c77'],['#ff826e','#c84c45']];
+const ART={'background':'assets/games/fishing-background.webp','clown':'assets/games/fishing-clown.webp','jelly':'assets/games/fishing-jelly.webp','puffer':'assets/games/fishing-puffer.webp','turtle':'assets/games/fishing-turtle.webp','shark':'assets/games/fishing-shark.webp','whale':'assets/games/fishing-whale.webp','barrel':'assets/games/fishing-barrel.webp','cannon_base':'assets/games/fishing-cannon_base.webp','bullet':'assets/games/fishing-bullet.webp','coin':'assets/games/fishing-coin.webp'};const SPRITES={};for(const [name,src] of Object.entries(ART)){const image=new Image();image.src=src;SPRITES[name]=image};
+const $=id=>document.getElementById(id),canvas=$('gameCanvas'),ctx=canvas.getContext('2d',{alpha:false}),E={balance:$('balanceDisplay'),bet:$('betDisplay'),reward:$('rewardDisplay'),target:$('targetDisplay'),tip:$('screenTip'),combo:$('comboDisplay'),comboCount:$('comboCount'),mask:$('pauseMask'),chips:$('chipRack'),fire:$('fireButton'),auto:$('autoButton'),pause:$('pauseButton'),footer:$('footerStatus'),history:$('history'),shots:$('statShots'),caught:$('statCaught'),spent:$('statSpent'),paid:$('statPaid'),fishTable:$('fishTable'),toast:$('toast'),fortune:$('fishFortuneBadge'),music:$('fishMusicToggle'),sfx:$('fishSfxToggle')};
+let arcadeProfile={已解锁:{}},state=loadState(),fish=[],bullets=[],coins=[],waves=[],bubbles=[],target=null,nextFishId=1,lastTime=0,spawnClock=0,autoClock=0,lastFireAt=-Infinity,paused=false,autoFire=false,pointer={x:W/2,y:H/2},turretAngle=-Math.PI/2,toastTimer=0,rewardHoldUntil=0,stateSaveTimer=0;
+const BGM_TRACKS=["assets/music/1c196864-07cf-44c8-85ef-f622882b2881.mp3","assets/music/39b656d3-6aa2-42cc-9185-2e8ca8a6cf35.mp3"];const SFX_AUDIO={"shot":"assets/games/fishing-shot.mp3","miss":"assets/games/fishing-miss.mp3","smallCatch":"assets/games/fishing-smallcatch.mp3","mediumCatch":"assets/games/fishing-mediumcatch.mp3","goldCatch":"assets/games/fishing-goldcatch.mp3","noCredit":"assets/games/fishing-nocredit.mp3","autoOn":"assets/games/fishing-autoon.mp3","lock":"assets/games/fishing-lock.mp3","pause":"assets/games/fishing-pause.mp3","chip":"assets/games/fishing-chip.mp3"};
+const AUDIO_PREF_KEY='airp_fishing_audio_v1';let audioPrefs=loadAudioPrefs(),audioUnlocked=false,bgmIndex=0,bgmErrors=0,lastSfx={},lastCatchAt=0,catchCombo=0,comboHideTimer=0;const bgmAudio=new Audio();bgmAudio.preload='auto';bgmAudio.volume=1;bgmAudio.setAttribute('playsinline','');window.__airpBgmAudio=bgmAudio;
+function loadAudioPrefs(){try{return{music:true,sfx:true,...JSON.parse(localStorage.getItem(AUDIO_PREF_KEY)||'null')}}catch(_){return{music:true,sfx:true}}}function saveAudioPrefs(){try{localStorage.setItem(AUDIO_PREF_KEY,JSON.stringify(audioPrefs))}catch(_){}}function syncAudioUI(){E.music.setAttribute('aria-pressed',String(audioPrefs.music));E.music.textContent=audioPrefs.music?'♫ 音乐':'♫ 静音';E.sfx.setAttribute('aria-pressed',String(audioPrefs.sfx));E.sfx.textContent=audioPrefs.sfx?'◉ 音效':'○ 音效'}function setBgmTrack(i){bgmIndex=(i+BGM_TRACKS.length)%BGM_TRACKS.length;bgmAudio.src=BGM_TRACKS[bgmIndex];bgmAudio.load()}function playBgm(){if(!audioUnlocked||!audioPrefs.music||paused)return;if(!bgmAudio.src)setBgmTrack(bgmIndex);bgmAudio.volume=1;const p=bgmAudio.play();if(p&&p.catch)p.catch(()=>{})}function nextBgm(){setBgmTrack(bgmIndex+1);playBgm()}function unlockAudio(){audioUnlocked=true;playBgm()}function playSfx(name,volume=.72,minGap=0){if(!audioPrefs.sfx||!SFX_AUDIO[name])return null;const now=performance.now();if(minGap&&now-(lastSfx[name]||0)<minGap*1000)return null;lastSfx[name]=now;const a=new Audio(SFX_AUDIO[name]);a.volume=Math.max(0,Math.min(1,volume));a.play().catch(()=>{});return a}function showComboEffect(){if(catchCombo<2){clearTimeout(comboHideTimer);E.combo.classList.remove('active');E.combo.hidden=true;return}clearTimeout(comboHideTimer);E.combo.hidden=false;E.comboCount.textContent=catchCombo;E.combo.dataset.tier=catchCombo>=10?'high':catchCombo>=5?'mid':'low';E.combo.setAttribute('aria-label',catchCombo+' \u8fde\u51fb');E.combo.classList.remove('active');void E.combo.offsetWidth;E.combo.classList.add('active');comboHideTimer=setTimeout(()=>{E.combo.classList.remove('active');setTimeout(()=>{if(!E.combo.classList.contains('active'))E.combo.hidden=true},220)},1500)}function catchSfx(f){const now=performance.now();catchCombo=now-lastCatchAt<=1500?catchCombo+1:1;lastCatchAt=now;playSfx(f.type.special==='clear'||f.type.id==='whale'||f.type.variant==='gold'?'goldCatch':f.type.id==='shark'||f.type.id==='turtle'||f.type.variant==='star'?'mediumCatch':'smallCatch',1,.08);showComboEffect()}
+function setMusicEnabled(v){audioPrefs.music=!!v;saveAudioPrefs();syncAudioUI();if(audioPrefs.music){audioUnlocked=true;playBgm()}else bgmAudio.pause()}function setSfxEnabled(v){audioPrefs.sfx=!!v;saveAudioPrefs();syncAudioUI()}bgmAudio.addEventListener('ended',()=>{bgmErrors=0;nextBgm()});bgmAudio.addEventListener('canplay',()=>{if(audioUnlocked&&audioPrefs.music&&!paused)bgmAudio.play().catch(()=>{})});bgmAudio.addEventListener('error',()=>{if(audioUnlocked&&audioPrefs.music&&++bgmErrors<BGM_TRACKS.length)nextBgm()});
+
+
+function money(v,f=0){v=Number(v);return Number.isFinite(v)?Math.round(v*100)/100:f}
+function fm(v,plus=false){v=money(v);const a=Math.abs(v),d=Number.isInteger(a)?0:2;return(v<0?'-¥':plus&&v>0?'+¥':'¥')+a.toLocaleString('zh-CN',{minimumFractionDigits:d,maximumFractionDigits:2})}
+function rand(){if(globalThis.crypto?.getRandomValues){const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/4294967296}return Math.random()}
+function between(a,b){return a+(b-a)*rand()}
+function weighted(list){const total=list.reduce((s,x)=>s+x.weight,0);let r=rand()*total;for(const x of list){if(r<x.weight)return x;r-=x.weight}return list[0]}
+function fresh(){return{version:VERSION,balance:readSharedBalance(),betIndex:0,history:[],stats:{shots:0,caught:0,spent:0,paid:0}}}
+function readJSON(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch(_){return null}}const FORTUNE_RTP={great_misfortune:.94,misfortune:.96,small_luck:.98,middle_luck:1,upper_luck:1.02,great_luck:1.04,'\u5e73':.94,'\u672b\u5409':.96,'\u5c0f\u5409':.98,'\u4e2d\u5409':1,'\u4e0a\u5409':1.02,'\u5927\u5409':1.04};
+function dateKey(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`}
+function currentFortune(){const x=readJSON(FORTUNE_KEY);return x&&x.date===dateKey()&&(FORTUNE_RTP[x.tierId]!=null||FORTUNE_RTP[x.tierName]!=null||Number.isFinite(+x.rtp))?x:null}
+function currentRtp(){const x=currentFortune();if(!x)return DEFAULT_RTP;const mapped=FORTUNE_RTP[x.tierId]??FORTUNE_RTP[x.tierName]??Number(x.rtp);return Math.max(MIN_RTP,Math.min(MAX_RTP,mapped))}
+function isUnlocked(id){return !!arcadeProfile?.已解锁?.[id]}function activeFishTypes(){return FISH_TYPES.filter(x=>!x.unlock||isUnlocked(x.unlock))}function setProfile(value){arcadeProfile=value&&typeof value==='object'?value:{已解锁:{}};renderFishTable()}function effectiveFishRtp(type){const base=currentRtp(),offset=type&&type.multiplier<=LOW_FISH_MAX_MULTIPLIER?LOW_FISH_RTP_OFFSET:0,bonus=Number(type?.rtpBonus)||0;return Math.max(0,Math.min(MAX_EFFECTIVE_RTP,base-offset+bonus))}
+function readSharedBalance(){const shared=readJSON(WALLET_KEY);if(shared&&Number.isFinite(+shared.balance))return money(shared.balance,1000);const slot=readJSON(SLOT_KEY);if(slot&&Number.isFinite(+slot.balance))return money(slot.balance,1000);const scratch=readJSON(SCRATCH_KEY);if(scratch&&Number.isFinite(+scratch.balance))return money(scratch.balance,1000);return 1000}
+function writeSharedBalance(value){value=money(value);try{const wallet=readJSON(WALLET_KEY);if(!wallet||money(wallet.balance)!==value)localStorage.setItem(WALLET_KEY,JSON.stringify({balance:value,updatedAt:Date.now(),source:'fishing'}))}catch(_){}}
+function loadState(){const f=fresh();try{const p=readJSON(STATE_KEY);if(!p)return f;return{...f,...p,version:VERSION,balance:readSharedBalance(),betIndex:Math.max(0,Math.min(BETS.length-1,Number(p.betIndex)||0)),history:Array.isArray(p.history)?p.history.slice(0,HISTORY_LIMIT):[],stats:{...f.stats,...(p.stats||{})}}}catch(_){return f}}
+function flushStateSave(){clearTimeout(stateSaveTimer);stateSaveTimer=0;try{localStorage.setItem(STATE_KEY,JSON.stringify(state))}catch(_){}}function save(opt={}){state.version=VERSION;state.balance=money(state.balance);if(opt.immediate)flushStateSave();else{clearTimeout(stateSaveTimer);stateSaveTimer=setTimeout(flushStateSave,240)}if(opt.wallet!==false)writeSharedBalance(state.balance)}
+function emit(type,detail={}){const payload={source:'airp-fishing',version:VERSION,balance:state.balance,...detail};try{dispatchEvent(new CustomEvent(type,{detail:payload}))}catch(_){}try{if(parent!==window)parent.postMessage({type,detail:payload},'*')}catch(_){}}
+function showToast(text){clearTimeout(toastTimer);E.toast.textContent=text;E.toast.classList.add('show');toastTimer=setTimeout(()=>E.toast.classList.remove('show'),1800)}
+function rewardDisplayHeld(){return performance.now()<rewardHoldUntil}
+function setRoutineStatus(reward,footer){if(rewardDisplayHeld())return false;if(reward!=null)E.reward.textContent=reward;if(footer!=null)E.footer.textContent=footer;return true}
+function setWinStatus(payout,footer){rewardHoldUntil=performance.now()+REWARD_HOLD_MS;E.reward.textContent=fm(payout);E.footer.textContent=footer}
+function renderChips(){E.chips.innerHTML=BETS.map((bet,i)=>{const c=CHIP_COLORS[i];return`<button class="chip" type="button" data-index="${i}" aria-pressed="${i===state.betIndex}" aria-label="炮弹金额 ${fm(bet)}" style="--chip:${c[0]};--chip-dark:${c[1]}"><span>¥<strong>${bet}</strong></span></button>`}).join('');E.chips.querySelectorAll('.chip').forEach(btn=>btn.onclick=()=>setBet(Number(btn.dataset.index)))}
+function renderHeader(){const bet=BETS[state.betIndex];E.balance.textContent=fm(state.balance);E.bet.textContent=fm(bet);E.fire.disabled=paused||!target||state.balance<bet;E.chips.querySelectorAll('.chip').forEach((b,i)=>{b.setAttribute('aria-pressed',String(i===state.betIndex));b.disabled=paused});E.target.textContent=target&&target.alive?`${target.type.name} · ${target.type.multiplier} 倍`:'尚未锁定';E.tip.textContent=target&&target.alive?`已锁定 ${target.type.name}，可以发射`:'点击鱼进行锁定，再按发射按钮';E.tip.classList.toggle('locked',!!(target&&target.alive))}
+function renderHistory(){E.history.innerHTML=state.history.length?state.history.map(x=>`<div class="history-row"><b>${x.name}${x.cleared?` · 清屏${x.cleared}`:''}</b><small>${fm(x.bet)} · ${x.multiplier} 倍</small><span class="${x.payout?'gain':'miss'}">${x.payout?fm(x.payout,true):'未捕获'}</span></div>`).join(''):'<div class="empty">尚无捕获记录</div>'}
+function renderStats(){E.shots.textContent=(+state.stats.shots||0).toLocaleString('zh-CN');E.caught.textContent=(+state.stats.caught||0).toLocaleString('zh-CN');E.spent.textContent=fm(state.stats.spent);E.paid.textContent=fm(state.stats.paid)}
+function renderFishTable(){E.fishTable.innerHTML=FISH_TYPES.map(x=>{const open=!x.unlock||isUnlocked(x.unlock);if(!open)return`<div class="fish-note is-locked" style="--fish:#596078"><i></i><b>未解锁</b><small>里程碑奖池</small></div>`;const rtp=effectiveFishRtp(x),adjusted=x.multiplier<=LOW_FISH_MAX_MULTIPLIER,bonus=x.rtpBonus?` · 福运+${Math.round(x.rtpBonus*100)}%`:'';if(x.special==='clear')return`<div class="fish-note" style="--fish:${x.body}"><i></i><b>${x.name}</b><small>基础 ${x.multiplier} 倍 + 场上鱼群 50% 奖金</small></div>`;return`<div class="fish-note" style="--fish:${x.body}"><i></i><b>${x.name}</b><small>${x.multiplier} 倍 · 捕获率 ${(rtp/x.multiplier*100).toFixed(x.multiplier<10?1:2)}%${adjusted?' · 基准下浮2%':''}${bonus}</small></div>`}).join('')}
+function renderFortune(){const f=currentFortune(),rtp=currentRtp();E.fortune.textContent=`${f?f.tierName:'\u672a\u62bd\u7b7e'} \u00b7 ${Math.round(rtp*100)}%`;E.fortune.style.borderColor=f?.color||'#f1d18a55';E.fortune.style.color=f?.color||'#ffe29c'}function renderAll(){renderFortune();renderChips();renderHeader();renderHistory();renderStats();renderFishTable()}
+function setBet(index){if(paused)return false;const previous=state.betIndex;state.betIndex=Math.max(0,Math.min(BETS.length-1,Number(index)||0));if(state.betIndex!==previous)playSfx('chip',.64);save({wallet:false});renderHeader();emit('airp-fishing:bet-change',{bet:BETS[state.betIndex],betIndex:state.betIndex});return true}
+function setBetAmount(amount){const i=BETS.indexOf(Number(amount));return i<0?false:setBet(i)}
+function setBalance(value,opt={}){const next=money(value,state.balance);if(next<0)return false;const before=state.balance;state.balance=next;save();renderHeader();if(!opt.silent)emit('airp-fishing:balance-set',{before,after:next,delta:money(next-before)});return true}
+
+function cubic(a,b,c,d,t){const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d}
+function cubicD(a,b,c,d,t){const u=1-t;return 3*u*u*(b-a)+6*u*t*(c-b)+3*t*t*(d-c)}
+function spawnFish(forceType=null){const type=forceType||weighted(activeFishTypes()),fromLeft=rand()>.5,pad=type.size*2,startY=between(75,H-145),endY=between(70,H-150),x0=fromLeft?-pad:W+pad,x3=fromLeft?W+pad:-pad,span=fromLeft?W*.34:-W*.34;const f={id:nextFishId++,type,t:0,speed:between(type.speed[0],type.speed[1]),p0:{x:x0,y:startY},p1:{x:x0+span,y:Math.max(55,Math.min(H-135,startY+between(-150,150)))},p2:{x:x3-span,y:Math.max(55,Math.min(H-135,endY+between(-150,150)))},p3:{x:x3,y:endY},x:x0,y:startY,angle:0,alive:true,death:0,hit:0,scale:between(.68,.98),fromLeft,pending:0};fish.push(f);return f}
+function nearestLive(x,y,exclude=null){let best=null,dist=Infinity;for(const f of fish){if(!f.alive||f===exclude)continue;const d=(f.x-x)**2+(f.y-y)**2;if(d<dist){dist=d;best=f}}return best}
+function hitFish(x,y){const list=fish.filter(f=>f.alive).sort((a,b)=>b.type.multiplier-a.type.multiplier);for(const f of list){const rx=(x-f.x)/(f.type.size*f.scale*1.45),ry=(y-f.y)/(f.type.size*f.scale);if(rx*rx+ry*ry<=1)return f}return null}
+function lockFish(f){if(!f||!f.alive)return false;target=f;playSfx('lock',.62,.35);pointer.x=f.x;pointer.y=f.y;setRoutineStatus(null,`已锁定 ${f.type.name}，奖励倍率 ${f.type.multiplier} 倍`);renderHeader();emit('airp-fishing:target',{fishId:f.id,fishType:f.type.id,name:f.type.name,multiplier:f.type.multiplier});return true}
+function clearTarget(){target=null;renderHeader()}
+
+function roundRect(c,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+rr,y);c.arcTo(x+w,y,x+w,y+h,rr);c.arcTo(x+w,y+h,x,y+h,rr);c.arcTo(x,y+h,x,y,rr);c.arcTo(x,y,x+w,y,rr);c.closePath()}
+function drawBackground(time){const bg=SPRITES.background;if(bg&&bg.complete&&bg.naturalWidth)ctx.drawImage(bg,0,0,W,H);else{const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0b7190');g.addColorStop(1,'#062c54');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}const haze=ctx.createLinearGradient(0,0,0,H);haze.addColorStop(0,'#57e6df16');haze.addColorStop(.55,'#082e4b08');haze.addColorStop(1,'#031b3638');ctx.fillStyle=haze;ctx.fillRect(0,0,W,H);for(const b of bubbles){ctx.strokeStyle='#c7fbff75';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#ffffff14';ctx.beginPath();ctx.arc(b.x-b.r*.3,b.y-b.r*.35,Math.max(1,b.r*.18),0,Math.PI*2);ctx.fill()}}function drawTargetRing(f,time){ctx.save();ctx.translate(f.x,f.y);ctx.rotate(time*.003);ctx.strokeStyle='#ff78ae';ctx.lineWidth=3;ctx.setLineDash([9,7]);ctx.beginPath();ctx.arc(0,0,f.type.size*f.scale*1.55,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);for(let i=0;i<4;i++){ctx.rotate(Math.PI/2);ctx.fillStyle='#fff';ctx.fillRect(f.type.size*f.scale*1.38,-2,11,4)}ctx.restore()}
+function drawBasicFish(f){const s=f.type.size,body=f.type.body,accent=f.type.accent;ctx.fillStyle=body;ctx.strokeStyle='#28213f';ctx.lineWidth=5;ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(-s*.95,0);ctx.lineTo(-s*1.55,-s*.65);ctx.lineTo(-s*1.48,s*.66);ctx.closePath();ctx.fill();ctx.stroke();ctx.beginPath();ctx.ellipse(0,0,s*1.18,s*.73,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=accent;ctx.beginPath();ctx.ellipse(s*.35,-s*.15,s*.48,s*.37,-.12,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#302943';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s*.68,-s*.18,s*.13,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#272039';ctx.beginPath();ctx.arc(s*.72,-s*.18,s*.055,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff8';ctx.beginPath();ctx.ellipse(-s*.05,-s*.42,s*.48,s*.15,-.15,0,Math.PI*2);ctx.fill()}
+function drawClown(f){drawBasicFish(f);const s=f.type.size;ctx.strokeStyle='#fff1d0';ctx.lineWidth=s*.22;for(const x of [-s*.45,s*.18]){ctx.beginPath();ctx.moveTo(x,-s*.56);ctx.quadraticCurveTo(x-s*.08,0,x,s*.58);ctx.stroke()}}
+function drawPuffer(f){const s=f.type.size;ctx.fillStyle=f.type.body;ctx.strokeStyle='#28213f';ctx.lineWidth=5;for(let i=0;i<13;i++){const a=i*Math.PI*2/13;ctx.beginPath();ctx.moveTo(Math.cos(a)*s*.82,Math.sin(a)*s*.62);ctx.lineTo(Math.cos(a)*s*1.2,Math.sin(a)*s*.94);ctx.lineTo(Math.cos(a+.15)*s*.78,Math.sin(a+.15)*s*.62);ctx.fill();ctx.stroke()}ctx.beginPath();ctx.ellipse(0,0,s*.95,s*.78,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#9a7c38';for(let i=0;i<8;i++){const a=i*2.3;ctx.beginPath();ctx.arc(Math.cos(a)*s*.55,Math.sin(a)*s*.4,s*.055,0,Math.PI*2);ctx.fill()}ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s*.47,-s*.17,s*.14,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#28213f';ctx.beginPath();ctx.arc(s*.52,-s*.17,s*.06,0,Math.PI*2);ctx.fill()}
+function drawJelly(f,time){const s=f.type.size;ctx.fillStyle=f.type.body;ctx.strokeStyle='#28213f';ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,0,s*.86,Math.PI,0);ctx.quadraticCurveTo(s*.9,s*.4,s*.55,s*.45);ctx.quadraticCurveTo(s*.25,s*.25,0,s*.47);ctx.quadraticCurveTo(-s*.25,s*.25,-s*.55,s*.45);ctx.quadraticCurveTo(-s*.9,s*.4,-s*.86,0);ctx.fill();ctx.stroke();ctx.strokeStyle='#dbc8ff';ctx.lineWidth=6;ctx.lineCap='round';for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(i*s*.27,s*.42);ctx.bezierCurveTo(i*s*.3+Math.sin(time*.005+i)*8,s*.75,i*s*.18-Math.sin(time*.004+i)*8,s*.95,i*s*.2,s*1.2);ctx.stroke()}ctx.fillStyle='#fff7';ctx.beginPath();ctx.ellipse(-s*.25,-s*.45,s*.32,s*.15,-.3,0,Math.PI*2);ctx.fill()}
+function drawTurtle(f){const s=f.type.size;ctx.fillStyle='#75dbb1';ctx.strokeStyle='#28213f';ctx.lineWidth=5;for(const y of [-.52,.52]){ctx.beginPath();ctx.ellipse(-s*.55,s*y,s*.48,s*.2,y<0?-.45:.45,0,Math.PI*2);ctx.fill();ctx.stroke()}ctx.beginPath();ctx.ellipse(s*.95,0,s*.34,s*.27,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=f.type.body;ctx.beginPath();ctx.ellipse(0,0,s*.86,s*.62,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle='#b9f0cf';ctx.lineWidth=4;for(let i=0;i<6;i++){ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(i*Math.PI/3)*s*.7,Math.sin(i*Math.PI/3)*s*.5);ctx.stroke()}ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s*1.05,-s*.08,s*.08,0,Math.PI*2);ctx.fill();ctx.fillStyle='#28213f';ctx.beginPath();ctx.arc(s*1.08,-s*.08,s*.035,0,Math.PI*2);ctx.fill()}
+function drawShark(f){const s=f.type.size;ctx.fillStyle=f.type.body;ctx.strokeStyle='#28213f';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(-s*1.55,0);ctx.lineTo(-s*2.05,-s*.65);ctx.lineTo(-s*1.94,0);ctx.lineTo(-s*2.05,s*.65);ctx.closePath();ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-s*.3,-s*.45);ctx.lineTo(s*.05,-s*1.05);ctx.lineTo(s*.4,-s*.42);ctx.closePath();ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-s*1.45,0);ctx.quadraticCurveTo(-s*.45,-s*.7,s*.7,-s*.48);ctx.quadraticCurveTo(s*1.55,-s*.25,s*1.78,0);ctx.quadraticCurveTo(s*1.2,s*.5,-s*.2,s*.55);ctx.quadraticCurveTo(-s*.9,s*.45,-s*1.45,0);ctx.fill();ctx.stroke();ctx.fillStyle='#d8eff3';ctx.beginPath();ctx.ellipse(s*.25,s*.19,s*.95,s*.25,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s*.92,-s*.17,s*.12,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#28213f';ctx.beginPath();ctx.arc(s*.97,-s*.17,s*.05,0,Math.PI*2);ctx.fill()}
+function drawWhale(f,time){const s=f.type.size;ctx.fillStyle=f.type.body;ctx.strokeStyle='#28213f';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(-s*1.45,0);ctx.lineTo(-s*1.93,-s*.45);ctx.lineTo(-s*1.72,0);ctx.lineTo(-s*1.93,s*.45);ctx.closePath();ctx.fill();ctx.stroke();ctx.beginPath();ctx.ellipse(0,0,s*1.48,s*.66,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#dccbf6';ctx.beginPath();ctx.ellipse(s*.25,s*.24,s*.92,s*.24,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffe082';ctx.beginPath();ctx.arc(s*.92,-s*.16,s*.14,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#28213f';ctx.beginPath();ctx.arc(s*.96,-s*.16,s*.05,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#a6f3ee';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(s*.55,-s*.55);ctx.quadraticCurveTo(s*.45,-s*.95+Math.sin(time*.004)*5,s*.2,-s*1.05);ctx.moveTo(s*.55,-s*.55);ctx.quadraticCurveTo(s*.7,-s*.95-Math.sin(time*.004)*5,s*.9,-s*1.02);ctx.stroke()}
+function drawBomb(f,time){const size=f.type.size,pulse=1+Math.sin(time*.008+f.id)*.055;ctx.save();ctx.scale(pulse,pulse);ctx.shadowColor='#47efff';ctx.shadowBlur=LOW_POWER?0:18+Math.sin(time*.01)*5;ctx.fillStyle='#202943';ctx.strokeStyle='#91f8ff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,size*.78,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#35456d';ctx.beginPath();ctx.arc(-size*.18,-size*.2,size*.28,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffdd79';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(size*.38,-size*.58);ctx.quadraticCurveTo(size*.72,-size*.95,size*.92,-size*.6);ctx.stroke();ctx.fillStyle=Math.sin(time*.018)>0?'#fff5a6':'#ff774f';ctx.shadowColor='#ff8b45';ctx.shadowBlur=LOW_POWER?0:18;ctx.beginPath();ctx.arc(size*.94,-size*.61,size*.12,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d8fbff';ctx.font=`900 ${Math.round(size*.55)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('✦',0,size*.04);ctx.restore()}
+function drawFish(f,time){if(!f.alive&&f.death<=0)return;const image=SPRITES[f.type.sprite||f.type.id];ctx.save();ctx.translate(f.x,f.y);const facing=Math.cos(f.angle)>=0?1:-1,swimAngle=facing>0?f.angle:f.angle-Math.PI;ctx.rotate(swimAngle+(f.death?f.death*4:Math.sin(time*.003+f.id)*.018));const shrink=Math.max(.05,1-f.death*.7),scale=f.scale*shrink;ctx.scale(facing*scale,scale);ctx.globalAlpha=Math.max(0,1-f.death);if(f.type.special==='clear'){drawBomb(f,time);ctx.restore();if(f===target&&f.alive)drawTargetRing(f,time);return}if(f.type.variant==='gold'){if(!IOS_WEBKIT)ctx.filter='sepia(1) saturate(2.7) hue-rotate(350deg) brightness(1.22)';ctx.shadowColor='#ffd75c';ctx.shadowBlur=LOW_POWER?0:24}else if(f.type.variant==='star'){if(!IOS_WEBKIT)ctx.filter='hue-rotate(35deg) saturate(1.45) brightness(1.16)';ctx.shadowColor='#a58cff';ctx.shadowBlur=LOW_POWER?0:27}else if(f.hit>0){ctx.shadowColor='#eaffff';ctx.shadowBlur=LOW_POWER?0:26}else{ctx.shadowColor='#02152688';ctx.shadowBlur=LOW_POWER?0:10}let width=f.type.size*3.35,height=width*.625;if((f.type.sprite||f.type.id)==='jelly'){width=f.type.size*2.55;height=width*1.05}if((f.type.sprite||f.type.id)==='puffer'){width=f.type.size*2.65;height=width}if((f.type.sprite||f.type.id)==='turtle'){width=f.type.size*3.1;height=width*.64}if(image&&image.complete&&image.naturalWidth)ctx.drawImage(image,-width/2,-height/2,width,height);else drawBasicFish(f);if(IOS_WEBKIT&&(f.type.variant==='gold'||f.type.variant==='star')){ctx.save();ctx.globalCompositeOperation='source-atop';ctx.globalAlpha=.48;ctx.fillStyle=f.type.variant==='gold'?'#f3b92f':'#7767e8';ctx.fillRect(-width/2,-height/2,width,height);ctx.restore()}if(f.type.variant==='star'){ctx.filter='none';ctx.fillStyle='#fff';for(let i=0;i<4;i++){const a=time*.0015+i*Math.PI/2,r=width*.34;ctx.globalAlpha=.45+.35*Math.sin(time*.006+i);ctx.beginPath();ctx.arc(Math.cos(a)*r,Math.sin(a)*height*.32,2.3,0,Math.PI*2);ctx.fill()}}ctx.restore();if(f===target&&f.alive)drawTargetRing(f,time)}
+function drawTurret(){const tx=W/2,baseBottom=H+3,pivotY=H-105,aim=autoFire&&target&&target.alive?target:pointer,aimY=Math.min(aim.y,pivotY-14),desired=Math.atan2(aimY-pivotY,aim.x-tx),delta=Math.atan2(Math.sin(desired-turretAngle),Math.cos(desired-turretAngle));turretAngle+=delta*.2;const barrel=SPRITES.barrel,base=SPRITES.cannon_base,barrelW=44,barrelH=74,baseW=132,baseH=116;ctx.save();ctx.translate(tx,pivotY);ctx.rotate(turretAngle+Math.PI/2);ctx.shadowColor='#2cf4e9aa';ctx.shadowBlur=LOW_POWER?0:15;if(barrel&&barrel.complete&&barrel.naturalWidth)ctx.drawImage(barrel,-barrelW/2,-barrelH+5,barrelW,barrelH);ctx.restore();ctx.save();ctx.translate(tx,baseBottom);ctx.shadowColor='#1ce8d899';ctx.shadowBlur=LOW_POWER?0:18;if(base&&base.complete&&base.naturalWidth)ctx.drawImage(base,-baseW/2,-baseH,baseW,baseH);ctx.restore();const muzzleX=tx+Math.cos(turretAngle)*69,muzzleY=pivotY+Math.sin(turretAngle)*69;ctx.save();ctx.globalAlpha=target&&target.alive?.52:.24;ctx.strokeStyle='#83fff2';ctx.lineWidth=1.7;ctx.setLineDash([5,8]);ctx.beginPath();ctx.moveTo(muzzleX,muzzleY);ctx.lineTo(muzzleX+Math.cos(turretAngle)*54,muzzleY+Math.sin(turretAngle)*54);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#c9fffb';ctx.shadowColor='#48fff1';ctx.shadowBlur=LOW_POWER?0:13;ctx.beginPath();ctx.arc(muzzleX,muzzleY,2.7,0,Math.PI*2);ctx.fill();ctx.restore()}function drawBullets(){const bulletImage=SPRITES.bullet,coinImage=SPRITES.coin;for(const b of bullets){ctx.save();ctx.lineCap='round';const trail=ctx.createLinearGradient(b.trail[0]?.x??b.x,b.trail[0]?.y??b.y,b.x,b.y);trail.addColorStop(0,'#44dff000');trail.addColorStop(.55,'#55e9f277');trail.addColorStop(1,'#eaffffdd');ctx.strokeStyle=trail;ctx.lineWidth=3.5+b.betIndex*.55;ctx.shadowColor='#2ee8ff';ctx.shadowBlur=LOW_POWER?0:10;ctx.beginPath();for(let i=0;i<b.trail.length;i++){const p=b.trail[i];i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)}ctx.stroke();const aim=b.target&&b.target.alive?b.target:{x:b.x+1,y:b.y},angle=Math.atan2(aim.y-b.y,aim.x-b.x),width=42+b.betIndex*4.2,height=width*.45;ctx.translate(b.x,b.y);ctx.rotate(angle);ctx.shadowColor='#4df4ff';ctx.shadowBlur=LOW_POWER?0:15+b.betIndex*2;if(bulletImage&&bulletImage.complete&&bulletImage.naturalWidth)ctx.drawImage(bulletImage,-width*.56,-height/2,width,height);else{ctx.fillStyle='#eaffff';ctx.beginPath();ctx.ellipse(0,0,width*.25,height*.28,0,0,Math.PI*2);ctx.fill()}ctx.restore()}for(const w of waves){ctx.save();ctx.strokeStyle=w.color||`rgba(102,245,238,${1-w.t})`;ctx.globalAlpha=Math.max(0,1-w.t);ctx.lineWidth=2.5+(w.scale||1);ctx.shadowColor=w.glow||'#70fff3';ctx.shadowBlur=LOW_POWER?0:12*(w.scale||1);ctx.beginPath();ctx.arc(w.x,w.y,(9+w.t*35)*(w.scale||1),0,Math.PI*2);ctx.stroke();ctx.restore()}for(const c of coins){ctx.save();const fade=Math.max(0,1-c.t),size=25+(c.scale||1)*9,flip=.24+.76*Math.abs(Math.cos((c.spin||0)+c.t*8));ctx.globalAlpha=fade;ctx.translate(c.x,c.y);ctx.rotate((c.spin||0)+c.t*3.5);ctx.scale(flip,1);ctx.shadowColor='#ffc84d';ctx.shadowBlur=LOW_POWER?0:12;if(coinImage&&coinImage.complete&&coinImage.naturalWidth)ctx.drawImage(coinImage,-size/2,-size/2,size,size);else{ctx.fillStyle='#ffd85a';ctx.beginPath();ctx.arc(0,0,size/2,0,Math.PI*2);ctx.fill()}ctx.restore()}}
+
+function fire(){if(paused)return false;const fireAt=performance.now();if(fireAt-lastFireAt<MIN_FIRE_INTERVAL_MS)return false;if(!target||!target.alive){const f=nearestLive(pointer.x,pointer.y);if(f)lockFish(f);else{showToast('当前没有可锁定的鱼');return false}}const bet=BETS[state.betIndex];if(state.balance<bet){playSfx('noCredit',.78,.4);showToast('余额不足');E.footer.textContent='余额不足，请选择更低的炮弹金额';renderHeader();return false}const before=state.balance;lastFireAt=fireAt;state.balance=money(state.balance-bet);state.stats.shots=(+state.stats.shots||0)+1;state.stats.spent=money((+state.stats.spent||0)+bet);target.pending++;const pivotX=W/2,pivotY=H-105,muzzleX=pivotX+Math.cos(turretAngle)*69,muzzleY=pivotY+Math.sin(turretAngle)*69;bullets.push({x:muzzleX,y:muzzleY,target,bet,betIndex:state.betIndex,speed:560+state.betIndex*35,trail:[],dead:false});save();renderHeader();renderStats();setRoutineStatus('—',`向 ${target.type.name} 发射 ${fm(bet)} 炮弹`);emit('airp-fishing:shot',{bet,betIndex:state.betIndex,fishId:target.id,fishType:target.type.id,before,after:state.balance,delta:-bet});return true}
+function refundBullet(b){state.balance=money(state.balance+b.bet);state.stats.spent=money(Math.max(0,(+state.stats.spent||0)-b.bet));save();renderHeader();renderStats();emit('airp-fishing:refund',{bet:b.bet,delta:b.bet,balance:state.balance})}
+function bombReward(source){const victims=fish.filter(other=>other!==source&&other.alive),clearMultiplier=money(victims.reduce((sum,other)=>sum+other.type.multiplier*.5,0));return{victims,clearMultiplier,totalMultiplier:money(source.type.multiplier+clearMultiplier)}}
+function detonateBomb(source,victims){let cleared=0;for(const other of victims){if(!other.alive)continue;other.alive=false;other.death=.001;other.pending=0;cleared++;waves.push({x:other.x,y:other.y,t:0,scale:1.4,color:'#bffcff',glow:'#66f5ff'})}for(let i=0;i<4;i++)waves.push({x:source.x,y:source.y,t:-i*.08,scale:2.4+i*.55,color:'#fff0a8',glow:'#ff9f55'});if(target&&target!==source)target=null;return cleared}
+function settleBullet(b,f){f.pending=Math.max(0,f.pending-1);f.hit=.2;waves.push({x:f.x,y:f.y,t:0});const baseRtp=currentRtp(),effectiveRtp=effectiveFishRtp(f.type),blast=f.type.special==='clear'?bombReward(f):null,awardMultiplier=blast?.totalMultiplier??f.type.multiplier,captureRate=effectiveRtp/awardMultiplier,captured=rand()<captureRate,payout=captured?money(b.bet*awardMultiplier):0;let cleared=0;if(captured&&f.alive){catchSfx(f);f.alive=false;f.death=.001;if(blast)cleared=detonateBomb(f,blast.victims);state.balance=money(state.balance+payout);state.stats.caught=(+state.stats.caught||0)+1;state.stats.paid=money((+state.stats.paid||0)+payout);for(let i=0;i<Math.min(12,3+Math.ceil(awardMultiplier/10));i++)coins.push({x:f.x+between(-24,24),y:f.y+between(-18,18),t:between(-.16,.03),vx:between(-34,34),vy:between(-76,-45),spin:between(0,Math.PI*2),scale:between(.72,1.12)});if(blast){setWinStatus(payout,`深海炸弹引爆 · 清除 ${cleared} 个目标 · ${awardMultiplier} 倍 ${fm(payout)}`);showToast(`鱼群回收 +${blast.clearMultiplier}倍 · ${fm(payout)}`)}else{setWinStatus(payout,`捕获 ${f.type.name} · ${awardMultiplier} 倍 · 获得 ${fm(payout)}`);showToast(`捕获 ${f.type.name}，获得 ${fm(payout)}`)}if(target===f)target=null}else{playSfx('miss',.72,.08);setRoutineStatus('¥0',blast?`命中深海炸弹 · 当前爆破 ${awardMultiplier} 倍 · 本次未引爆`:`命中 ${f.type.name}，本次未捕获`)}state.history.unshift({name:f.type.name,fishType:f.type.id,bet:b.bet,multiplier:awardMultiplier,baseMultiplier:f.type.multiplier,payout,special:f.type.special||null,clearMultiplier:blast?.clearMultiplier||0,cleared,time:Date.now()});state.history=state.history.slice(0,HISTORY_LIMIT);save({wallet:payout>0});renderHeader();renderHistory();renderStats();emit('airp-fishing:settled',{bet:b.bet,fishId:f.id,fishType:f.type.id,name:f.type.name,multiplier:awardMultiplier,baseMultiplier:f.type.multiplier,baseRtp,effectiveRtp,captureRate,captured,payout,special:f.type.special||null,clearMultiplier:blast?.clearMultiplier||0,cleared,delta:payout,balance:state.balance})}
+function positionFish(f){const t=Math.max(0,Math.min(1,f.t));f.x=cubic(f.p0.x,f.p1.x,f.p2.x,f.p3.x,t);f.y=cubic(f.p0.y,f.p1.y,f.p2.y,f.p3.y,t);const dx=cubicD(f.p0.x,f.p1.x,f.p2.x,f.p3.x,t),dy=cubicD(f.p0.y,f.p1.y,f.p2.y,f.p3.y,t);f.angle=Math.atan2(dy,dx)}
+function update(dt,time){spawnClock+=dt;if(spawnClock>.68&&fish.filter(f=>f.alive).length<12){spawnClock=0;spawnFish()}for(const f of fish){if(f.alive){f.t+=f.speed*dt;positionFish(f);f.hit=Math.max(0,f.hit-dt);if(f.t>1.02){f.alive=false;f.death=1;if(target===f){target=null;renderHeader()}}}else if(f.death<1)f.death+=dt*1.45}fish=fish.filter(f=>f.death<1.02);for(const b of bullets){if(b.dead)continue;if(!b.target||!b.target.alive){if(b.target)b.target.pending=Math.max(0,b.target.pending-1);b.target=nearestLive(b.x,b.y);if(b.target)b.target.pending++;else{refundBullet(b);b.dead=true;continue}}const dx=b.target.x-b.x,dy=b.target.y-b.y,dist=Math.hypot(dx,dy),step=b.speed*dt;b.trail.push({x:b.x,y:b.y});if(b.trail.length>8)b.trail.shift();if(dist<=step+Math.max(12,b.target.type.size*.25)){b.x=b.target.x;b.y=b.target.y;settleBullet(b,b.target);b.dead=true}else{b.x+=dx/dist*step;b.y+=dy/dist*step}}bullets=bullets.filter(b=>!b.dead);for(const w of waves)w.t+=dt*2.8;waves=waves.filter(w=>w.t<1);for(const c of coins){c.t+=dt*.9;c.x+=(c.vx||0)*dt;c.y+=(c.vy||0)*dt;c.vy=(c.vy||0)+44*dt}coins=coins.filter(c=>c.t<1);for(const b of bubbles){b.y-=b.speed*dt;b.x+=Math.sin(time*.001+b.phase)*4*dt;if(b.y<-10){b.y=H+between(0,80);b.x=between(10,W-10)}}if(autoFire){autoClock+=dt;if(autoClock>.32){autoClock=0;if(!target||!target.alive){const next=nearestLive(W/2,H/2);if(next)lockFish(next)}fire()}}}
+function draw(time){drawBackground(time);for(const f of [...fish].sort((a,b)=>a.scale-b.scale))drawFish(f,time);drawBullets();drawTurret()}
+function loop(time){const dt=Math.min(.1,Math.max(0,(time-lastTime)/1000||0));lastTime=time;if(!paused)update(dt,time);draw(time);requestAnimationFrame(loop)}
+function canvasPoint(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+function onCanvasDown(e){if(paused)return;e.preventDefault();const p=canvasPoint(e);pointer=p;const f=hitFish(p.x,p.y);if(f)lockFish(f);else{setRoutineStatus(null,'这里没有可锁定的鱼');showToast('请点击鱼的身体进行锁定')}}
+function pauseGame(value,opt={}){paused=!!value;if(paused){bgmAudio.pause();if(!opt.silent)playSfx('pause',.62,.3)}else playBgm();E.mask.hidden=!paused;E.pause.setAttribute('aria-pressed',String(paused));E.pause.textContent=paused?'继续':'暂停';if(paused){autoFire=false;E.auto.setAttribute('aria-pressed','false');E.auto.textContent='连续：关'}renderHeader();if(!opt.silent)emit(paused?'airp-fishing:pause':'airp-fishing:resume',{})}
+function toggleAuto(){if(paused)return;autoFire=!autoFire;autoClock=.3;E.auto.setAttribute('aria-pressed',String(autoFire));E.auto.textContent=autoFire?'连续：开':'连续：关';E.fire.classList.toggle('active',autoFire);if(autoFire)playSfx('autoOn',.68,.4);if(autoFire&&!target){const f=nearestLive(W/2,H/2);if(f)lockFish(f)}emit('airp-fishing:auto',{enabled:autoFire})}
+function reset(opt={}){const balance=opt.keepBalance?state.balance:readSharedBalance();state=fresh();state.balance=balance;fish=[];bullets=[];coins=[];waves=[];target=null;autoFire=false;lastFireAt=-Infinity;rewardHoldUntil=0;paused=false;turretAngle=-Math.PI/2;clearTimeout(comboHideTimer);lastCatchAt=0;catchCombo=0;E.combo.classList.remove('active');E.combo.hidden=true;for(let i=0;i<11;i++){const f=spawnFish(i===9?TYPE_MAP.shark:null);f.t=between(.03,.93);positionFish(f)}save({immediate:true});renderAll();E.reward.textContent='¥0';E.footer.textContent='选择一条鱼作为目标';E.mask.hidden=true;E.auto.setAttribute('aria-pressed','false');E.auto.textContent='连续：关';E.fire.classList.remove('active');emit('airp-fishing:reset',{keepBalance:!!opt.keepBalance})}
+function theme(v){document.body.dataset.theme=THEMES.has(v)?v:'dark'}
+function initTheme(){let v='dark';try{const s=localStorage.getItem('kivotos-theme')||localStorage.getItem('theme');if(THEMES.has(s))v=s;const p=parent!==window&&parent.document?.body?.dataset?.theme;if(THEMES.has(p))v=p}catch(_){}theme(v)}
+function initScene(){for(let i=0;i<(LOW_POWER?16:34);i++)bubbles.push({x:between(10,W-10),y:between(0,H),r:between(2,8),speed:between(8,27),phase:between(0,Math.PI*2)});for(let i=0;i<12;i++){const forced=i===9?TYPE_MAP.shark:i===10?TYPE_MAP.turtle:i===11?TYPE_MAP.whale:null,f=spawnFish(forced);f.t=between(.03,.94);positionFish(f)}}
+addEventListener('pagehide',flushStateSave);E.music.onclick=()=>setMusicEnabled(!audioPrefs.music);E.sfx.onclick=()=>setSfxEnabled(!audioPrefs.sfx);document.addEventListener('pointerdown',unlockAudio,{once:true,capture:true});document.addEventListener('keydown',unlockAudio,{once:true,capture:true});syncAudioUI();canvas.addEventListener('pointerdown',onCanvasDown);canvas.addEventListener('pointermove',e=>{pointer=canvasPoint(e)});canvas.addEventListener('contextmenu',e=>e.preventDefault());E.fire.onclick=fire;E.auto.onclick=toggleAuto;E.pause.onclick=()=>pauseGame(!paused);addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();fire()}if(e.key==='p'||e.key==='P')pauseGame(!paused)});addEventListener('storage',e=>{if(e.key===WALLET_KEY){const v=readSharedBalance();if(Number.isFinite(v)){state.balance=v;renderHeader()}}if(e.key===FORTUNE_KEY){renderFortune();renderFishTable()}});addEventListener('message',e=>{const d=e.data||{};if(d.type==='kivotos-theme-change'||d.type==='airp-fishing:set-theme')theme(d.theme);if(d.type==='airp-fishing:set-balance')setBalance(d.balance,{silent:true});if(d.type==='airp-fishing:set-profile')setProfile(d.profile);if(d.type==='airp-fishing:set-bet'){if(Number.isInteger(d.index))setBet(d.index);else if(d.amount!=null)setBetAmount(d.amount)}if(d.type==='airp-fishing:pause-command')pauseGame(true);if(d.type==='airp-fishing:resume-command')pauseGame(false);if(d.type==='airp-fishing:reset-command')reset({keepBalance:d.keepBalance===true})});
+window.AIRPFishingGame=Object.freeze({version:VERSION,getBalance:()=>state.balance,setBalance,getState:()=>JSON.parse(JSON.stringify(state)),getBets:()=>[...BETS],getBaseRtp:currentRtp,getFishRtp:id=>{const type=TYPE_MAP[id];return type?effectiveFishRtp(type):null},setProfile,spawn:id=>{const type=TYPE_MAP[id];if(!type||type.unlock&&!isUnlocked(type.unlock))return null;return spawnFish(type).id},getFishTypes:()=>FISH_TYPES.map(x=>({...x,baseRtp:currentRtp(),effectiveRtp:effectiveFishRtp(x),captureRate:effectiveFishRtp(x)/x.multiplier})),setBet,setBetAmount,setMusic:setMusicEnabled,setSfx:setSfxEnabled,lockTarget:id=>lockFish(fish.find(f=>f.id===id)),fire,pause:()=>pauseGame(true),resume:()=>pauseGame(false),reset});
+initTheme();initScene();renderAll();requestAnimationFrame(loop);emit('airp-fishing:ready',{bets:BETS,rtp:currentRtp(),lowFishRtpOffset:LOW_FISH_RTP_OFFSET,lowFishMaxMultiplier:LOW_FISH_MAX_MULTIPLIER,fish:FISH_TYPES.map(x=>({id:x.id,name:x.name,multiplier:x.multiplier,effectiveRtp:effectiveFishRtp(x),captureRate:effectiveFishRtp(x)/x.multiplier}))});
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

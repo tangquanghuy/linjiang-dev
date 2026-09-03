@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>临江 · 嵌入夹具外壳</title>
+<style>
+  html, body { margin: 0; width: 100%; height: 100%; background: #05040a; overflow: hidden; }
+  #hud { display: block; width: 100%; height: 100%; border: 0; background: #05040a; }
+</style>
+</head>
+<body>
+<iframe id="hud" title="玻璃状态栏" src="" loading="eager"></iframe>
+<script type="module">
+/* Layout-only twin of 外部部署/V20260826/状态栏.html: same lift / spacer / portrait
+   height / detail fill / clip stage.  No MVU.  Numbers come from embed-contract.js. */
+import {
+  CHANNEL, MAX_VH, PORTRAIT_GUTTER, desktopHudBox, portraitHud as portraitOf,
+  isDesktop as desktopOf, portraitHudWidth,
+} from './embed-contract.js';
+
+const params = new URLSearchParams(location.search);
+const HUD_URL = params.get('hud') || new URL('../', location.href).href;
+const HUD_LIVE_ID = 'linjiang-hud-live';
+
+const hudFrame = document.getElementById('hud');
+let portraitPageOpen = false;
+let hudMode = '';
+
+const tavernWin = () => {
+  try { if (window.top && window.top !== window) return window.top; } catch (e) {}
+  try { if (window.parent && window.parent !== window) return window.parent; } catch (e) {}
+  return window;
+};
+
+const tavernSize = () => {
+  try {
+    return { w: tavernWin().innerWidth || innerWidth, h: tavernWin().innerHeight || innerHeight };
+  } catch (e) {
+    return { w: innerWidth, h: innerHeight };
+  }
+};
+
+const isDesktop = () => desktopOf(tavernSize().w);
+const portraitHud = () => {
+  const { w, h } = tavernSize();
+  return portraitOf(w, h);
+};
+
+const isSafeOuterFrame = (frame) => {
+  if (!frame) return false;
+  try {
+    const inner = frame.contentDocument;
+    if (inner && inner.querySelector('.reading-content, #sheld, #chat')) return false;
+  } catch (e) {}
+  try {
+    if (frame.closest && frame.closest('#chat, .mes, .TH-render, .mes_block')) return true;
+  } catch (e) {}
+  const vw = tavernWin().innerWidth || 0;
+  const vh = tavernWin().innerHeight || 0;
+  if (vw && vh && frame.offsetWidth >= vw * 0.92 && frame.offsetHeight >= vh * 0.85) {
+    return false;
+  }
+  return true;
+};
+
+const viewportPoint = (el) => {
+  const tavern = tavernWin();
+  const r = el.getBoundingClientRect();
+  let x = r.left;
+  let y = r.top;
+  let win = el.ownerDocument.defaultView;
+  while (win && win !== tavern) {
+    const fe = win.frameElement;
+    if (!fe) break;
+    const fr = fe.getBoundingClientRect();
+    x += fr.left;
+    y += fr.top;
+    win = win.parent;
+  }
+  return {
+    left: x, top: y, width: r.width, height: r.height,
+    vw: tavern.innerWidth, vh: tavern.innerHeight,
+    win: tavern, doc: tavern.document,
+  };
+};
+
+const parkHudInside = () => {
+  if (hudFrame.parentNode !== document.body) document.body.appendChild(hudFrame);
+  try { hudFrame._linjiangStage?.remove(); } catch (e) {}
+  hudFrame._linjiangStage = null;
+  hudFrame.id = 'hud';
+  hudFrame._linjiangCss = null;
+  hudFrame._linjiangOffX = 0;
+  hudFrame._linjiangOffY = 0;
+  hudFrame.style.cssText = 'display:block;width:100%;height:100%;border:0;background:#05040a;';
+};
+
+const setSpacer = (frame, height) => {
+  if (!isSafeOuterFrame(frame)) return;
+  frame.setAttribute('scrolling', 'no');
+  const apply = (prop, value) => frame.style.setProperty(prop, value, 'important');
+  apply('position', 'relative');
+  apply('transform', 'none');
+  apply('width', '100%');
+  apply('height', `${Math.round(height)}px`);
+  apply('max-width', 'none');
+  apply('margin', '0');
+  apply('border', '0');
+  apply('display', 'block');
+  apply('visibility', 'visible');
+  apply('opacity', '0');
+  apply('pointer-events', 'none');
+  apply('overflow', 'hidden');
+  apply('left', 'auto');
+  apply('top', 'auto');
+  apply('z-index', 'auto');
+  apply('background', 'transparent');
+};
+
+/* 裁剪台，和 外部部署/V20260826/状态栏.html 一样：裁剪交给一个钉在阅读区上的 overflow:hidden
+   容器，HUD 在台内只用 transform 平移并提升为合成层。这个孪生体是"同一套抬升/占位/
+   竖屏高度"的布局复刻，所以这一层也必须跟着改 —— 否则 npm run embed 验的是生产已经
+   不再使用的那套几何策略。裁剪成本与理由见状态栏那边的长注释。 */
+const HUD_STAGE_ID = 'linjiang-hud-stage';
+
+const ensureHudStage = (doc) => {
+  let stage = hudFrame._linjiangStage;
+  if (stage && stage.isConnected && stage.ownerDocument === doc) return stage;
+  stage = doc.getElementById(HUD_STAGE_ID) || doc.createElement('div');
+  stage.id = HUD_STAGE_ID;
+  stage.dataset.ttMobileSurface = 'none';
+  if (stage.parentNode !== doc.body) doc.body.appendChild(stage);
+  hudFrame._linjiangStage = stage;
+  return stage;
+};
+
+const mountHud = (doc) => {
+  const stage = ensureHudStage(doc);
+  if (hudFrame.parentNode !== stage) stage.appendChild(hudFrame);
+  return stage;
+};
+
+const setStageBox = (stage, top, height, width, zIndex) => {
+  const next = `${Math.round(top)}|${Math.round(height)}|${Math.round(width)}|${zIndex}`;
+  if (stage._linjiangGeom === next) return;
+  stage._linjiangGeom = next;
+  stage.style.cssText = [
+    'position:fixed', 'left:0',
+    `top:${Math.round(top)}px`,
+    `width:${Math.round(width)}px`, `height:${Math.round(height)}px`,
+    'margin:0', 'padding:0', 'border:0',
+    'overflow:hidden', 'pointer-events:none', 'background:transparent',
+    `z-index:${zIndex}`,
+  ].join(';');
+};
+
+const setHudOffset = (x, y) => {
+  const nx = Math.round(x);
+  const ny = Math.round(y);
+  if (hudFrame._linjiangOffX === nx && hudFrame._linjiangOffY === ny) return;
+  hudFrame._linjiangOffX = nx;
+  hudFrame._linjiangOffY = ny;
+  hudFrame.style.transform = `translate3d(${nx}px,${ny}px,0)`;
+};
+
+const paintHudFill = (vw, vh) => {
+  hudFrame.id = HUD_LIVE_ID;
+  const stage = hudFrame._linjiangStage;
+  if (stage) setStageBox(stage, 0, vh, vw, 2147483645);
+  hudFrame._linjiangOffX = 0;
+  hudFrame._linjiangOffY = 0;
+  hudFrame._linjiangCss = null;
+  hudFrame.style.cssText = [
+    'position:absolute', 'left:0', 'top:0', 'transform:none',
+    `width:${vw}px`, `height:${vh}px`,
+    'max-width:none', 'margin:0', 'border:0', 'display:block',
+    'background:#05040a', 'pointer-events:auto',
+    'overflow:hidden', 'will-change:auto',
+  ].join(';');
+  hudFrame.setAttribute('scrolling', 'yes');
+  hudFrame._linjiangBox = { width: vw, height: vh };
+};
+
+const paintHud = (box) => {
+  hudFrame.id = HUD_LIVE_ID;
+  const cssText = [
+    'position:absolute', 'left:0', 'top:0',
+    `width:${box.width}px`, `height:${box.height}px`,
+    'max-width:none', 'margin:0', 'border:0', 'display:block',
+    'background:#05040a', 'pointer-events:auto',
+    'overflow:hidden', 'will-change:transform',
+    `transform:translate3d(${hudFrame._linjiangOffX || 0}px,${hudFrame._linjiangOffY || 0}px,0)`,
+  ].join(';');
+  if (hudFrame._linjiangCss !== cssText) {
+    hudFrame._linjiangCss = cssText;
+    hudFrame.style.cssText = cssText;
+  }
+  hudFrame.setAttribute('scrolling', 'no');
+};
+
+const readingPane = () => {
+  try {
+    const doc = tavernWin().document;
+    return doc.getElementById('chat') || doc.getElementById('sheld') || null;
+  } catch (e) {
+    return null;
+  }
+};
+
+const paneRectOf = (view) => {
+  const pane = readingPane();
+  return pane ? pane.getBoundingClientRect() : {
+    left: 0, top: 0, right: view.vw, bottom: view.vh,
+  };
+};
+
+const applySlotVisibility = (view, box) => {
+  if (portraitPageOpen || hudFrame._linjiangAlign === 'page') {
+    hudFrame.style.visibility = 'visible';
+    hudFrame.style.pointerEvents = 'auto';
+    return;
+  }
+  const rr = paneRectOf(view);
+  const topInView = view.top < rr.bottom - 4 && (view.top + 32) > rr.top;
+  if (!topInView) {
+    hudFrame.style.visibility = 'hidden';
+    hudFrame.style.pointerEvents = 'none';
+    return;
+  }
+  hudFrame.style.visibility = 'visible';
+  hudFrame.style.pointerEvents = 'auto';
+};
+
+const moveHud = (view, box) => {
+  const align = hudFrame._linjiangAlign || 'window';
+  let x = (view.vw - box.width) / 2;
+  if (align === 'slot') {
+    const slotW = view.width || 0;
+    x = view.left + (slotW - box.width) / 2;
+    const minX = PORTRAIT_GUTTER;
+    const maxX = view.vw - box.width - PORTRAIT_GUTTER;
+    if (maxX >= minX) x = Math.max(minX, Math.min(x, maxX));
+  }
+  const stage = hudFrame._linjiangStage;
+  if (stage) {
+    const page = portraitPageOpen || hudFrame._linjiangAlign === 'page';
+    const rr = page ? { top: 0, bottom: view.vh } : paneRectOf(view);
+    setStageBox(stage, rr.top, Math.max(0, rr.bottom - rr.top), view.vw, 40);
+    setHudOffset(x, view.top - rr.top);
+  }
+  applySlotVisibility(view, box);
+};
+
+const portraitHudBox = (vw, _vh, readingW) => {
+  const width = portraitHudWidth(vw, readingW);
+  const reported = Math.round(hudFrame._portraitRestH || 0);
+  const height = reported > 1 ? reported : Math.max(360, Math.round(width * 0.9));
+  return { width: Math.round(width), height };
+};
+
+const hudBox = (vw, vh) => desktopHudBox(vw, vh);
+
+const followHud = () => {
+  if (portraitPageOpen) return;
+  const frame = window.frameElement;
+  const box = hudFrame._linjiangBox;
+  const stage = hudFrame._linjiangStage;
+  if (!frame || !box || !stage || !stage.isConnected || hudFrame.parentNode !== stage) return;
+  if (hudFrame._linjiangAlign === 'page') return;
+  moveHud(viewportPoint(frame), box);
+};
+
+const layoutDesktop = () => {
+  const frame = window.frameElement;
+  if (!frame) return;
+  const view = viewportPoint(frame);
+  const box = hudBox(view.vw, view.vh);
+  if (frame.dataset.linjiangH !== String(box.height)) {
+    setSpacer(frame, box.height);
+    frame.dataset.linjiangH = String(box.height);
+  }
+  const after = viewportPoint(frame);
+  mountHud(after.doc);
+  paintHud(box);
+  hudFrame._linjiangAlign = 'window';
+  moveHud(after, box);
+  hudFrame._linjiangBox = box;
+};
+
+const layoutPortrait = () => {
+  const frame = window.frameElement;
+  if (!frame || !isSafeOuterFrame(frame)) {
+    layoutMobile();
+    return;
+  }
+  const view = viewportPoint(frame);
+  const box = portraitHudBox(view.vw, view.vh, view.width);
+  if (frame.dataset.linjiangH !== String(box.height)) {
+    setSpacer(frame, box.height);
+    frame.dataset.linjiangH = String(box.height);
+  }
+  const after = viewportPoint(frame);
+  mountHud(after.doc);
+  paintHud(box);
+  hudFrame._linjiangAlign = 'slot';
+  moveHud(after, box);
+  hudFrame._linjiangBox = box;
+};
+
+const lockTavernScroll = () => {
+  try {
+    const el = tavernWin().document.documentElement;
+    if (el.dataset.linjiangLock != null) return;
+    el.dataset.linjiangLock = el.style.overflow || '';
+    el.style.overflow = 'hidden';
+  } catch (e) {}
+};
+
+const unlockTavernScroll = () => {
+  try {
+    const el = tavernWin().document.documentElement;
+    if (el.dataset.linjiangLock == null) return;
+    el.style.overflow = el.dataset.linjiangLock;
+    delete el.dataset.linjiangLock;
+  } catch (e) {}
+};
+
+const layoutPortraitPage = () => {
+  const frame = window.frameElement;
+  if (!frame || !isSafeOuterFrame(frame)) {
+    layoutMobile();
+    return;
+  }
+  const tavern = tavernWin();
+  const vv = tavern.visualViewport;
+  const vw = Math.round((vv && vv.width) || tavern.innerWidth || innerWidth);
+  const vh = Math.round((vv && vv.height) || tavern.innerHeight || innerHeight);
+  const rest = Math.max(1, Math.round(hudFrame._portraitRestH || 0));
+  if (rest && frame.dataset.linjiangH !== String(rest)) {
+    setSpacer(frame, rest);
+    frame.dataset.linjiangH = String(rest);
+  }
+  mountHud(tavern.document);
+  paintHudFill(vw, vh);
+  hudFrame._linjiangAlign = 'page';
+  lockTavernScroll();
+};
+
+const applyPortraitHeight = (h) => {
+  if (portraitPageOpen || !portraitHud()) return;
+  const next = Math.max(1, Math.round(h));
+  const box = hudFrame._linjiangBox;
+  const stage = hudFrame._linjiangStage;
+  if (box && hudFrame._linjiangAlign === 'slot' && stage && hudFrame.parentNode === stage) {
+    if (box.height === next) return;
+    box.height = next;
+    hudFrame.style.height = `${next}px`;
+    hudFrame._linjiangBox = box;
+    const frame = window.frameElement;
+    if (isSafeOuterFrame(frame) && frame.dataset.linjiangH !== String(next)) {
+      setSpacer(frame, next);
+      frame.dataset.linjiangH = String(next);
+    }
+    followHud();
+    return;
+  }
+  hudFrame._portraitRestH = next;
+  layoutPortrait();
+};
+
+const layoutMobile = () => {
+  parkHudInside();
+  hudFrame._linjiangAlign = '';
+  const frame = window.frameElement;
+  const vh = tavernSize().h;
+  if (isSafeOuterFrame(frame)) {
+    frame.setAttribute('scrolling', 'yes');
+    frame.style.cssText = 'position:relative;width:100%;border:0;display:block;visibility:visible;opacity:1;pointer-events:auto;';
+    frame.style.setProperty('height', `${Math.max(560, Math.round(vh * MAX_VH))}px`, 'important');
+  }
+};
+
+const hudSrc = () => {
+  const url = new URL(HUD_URL, location.href);
+  const portrait = portraitHud();
+  url.searchParams.set('mode', portrait ? 'portrait' : 'landscape');
+  if (portrait) url.searchParams.delete('fit');
+  else url.searchParams.set('fit', 'body');
+  url.searchParams.set('v', 'embed1');
+  return url.toString();
+};
+
+const syncHudSrc = () => {
+  const mode = portraitHud() ? 'portrait' : 'landscape';
+  if (hudMode === mode && hudFrame.getAttribute('src')) return;
+  hudMode = mode;
+  hudFrame.src = hudSrc();
+};
+
+const fitParentFrame = () => {
+  try {
+    if (isDesktop() && window.frameElement) layoutDesktop();
+    else if (portraitHud() && window.frameElement) {
+      if (portraitPageOpen) layoutPortraitPage();
+      else {
+        unlockTavernScroll();
+        layoutPortrait();
+      }
+    } else layoutMobile();
+    syncHudSrc();
+  } catch (e) {}
+};
+
+const handleRequest = (action) => {
+  if (action === 'handshake') return { ok: true, label: '嵌入夹具', hasMvu: false };
+  if (action === 'getSnapshot') return { stat_data: {} };
+  if (action === 'sendMessage' || action === 'clockIn' || action === 'patch' || action === 'openPhone' || action === 'arcadeEvent' || action === 'purchaseShopProduct') return true;
+  throw new Error('未知桥接动作: ' + action);
+};
+
+const onHudMessage = (event) => {
+  const data = event.data;
+  if (!data || data.channel !== CHANNEL) return;
+  if (data.kind === 'request') {
+    const reply = { channel: CHANNEL, kind: 'response', id: data.id };
+    const origin = event.origin && event.origin !== 'null' ? event.origin : '*';
+    try {
+      event.source?.postMessage({ ...reply, ok: true, payload: handleRequest(data.action) }, origin);
+    } catch (error) {
+      event.source?.postMessage({ ...reply, ok: false, error: error?.message || String(error) }, origin);
+    }
+    return;
+  }
+  if (data.kind !== 'event') return;
+  if (data.type === 'portraitSize') {
+    const h = Math.round(Number(data.payload?.height) || 0);
+    if (h > 0) {
+      hudFrame._portraitRestH = h;
+      applyPortraitHeight(h);
+    }
+    return;
+  }
+  if (data.type === 'portraitPage') {
+    portraitPageOpen = !!data.payload?.open;
+    fitParentFrame();
+  }
+};
+
+/* HUD iframe is moved onto the tavern body.  Its parent then *is* the tavern,
+   so layout / handshake must be listened for there — same as 状态栏.html. */
+const tavern = tavernWin();
+addEventListener('message', onHudMessage);
+if (tavern !== window) {
+  try { tavern.addEventListener('message', onHudMessage); } catch (e) {}
+}
+tavern.addEventListener('resize', fitParentFrame);
+tavern.visualViewport?.addEventListener('resize', fitParentFrame);
+tavern.addEventListener('scroll', followHud, { passive: true, capture: true });
+tavern.document.addEventListener('scroll', followHud, { passive: true, capture: true });
+try {
+  const chat = tavern.document.getElementById('chat');
+  if (chat) chat.addEventListener('scroll', followHud, { passive: true, capture: true });
+  const frame = window.frameElement;
+  const pane = readingPane();
+  if (frame && typeof IntersectionObserver === 'function') {
+    const io = new IntersectionObserver(() => followHud(), {
+      root: pane && pane.contains(frame) ? pane : null,
+      threshold: [0, 0.01, 0.08, 0.2, 0.5, 1],
+    });
+    io.observe(frame);
+  }
+} catch (e) {}
+addEventListener('resize', fitParentFrame);
+fitParentFrame();
+</script>
+</body>
+</html>

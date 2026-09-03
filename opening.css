@@ -1,0 +1,1335 @@
+:root{--ink:rgba(240,242,255,.94);--mute:rgba(226,229,250,.66);--faint:rgba(221,225,248,.44);--line:rgba(228,233,255,.18);--pink:#ff78b0;--blue:#83c9ff;--gold:#efcf9a;--ok:#8ce1c4;--shadow:0 28px 90px rgba(3,5,18,.48)}
+*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%}body{min-height:100vh;color:var(--ink);font-family:'Noto Sans SC',system-ui,sans-serif;background:#090b18 url('./assets/bg-plate.png') center/cover fixed no-repeat;-webkit-font-smoothing:antialiased}body:before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(50% 54% at 15% 8%,rgba(255,139,185,.2),transparent 70%),radial-gradient(58% 60% at 92% 18%,rgba(112,154,255,.18),transparent 72%),linear-gradient(180deg,rgba(7,9,23,.2),rgba(7,9,23,.56))}body:after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.18;mix-blend-mode:soft-light;background:url('./assets/frost.png') repeat}button,input,textarea{font:inherit}button{color:inherit}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid rgba(132,203,255,.72);outline-offset:2px}.app{position:relative;z-index:1;width:min(1540px,calc(100% - 36px));min-height:100vh;margin:0 auto;padding:28px 0}.shell{position:relative;min-height:calc(100vh - 56px);overflow:hidden;border:1px solid rgba(238,241,255,.4);border-radius:32px;background:linear-gradient(135deg,rgba(50,59,105,.5),rgba(17,22,51,.57) 48%,rgba(51,36,74,.46));box-shadow:var(--shadow),inset 0 1px rgba(255,255,255,.18),inset 0 -1px rgba(255,168,204,.18);backdrop-filter:blur(28px) saturate(1.2);-webkit-backdrop-filter:blur(28px) saturate(1.2)}.shell:before{content:'';position:absolute;inset:0;pointer-events:none;border-radius:32px;background:linear-gradient(110deg,rgba(255,255,255,.08),transparent 28%,transparent 70%,rgba(255,164,205,.08))}.header{position:relative;display:grid;grid-template-columns:1fr auto;align-items:center;gap:30px;padding:24px 32px 21px;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:18px;min-width:0}.brand-mark{width:48px;height:48px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.28),rgba(109,126,200,.12));border:1px solid rgba(239,242,255,.28);box-shadow:0 0 28px rgba(255,125,177,.16)}.brand-mark img{width:27px;height:27px;object-fit:contain}.brand-script{font:400 36px/1 'Pinyon Script',cursive;color:#f9e7d9;text-shadow:0 2px 12px rgba(255,177,204,.25)}.brand-copy h1{font-size:18px;font-weight:500;letter-spacing:.13em}.brand-copy p{margin-top:5px;color:var(--mute);font:400 11px/1.4 'Outfit','Noto Sans SC';letter-spacing:.14em;text-transform:uppercase}.mode-note{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:999px;color:var(--mute);background:rgba(10,15,38,.28);border:1px solid rgba(230,235,255,.14);font-size:12px;white-space:nowrap}.mode-note i{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 12px var(--ok)}.steps{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0 32px;border-bottom:1px solid var(--line)}.step-tab{position:relative;border:0;padding:15px 10px 16px;background:transparent;color:var(--faint);cursor:pointer;transition:.22s}.step-tab span{display:block;font:500 10px/1 'Outfit';letter-spacing:.18em}.step-tab b{display:block;margin-top:7px;font-size:13px;font-weight:500;letter-spacing:.08em}.step-tab.active{color:var(--ink)}.step-tab.active:after{content:'';position:absolute;left:20%;right:20%;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent,var(--pink),var(--blue),transparent);box-shadow:0 0 14px rgba(255,119,176,.72)}.step-tab.done{color:rgba(225,234,255,.78)}.main{position:relative;min-height:650px;padding:30px 32px 26px}.panel{display:none;animation:rise .34s ease both}.panel.active{display:block}@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:23px}.eyebrow{font:500 10px/1 'Outfit';letter-spacing:.22em;text-transform:uppercase;color:rgba(222,226,248,.48)}.section-head h2{margin-top:8px;font-size:26px;line-height:1.15;font-weight:500;letter-spacing:.05em}.section-head p{max-width:630px;color:var(--mute);font-size:13px;line-height:1.8}.grid-two{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(330px,.75fr);gap:22px}.card{position:relative;border:1px solid rgba(230,234,255,.17);border-radius:22px;background:linear-gradient(145deg,rgba(29,37,78,.48),rgba(12,17,42,.38));box-shadow:inset 0 1px rgba(255,255,255,.06)}.card-pad{padding:22px}.card-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.card-title b{font-size:15px;font-weight:600;letter-spacing:.06em}.card-title small{color:var(--faint);font:400 10px/1.3 'Outfit','Noto Sans SC';letter-spacing:.1em}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field.wide{grid-column:1/-1}.field label{display:block;margin:0 0 7px 3px;color:rgba(229,232,250,.62);font-size:11px;letter-spacing:.08em}.control{width:100%;min-height:46px;border:1px solid rgba(232,236,255,.16);border-radius:13px;color:var(--ink);background:rgba(6,11,29,.28);padding:11px 13px;transition:.2s}.control:hover,.control:focus{border-color:rgba(149,198,255,.48);background:rgba(10,16,40,.42)}textarea.control{min-height:112px;resize:vertical;line-height:1.7}.select-control{text-align:left;cursor:pointer}.segment{display:flex;gap:6px;padding:5px;border:1px solid rgba(232,236,255,.14);border-radius:14px;background:rgba(6,10,27,.25)}.segment button{flex:1;min-height:35px;border:0;border-radius:10px;background:transparent;color:var(--mute);cursor:pointer}.segment button.on{color:#172039;background:linear-gradient(180deg,rgba(242,247,255,.94),rgba(190,209,244,.9));box-shadow:0 5px 18px rgba(3,8,25,.22)}.side-story{overflow:hidden}.story-art{position:relative;min-height:220px;background:url('./city/plate/overview_night.webp') center/cover}.story-art:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,16,39,.05),rgba(14,19,48,.96))}.story-copy{position:absolute;z-index:2;left:22px;right:22px;bottom:19px}.story-copy .script{font:400 30px/1 'Pinyon Script';color:#ffe6ef}.story-copy h3{margin-top:5px;font-size:18px;font-weight:500}.story-copy p{margin-top:8px;color:var(--mute);font-size:12px;line-height:1.7}.mini-facts{padding:18px 20px 20px;display:grid;gap:10px}.fact{display:flex;justify-content:space-between;gap:20px;padding-bottom:10px;border-bottom:1px solid rgba(232,236,255,.09);font-size:12px}.fact:last-child{border:0;padding-bottom:0}.fact span{color:var(--faint)}.fact b{font-weight:500;text-align:right}.life-grid{display:grid;grid-template-columns:minmax(310px,.76fr) minmax(0,1.24fr);gap:22px}.home-card{padding:21px;min-height:220px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}.home-card:before{content:'';position:absolute;inset:0;opacity:.26;background:url('./city/plate/guling_night.webp') center/cover;mask-image:linear-gradient(90deg,transparent,black)}.home-card>*{position:relative;z-index:1}.pinline{display:flex;align-items:center;gap:8px;color:var(--blue);font:500 10px/1 'Outfit','Noto Sans SC';letter-spacing:.14em}.home-name{margin-top:16px;font-size:24px;font-weight:500}.home-meta{margin-top:7px;color:var(--mute);font-size:12px;line-height:1.7}.empty{color:var(--faint)}.map-btn{align-self:flex-start;margin-top:18px;min-height:42px;padding:0 16px;border-radius:12px;border:1px solid rgba(133,202,255,.34);background:rgba(86,145,216,.12);cursor:pointer;transition:.2s}.map-btn:hover{transform:translateY(-1px);background:rgba(86,145,216,.2)}.jobs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}.job{min-height:132px;padding:16px;border:1px solid rgba(231,235,255,.13);border-radius:17px;background:rgba(11,16,39,.27);cursor:pointer;transition:.2s;text-align:left}.job:hover{transform:translateY(-2px);border-color:rgba(197,210,255,.32)}.job.on{border-color:rgba(255,132,183,.6);background:linear-gradient(145deg,rgba(119,73,139,.28),rgba(27,38,78,.36));box-shadow:0 0 24px rgba(255,114,174,.1),inset 3px 0 var(--pink)}.job h4{font-size:14px;font-weight:600}.job .where{margin-top:5px;color:var(--faint);font-size:11px;min-height:31px}.pay{margin-top:12px;display:flex;align-items:baseline;gap:6px;color:var(--gold)}.pay strong{font:500 20px/1 'Outfit'}.pay span{font-size:10px;color:var(--mute)}.job-time{margin-top:8px;color:var(--mute);font:400 11px/1 'Outfit','Noto Sans SC'}.job.nojob .pay{color:var(--mute)}.stream-layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:22px}.art-card{overflow:hidden;min-height:570px;display:flex;flex-direction:column}.art-preview{position:relative;height:365px;overflow:hidden;background:radial-gradient(circle at 45% 30%,rgba(175,145,255,.34),transparent 36%),linear-gradient(145deg,#313965,#171c3d)}.art-preview img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;display:none}.art-preview.has img{display:block}.art-preview:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 48%,rgba(11,15,39,.88));pointer-events:none}.art-monogram{position:absolute;inset:0;display:grid;place-items:center;font:400 98px/1 'Pinyon Script';color:rgba(245,234,255,.42)}.art-preview.has .art-monogram{display:none}.art-caption{position:absolute;z-index:2;left:20px;right:20px;bottom:17px}.art-caption b{font-size:21px;font-weight:500}.art-caption span{display:block;margin-top:4px;color:var(--mute);font:400 11px/1 'Outfit';letter-spacing:.12em}.art-tools{padding:17px;display:grid;gap:11px}.art-tools small{color:var(--faint);line-height:1.65}.file-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.file-pick{min-height:42px;padding:0 14px;border-radius:12px;border:1px solid rgba(232,236,255,.16);background:rgba(8,13,34,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px}.file-pick input{display:none}.stream-form{padding:21px}.tags{display:flex;flex-wrap:wrap;gap:8px}.tag{border:1px solid rgba(230,234,255,.14);border-radius:999px;padding:7px 11px;background:rgba(8,13,34,.25);color:var(--mute);font-size:11px;cursor:pointer}.tag.on{color:#182039;border-color:transparent;background:linear-gradient(135deg,#ffb1d0,#a9cfff)}.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.range-box{padding:12px 13px;border:1px solid rgba(230,234,255,.13);border-radius:14px;background:rgba(7,12,31,.24)}.range-box label{display:flex;justify-content:space-between;color:var(--mute);font-size:11px}.range-box b{color:#ffabc9;font:500 17px/1 'Outfit'}.range-box input{width:100%;margin-top:12px;accent-color:#ff79b1}.generate-row{display:flex;align-items:center;gap:10px;margin-top:16px}.generate-row span{color:var(--faint);font-size:11px}.primary,.secondary{min-height:44px;border-radius:13px;padding:0 18px;cursor:pointer;transition:.2s}.primary{border:1px solid rgba(255,214,232,.56);color:#182039;background:linear-gradient(135deg,#ffd3e4,#b9d8ff);box-shadow:0 9px 24px rgba(69,92,159,.24);font-weight:600}.primary:hover{transform:translateY(-1px);filter:brightness(1.04)}.primary:disabled{opacity:.58;cursor:wait}.secondary{border:1px solid rgba(230,235,255,.18);color:var(--mute);background:rgba(8,13,34,.28)}.generated{display:none;margin-top:17px;padding:18px;border:1px solid rgba(188,160,255,.27);border-radius:18px;background:linear-gradient(145deg,rgba(81,54,119,.2),rgba(12,19,47,.26))}.generated.on{display:block}.generated-head{display:flex;justify-content:space-between;gap:18px;margin-bottom:13px}.generated-head b{font-size:14px}.generated-head span{color:var(--faint);font:400 10px/1.4 'Outfit';letter-spacing:.12em}.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.profile-grid .field textarea{min-height:86px}.confirm-grid{display:grid;grid-template-columns:minmax(300px,.72fr) minmax(0,1.28fr);gap:22px}.identity-card{overflow:hidden}.confirm-scene{height:205px;position:relative;background:url('./city/plate/overview_night.webp') center/cover}.confirm-scene:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,14,35,.05),rgba(16,20,50,.94))}.confirm-title{position:absolute;z-index:2;left:22px;bottom:18px}.confirm-title em{font:400 28px/1 'Pinyon Script';color:#ffe7f0}.confirm-title h3{margin-top:5px;font-size:22px;font-weight:500}.confirm-lines{padding:18px 21px 21px;display:grid;gap:12px}.confirm-line{display:grid;grid-template-columns:90px 1fr;gap:14px;padding-bottom:11px;border-bottom:1px solid rgba(232,236,255,.09)}.confirm-line:last-child{border:0}.confirm-line span{color:var(--faint);font-size:11px}.confirm-line b{font-size:12px;font-weight:500}.book-preview{padding:21px}.book-preview>p{color:var(--mute);font-size:12px;line-height:1.75}.book-entry{margin-top:14px;padding:17px;border-radius:17px;border:1px solid rgba(231,235,255,.13);background:rgba(7,11,29,.27)}.book-entry pre{max-height:350px;overflow:auto;white-space:pre-wrap;color:rgba(232,234,250,.76);font:400 11px/1.75 'Noto Sans SC'}.footer{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:17px 32px 21px;border-top:1px solid var(--line)}.footer-note{color:var(--faint);font-size:11px;line-height:1.6}.footer-actions{display:flex;gap:10px}.hidden{display:none!important}.toast{position:fixed;z-index:50;left:50%;bottom:34px;transform:translate(-50%,20px);opacity:0;pointer-events:none;padding:11px 16px;border-radius:999px;border:1px solid rgba(239,242,255,.22);background:rgba(12,17,39,.88);box-shadow:0 15px 45px rgba(0,0,0,.35);color:var(--ink);font-size:12px;transition:.25s;backdrop-filter:blur(18px)}.toast.on{opacity:1;transform:translate(-50%,0)}.map-modal{position:fixed;z-index:40;inset:0;display:none;padding:22px;background:rgba(5,7,18,.72);backdrop-filter:blur(12px)}.map-modal.on{display:grid;place-items:center}.map-dialog{width:min(1280px,100%);height:min(820px,calc(100vh - 44px));display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;border:1px solid rgba(239,242,255,.38);border-radius:26px;background:rgba(13,18,42,.92);box-shadow:0 35px 110px rgba(0,0,0,.56)}.map-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 18px;border-bottom:1px solid var(--line)}.map-head h3{font-size:15px;font-weight:500}.map-head p{color:var(--faint);font-size:11px;margin-top:3px}.icon-btn{width:38px;height:38px;border-radius:50%;border:1px solid rgba(232,236,255,.17);background:rgba(7,11,29,.34);cursor:pointer}.map-frame{position:relative;min-height:0}.map-frame iframe{width:100%;height:100%;border:0;background:#070a14}.map-foot{display:flex;align-items:center;gap:10px;padding:12px 16px;border-top:1px solid var(--line);overflow:auto}.quick{flex:0 0 auto;padding:8px 11px;border-radius:999px;border:1px solid rgba(232,236,255,.14);background:rgba(7,12,31,.28);color:var(--mute);font-size:11px;cursor:pointer}.quick:hover{border-color:rgba(133,202,255,.42);color:var(--ink)}
+@media(max-width:1050px){.grid-two,.life-grid,.stream-layout,.confirm-grid{grid-template-columns:1fr}.side-story{min-height:360px}.jobs{grid-template-columns:repeat(2,minmax(0,1fr))}.art-card{min-height:0;display:grid;grid-template-columns:280px 1fr}.art-preview{height:330px}}
+@media(max-width:700px){.app{width:100%;padding:0}.shell{min-height:100vh;border-radius:0;border-left:0;border-right:0}.header{grid-template-columns:1fr;padding:18px 17px 15px}.mode-note{justify-self:start}.brand{gap:10px}.brand-mark{width:40px;height:40px}.brand-script{font-size:29px}.brand-copy h1{font-size:14px}.brand-copy p{font-size:9px}.steps{padding:0 8px}.step-tab b{font-size:11px}.step-tab span{font-size:9px}.main{padding:23px 15px 20px}.section-head{display:block}.section-head p{margin-top:11px}.fields,.profile-grid,.stats-grid{grid-template-columns:1fr}.jobs{grid-template-columns:1fr}.job{min-height:116px}.art-card{display:block}.art-preview{height:390px}.footer{padding:14px 15px 18px;align-items:stretch;flex-direction:column}.footer-actions{display:grid;grid-template-columns:1fr 1fr}.map-modal{padding:0}.map-dialog{width:100%;height:100vh;border-radius:0}}/* Opening page polish: brighter glass, more air, less documentation-panel mood. */
+
+/* ============================================================
+   通透玻璃主题
+   ------------------------------------------------------------
+   之前那几层补丁是一路往上叠深紫：外壳一块深紫板、卡片再一块深紫板、
+   输入框又一块深蓝，背景那张照片被压在三层不透明色下面完全看不见了，
+   所以整页读起来是"磨砂紫文档"，跟原型那种"玻璃浮在照片上"是反的。
+
+   这一层把方向倒过来，只有两条规则：
+     1. 填充极薄（白，不是紫），景深靠 backdrop-filter 的模糊和提亮拿，
+        不靠往上刷不透明的深色；
+     2. 层级靠边光和阴影分，不靠"越里面越深"。
+   照片本身是暖粉 + 蓝紫的暮色，玻璃保持中性偏白，颜色让照片给。
+   ============================================================ */
+:root{
+  --ink:#fff;
+  --mute:rgba(255,255,255,.78);
+  --faint:rgba(255,255,255,.56);
+  --line:rgba(255,255,255,.22);
+  --pink:#ffa3c9;
+  --blue:#a9d6ff;
+  --gold:#ffe0aa;
+  --ok:#9ff0cd;
+  --shadow:0 30px 80px -32px rgba(26,18,54,.62);
+  /* 玻璃三件套：薄填充、亮边、内侧顶光 */
+  --glass:rgba(255,255,255,.10);
+  --glass-strong:rgba(255,255,255,.16);
+  --rim:rgba(255,255,255,.46);
+  --rim-soft:rgba(255,255,255,.34);
+  --lift:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(255,255,255,.10);
+}
+body{
+  background:#1b2145 url('./assets/opening-background.png') center/cover fixed no-repeat;
+}
+/* 照片本身够亮，但白字压在花枝和湖面高光上会糊，所以整体收一档冷色，
+   幅度小到照片的层次还在——这跟原来那几层不透明紫是两件事 */
+body:before{
+  background:
+    radial-gradient(60% 40% at 50% 0,rgba(255,226,240,.10),transparent 70%),
+    linear-gradient(180deg,rgba(22,20,52,.16),rgba(20,18,48,.32));
+}
+body:after{opacity:.05;mix-blend-mode:soft-light}
+
+.app{width:min(1500px,calc(100% - 44px));padding:26px 0 34px}
+/* 外壳只是一片玻璃，不是一块板：填充压到 .08，模糊拉高，
+   让背后的花枝和湖面透上来 */
+.shell{
+  min-height:0;
+  display:grid;
+  grid-template-rows:auto auto auto auto;
+  overflow:hidden;
+  border:1px solid var(--rim);
+  border-radius:30px;
+  /* 填充要"有色但薄"：纯白填充加提亮，叠在这张亮照片上出来是一层奶白雾，
+     字压在上面全糊。冷紫 .28 反而更通透——背后的花枝和湖面读得出来，
+     白字也站得住。 */
+  background:linear-gradient(160deg,rgba(74,72,132,.30),rgba(38,40,88,.34) 46%,rgba(88,58,106,.30));
+  box-shadow:var(--shadow),var(--lift);
+  backdrop-filter:blur(24px) saturate(1.24);
+  -webkit-backdrop-filter:blur(24px) saturate(1.24);
+}
+.shell:before{
+  border-radius:30px;
+  background:linear-gradient(118deg,rgba(255,255,255,.22),transparent 26%,transparent 72%,rgba(255,255,255,.14));
+}
+
+.header{
+  padding:22px 32px 19px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(90deg,rgba(255,255,255,.10),transparent 62%);
+}
+.brand-mark{
+  border-color:rgba(255,255,255,.62);
+  background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.62),rgba(255,255,255,.14));
+  box-shadow:0 0 26px rgba(255,178,212,.30),inset 0 1px 0 rgba(255,255,255,.7);
+}
+.brand-script{color:#fff;text-shadow:0 2px 18px rgba(255,160,205,.55)}
+.brand-copy h1{color:#fff;font-weight:600;letter-spacing:.11em;text-shadow:0 2px 14px rgba(30,24,64,.45)}
+.brand-copy p{color:var(--mute)}
+
+.steps{padding:0 26px;gap:8px;border-bottom:1px solid var(--line)}
+.step-tab{margin:8px 0;padding:11px 10px 12px;border-radius:14px;color:rgba(255,255,255,.62)}
+.step-tab:hover{color:#fff;background:rgba(255,255,255,.10)}
+.step-tab.done{color:rgba(255,255,255,.82)}
+.step-tab.active{
+  color:#fff;
+  background:linear-gradient(135deg,rgba(255,255,255,.26),rgba(255,255,255,.12));
+  box-shadow:var(--lift),0 10px 26px -14px rgba(24,18,52,.7);
+}
+.step-tab.active:after{
+  left:16%;right:16%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--pink) 30%,var(--blue) 72%,transparent);
+  box-shadow:0 0 16px rgba(255,163,201,.9);
+}
+.step-tab b{font-size:13px;font-weight:600}
+
+.main{min-height:0;padding:28px 32px 30px;background:none}
+.section-head{margin-bottom:20px}
+.section-head h2{font-size:28px;font-weight:600;letter-spacing:.035em;color:#fff;text-shadow:0 2px 20px rgba(28,22,60,.5)}
+.section-head p{color:rgba(255,255,255,.82)}
+.eyebrow{color:rgba(255,255,255,.66);font-weight:600}
+.grid-two{grid-template-columns:minmax(0,1.16fr) minmax(360px,.84fr);gap:20px}
+
+/* 卡片比外壳再薄一点：同一块玻璃上的第二层，不是压在上面的第二块板 */
+.card{
+  border:1px solid var(--rim-soft);
+  border-radius:20px;
+  background:linear-gradient(155deg,rgba(255,255,255,.13),rgba(46,44,96,.20));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 18px 40px -26px rgba(22,16,50,.6);
+  backdrop-filter:blur(14px) saturate(1.2);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2);
+}
+.card-pad{padding:23px 24px 24px;background-image:none}
+.card-title{margin-bottom:17px}
+.card-title b{font-size:16px;color:#fff}
+.card-title small{color:var(--faint)}
+.fields{gap:15px 16px}
+.field label{margin:0 0 8px 2px;color:rgba(255,255,255,.76);font-size:12px;letter-spacing:.055em}
+
+/* 输入框：亮玻璃凹槽。深蓝底那版在浅玻璃上是一排黑洞 */
+.control{
+  min-height:48px;
+  border:1px solid rgba(255,255,255,.34);
+  border-radius:12px;
+  color:#fff;
+  background:rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.36);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+.control::placeholder{color:rgba(255,255,255,.52)}
+.control:hover{border-color:rgba(255,255,255,.56);background:rgba(255,255,255,.16)}
+.control:focus{
+  border-color:rgba(255,196,222,.9);
+  background:rgba(255,255,255,.20);
+  box-shadow:0 0 0 3px rgba(255,163,201,.18),inset 0 1px 0 rgba(255,255,255,.4);
+}
+.segment{min-height:48px;border-color:rgba(255,255,255,.30);background:rgba(255,255,255,.10)}
+.segment button{color:rgba(255,255,255,.78);font-weight:500}
+.segment button.on{
+  color:#3a2a45;
+  background:linear-gradient(180deg,#fff,#ffe8f2);
+  box-shadow:0 6px 16px -8px rgba(24,18,52,.6),inset 0 1px 0 #fff;
+}
+.tag{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.10);color:rgba(255,255,255,.80)}
+.tag.on{color:#3a2a45;background:linear-gradient(135deg,#ffd0e4,#cfe6ff);border-color:transparent}
+
+.side-story{background:linear-gradient(155deg,rgba(255,255,255,.16),rgba(255,255,255,.06))}
+.story-art{min-height:240px;filter:saturate(1.14) brightness(1.12)}
+.story-art:after{background:linear-gradient(180deg,rgba(28,24,64,0) 30%,rgba(28,24,64,.72))}
+.story-copy{left:24px;right:24px;bottom:20px}
+.story-copy h3{font-size:19px;font-weight:600}
+.story-copy p{color:rgba(255,255,255,.80)}
+.mini-facts{padding:17px 23px 19px;gap:11px}
+.fact{padding-bottom:11px;border-bottom-color:rgba(255,255,255,.16)}
+.fact span{color:var(--faint)}
+.fact b{color:#fff}
+
+.range-box,.book-entry,.file-pick{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.28)}
+.range-box b{color:#ffd0e4}
+.generated{
+  border-color:rgba(255,255,255,.34);
+  background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(255,255,255,.07));
+}
+.book-entry pre{color:rgba(255,255,255,.84)}
+.art-preview{background:radial-gradient(circle at 45% 26%,rgba(255,255,255,.26),transparent 42%),linear-gradient(150deg,rgba(255,255,255,.14),rgba(255,255,255,.05))}
+.art-preview:after{background:linear-gradient(180deg,transparent 46%,rgba(28,24,64,.82))}
+.art-monogram{color:rgba(255,255,255,.62)}
+.confirm-scene:after{background:linear-gradient(180deg,rgba(28,24,64,0) 24%,rgba(28,24,64,.80))}
+.confirm-line{border-bottom-color:rgba(255,255,255,.16)}
+.confirm-line b{color:#fff}
+
+.footer{
+  position:relative;z-index:2;
+  padding:16px 32px 19px;
+  border-top:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+}
+.footer-note{color:var(--faint)}
+.primary,.secondary{min-height:44px;border-radius:13px}
+.primary{
+  color:#3a2740;
+  border:1px solid rgba(255,255,255,.9);
+  background:linear-gradient(135deg,#fff2f8,#e6f1ff 58%,#fff3dd);
+  box-shadow:0 14px 30px -14px rgba(255,170,208,.8),inset 0 1px 0 #fff;
+  font-weight:600;
+}
+.secondary{
+  color:#fff;
+  border:1px solid rgba(255,255,255,.40);
+  background:rgba(255,255,255,.14);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.secondary:hover{background:rgba(255,255,255,.22)}
+.secondary:disabled{opacity:.45;cursor:not-allowed}
+.icon-btn{border-color:rgba(255,255,255,.34);background:rgba(255,255,255,.14);color:#fff}
+.quick{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.12);color:rgba(255,255,255,.84)}
+.toast{border-color:rgba(255,255,255,.36);background:rgba(46,38,84,.72);backdrop-filter:blur(20px) saturate(1.2)}
+.map-modal{background:rgba(30,24,58,.52);backdrop-filter:blur(14px)}
+.map-dialog{
+  border-color:rgba(255,255,255,.42);
+  background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,.07));
+  backdrop-filter:blur(26px) saturate(1.25) brightness(1.06);
+  -webkit-backdrop-filter:blur(26px) saturate(1.25) brightness(1.06);
+}
+
+@media(max-width:1050px){
+  .app{width:min(940px,calc(100% - 32px))}
+  .grid-two{grid-template-columns:1fr}
+  .side-story{min-height:0}
+}
+@media(max-width:700px){
+  .app{width:100%;min-height:100svh;padding:0}
+  .shell{min-height:100svh;display:flex;flex-direction:column;border-radius:0;border-left:0;border-right:0}
+  .main{flex:1;padding:22px 15px 24px}
+  .header{padding:17px 16px 14px}
+  .steps{padding:0 6px;gap:2px}
+  .step-tab{margin:5px 0;padding:10px 4px 11px}
+  .section-head h2{font-size:24px}
+  .card-pad{padding:19px 17px}
+  .story-art{min-height:220px}
+  .footer{padding:13px 15px 16px}
+}
+
+
+/* ============================================================
+   第二步：地图 + 侧栏
+   地图那块本身是一张实心照片，所以它周围的玻璃要更薄，
+   不然照片边上先出现一圈深色壳，再出现一圈浅色壳，两道边框。
+   ============================================================ */
+.life-map-layout{display:grid;grid-template-columns:minmax(0,1.62fr) minmax(320px,.64fr);gap:18px;align-items:stretch}
+.opening-map-card{min-width:0;padding:14px;overflow:hidden}
+.opening-map-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:5px 6px 13px}
+.opening-map-head>div:first-child{display:flex;flex-direction:column;gap:5px;min-width:0}
+.opening-map-head b{font-size:18px;font-weight:600;color:#fff}
+.opening-map-head span{color:rgba(255,255,255,.72);font-size:11px}
+.pinline{color:var(--blue);font:600 10px/1 'Outfit','Noto Sans SC';letter-spacing:.16em}
+
+.map-mode-tabs{display:flex;gap:5px;padding:4px;border:1px solid rgba(255,255,255,.34);border-radius:13px;background:rgba(255,255,255,.12)}
+.map-mode-tabs button{min-width:70px;padding:9px 12px;border:0;border-radius:10px;background:transparent;color:rgba(255,255,255,.74);font-size:11.5px;font-weight:500;cursor:pointer;transition:.18s}
+.map-mode-tabs button:hover:not(:disabled){background:rgba(255,255,255,.14);color:#fff}
+.map-mode-tabs button.on{color:#3a2a45;background:linear-gradient(180deg,#fff,#ffe8f3);box-shadow:0 6px 16px -8px rgba(24,18,52,.55)}
+.map-mode-tabs button:disabled{opacity:.38;cursor:not-allowed}
+
+.opening-map-viewport{
+  position:relative;min-height:520px;height:clamp(470px,56vh,640px);overflow:hidden;
+  border:1px solid rgba(255,255,255,.42);border-radius:16px;
+  background:#141b3a;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 14px 34px -22px rgba(20,14,46,.7);
+}
+.opening-map-viewport iframe{display:block;width:100%;height:100%;border:0;background:#141b3a}
+/* 右上角：左下压着东塘的牌子，左上压着浦江的，右下是地图自己的缩放和比例尺。
+   右上那片是江面，两层里都没有可选点。 */
+.map-legend{
+  position:absolute;right:12px;top:12px;
+  display:flex;flex-wrap:wrap;gap:7px 12px;
+  padding:8px 11px;
+  border:1px solid rgba(255,255,255,.38);border-radius:11px;
+  background:rgba(255,255,255,.16);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 10px 24px -14px rgba(12,10,34,.8);
+  backdrop-filter:blur(16px) saturate(1.2);
+  -webkit-backdrop-filter:blur(16px) saturate(1.2);
+  pointer-events:none;color:#fff;font-size:10.5px;text-shadow:0 1px 4px rgba(18,14,44,.6)
+}
+.map-legend span{display:inline-flex;align-items:center;gap:5px}
+.legend-dot{width:7px;height:7px;border-radius:50%;display:inline-block;box-shadow:0 0 9px currentColor}
+.legend-dot.home{color:#ff86ba;background:#ff86ba}
+.legend-dot.work{color:#7cc0ff;background:#7cc0ff}
+.legend-dot.route{color:#9ff0cd;background:#9ff0cd}
+
+.life-inspector{display:grid;grid-template-rows:auto auto;align-content:start;gap:12px;min-width:0}
+.life-selection-card{padding:18px}
+.inspector-kicker{font:600 10px/1 'Outfit','Noto Sans SC';letter-spacing:.18em;color:var(--blue)}
+.life-selection-card h3{margin-top:11px;color:#fff;font-size:20px;font-weight:600;line-height:1.25}
+.life-selection-card h3.empty{color:rgba(255,255,255,.62);font-weight:500}
+.life-selection-card p{margin-top:8px;color:rgba(255,255,255,.72);font-size:11.5px;line-height:1.7}
+.selection-cost{
+  margin-top:13px;padding:10px 12px;border-radius:11px;
+  border:1px solid rgba(255,255,255,.34);
+  background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.08));
+  color:#ffe6b4;font:600 12px/1.45 'Outfit','Noto Sans SC'
+}
+.inspector-action{width:100%;margin-top:14px;min-height:38px;padding:0 12px;font-size:11.5px}
+/* 住所卡用粉边、工作卡用蓝边——跟地图上的牌子和图例同一套颜色，
+   两张卡长得一样时得靠一眼分得出哪张管哪件事 */
+.life-selection-card{border-color:rgba(255,255,255,.30)}
+.life-selection-card:first-child{box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 2px 0 0 rgba(255,134,186,.85),0 18px 40px -26px rgba(22,16,50,.6)}
+.work-selection-card{box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 2px 0 0 rgba(124,192,255,.85),0 18px 40px -26px rgba(22,16,50,.6)}
+.commute-card{margin-top:13px;padding:11px 12px;border-left:2px solid #9ff0cd;border-radius:10px;background:rgba(159,240,205,.14)}
+.commute-card span{display:block;color:rgba(210,255,236,.82);font:600 9px/1 'Outfit';letter-spacing:.16em}
+.commute-card b{display:block;margin-top:7px;color:#eaffF6;font-size:12px;font-weight:600;line-height:1.45}
+
+@media(max-width:1050px){
+  .life-map-layout{grid-template-columns:1fr}
+  .opening-map-viewport{height:clamp(420px,58vh,600px)}
+  .life-inspector{grid-template-columns:1fr 1fr;grid-template-rows:auto}
+}
+@media(max-width:700px){
+  .opening-map-card{padding:10px}
+  .opening-map-head{display:block}
+  .map-mode-tabs{margin-top:12px;width:max-content}
+  .opening-map-viewport{min-height:400px;height:60vh}
+  .map-legend{left:8px;right:8px;top:8px}
+  .life-inspector{display:flex;flex-direction:column}
+  .life-selection-card h3{font-size:19px}
+}
+
+
+/* ============================================================
+   Opening map v2: map-first layout, parallel home/work selection,
+   and optional browser fullscreen for dense map nodes.
+   ============================================================ */
+body.life-map-step .app{width:min(1880px,calc(100% - 20px));padding:10px 0 18px}
+body.life-map-step .shell{min-height:calc(100vh - 28px);border-radius:24px}
+body.life-map-step .main{padding:24px 24px 28px}
+body.life-map-step .section-head{margin-bottom:15px}
+
+.life-map-layout{display:flex;flex-direction:column;gap:14px}
+.opening-map-card{padding:12px}
+.opening-map-head{display:grid;grid-template-columns:minmax(280px,1fr) auto auto;align-items:center;gap:18px;padding:4px 5px 12px}
+.opening-map-copy{display:flex;flex-direction:column;gap:5px;min-width:0}
+.opening-map-actions{display:flex;align-items:center;gap:9px}
+.map-fullscreen-btn{height:42px;padding:0 15px;border:1px solid rgba(255,255,255,.30);border-radius:12px;background:rgba(255,255,255,.10);color:rgba(255,255,255,.88);font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.18s}
+.map-fullscreen-btn:hover{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.44)}
+.map-current-picks{display:flex;align-items:stretch;gap:7px;min-width:0}
+.map-current-picks>span{min-width:124px;max-width:190px;padding:8px 11px;border:1px solid rgba(255,255,255,.22);border-radius:11px;background:rgba(255,255,255,.09)}
+.map-current-picks i{display:block;color:rgba(255,255,255,.55);font:600 8.5px/1 'Outfit','Noto Sans SC';font-style:normal;letter-spacing:.14em;text-transform:uppercase}
+.map-current-picks b{display:block;margin-top:5px;overflow:hidden;color:#fff;font-size:11.5px;font-weight:600;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}
+.opening-map-viewport{height:clamp(610px,68vh,840px);min-height:560px;border-radius:15px}
+
+.life-inspector{display:grid;grid-template-columns:minmax(0,.92fr) minmax(460px,1.5fr);grid-template-rows:1fr;gap:12px;align-items:stretch}
+.life-selection-card{height:100%}
+.life-selection-card{padding:16px 18px}
+.life-selection-card h3{margin-top:9px;font-size:18px}
+.life-selection-card p{margin-top:6px;line-height:1.55}
+.selection-cost{margin-top:10px;padding:9px 11px}
+.inspector-action{margin-top:11px;min-height:36px}
+
+.commute-card{margin-top:11px;padding:11px 12px;border:1px solid rgba(159,240,205,.24);border-left:2px solid #9ff0cd;border-radius:11px;background:linear-gradient(135deg,rgba(159,240,205,.13),rgba(255,255,255,.07))}
+.commute-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:9px;border-bottom:1px solid rgba(255,255,255,.12)}
+.commute-head span{color:#d8ffef;font:600 9.5px/1 'Outfit','Noto Sans SC';letter-spacing:.14em;text-transform:uppercase}
+.commute-head small{color:rgba(235,255,247,.60);font-size:9.5px}
+.work-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-top:9px}
+.work-metric{min-width:0;padding:8px 9px;border-radius:9px;background:rgba(15,26,48,.18)}
+.work-metric span{display:block;color:rgba(220,255,241,.62);font-size:9px;line-height:1.2}
+.work-metric b{display:block;margin-top:5px;color:#f1fff9;font-size:11.5px;font-weight:650;line-height:1.3;white-space:normal}
+.work-metric small{display:block;margin-top:4px;color:rgba(232,242,255,.52);font-size:8.8px;line-height:1.35}
+
+.opening-map-card:fullscreen,.opening-map-card.is-fullscreen{width:100vw;height:100vh;margin:0;padding:16px;border:0;border-radius:0;background:linear-gradient(150deg,#33385f,#171d3c 56%,#392c4d);display:flex;flex-direction:column}
+.opening-map-card:fullscreen::backdrop{background:#11152d}
+.opening-map-card:fullscreen .opening-map-head,.opening-map-card.is-fullscreen .opening-map-head{flex:0 0 auto;padding:0 2px 13px}
+.opening-map-card:fullscreen .opening-map-viewport,.opening-map-card.is-fullscreen .opening-map-viewport{flex:1 1 auto;width:100%;height:auto;min-height:0;border-radius:16px}
+
+@media(max-width:1280px){
+  .opening-map-head{grid-template-columns:minmax(260px,1fr) auto}
+  .map-current-picks{grid-column:1/-1;grid-row:2}
+  .opening-map-actions{grid-column:2;grid-row:1}
+  .life-inspector{grid-template-columns:1fr 1.25fr}
+  .work-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  body.life-map-step .app{width:100%;padding:0}
+  body.life-map-step .shell{border-radius:0}
+  body.life-map-step .main{padding:18px 12px 24px}
+  .opening-map-head{display:flex;flex-direction:column;align-items:stretch;gap:10px}
+  .opening-map-actions{justify-content:space-between}
+  .map-mode-tabs{margin:0;flex:1}
+  .map-mode-tabs button{flex:1;min-width:0}
+  .map-current-picks{display:grid;grid-template-columns:1fr 1fr}
+  .map-current-picks>span{min-width:0;max-width:none}
+  .opening-map-viewport{height:66vh;min-height:430px}
+  .life-inspector{display:flex;flex-direction:column}
+  .work-metrics{grid-template-columns:1fr 1fr}
+  .commute-head{align-items:flex-start;flex-direction:column;gap:5px}
+  .opening-map-card:fullscreen,.opening-map-card.is-fullscreen{padding:10px}
+  .opening-map-card:fullscreen .opening-map-copy span,.opening-map-card.is-fullscreen .opening-map-copy span{display:none}
+}
+
+/* ============================================================
+   第三步：真正做成"通透玻璃"，不是磨砂板
+   ------------------------------------------------------------
+   上一层虽然把填充说薄了，实际还是三个问题叠在一起：
+     1. 壳层填充是紫的、.30 起步，卡片再压一层 .20 的紫；
+     2. backdrop-filter 的模糊是嵌套累加的——壳 24px 之后卡片再 14px，
+        背后的花枝到卡片里已经是一团色块，看不出是什么东西；
+     3. 为了让白字压得住，只能继续往上加不透明度，越加越闷。
+
+   这一层换个做法：
+     - 模糊大幅降下来（壳 8px、卡片 3px），背景的形状要能认出来，
+       "隐约透出背景"靠的是低模糊，不是低不透明度；
+     - 读性靠 backdrop-filter 的 brightness() 压暗背后那一块，
+       而不是往上刷一层不透明色。压暗的是"透过来的光"，
+       所以画面还是透的，只是暗一档；
+     - 填充退到近乎没有（白，.04~.09），层级全靠边光 + 高光斜切分。
+   ============================================================ */
+
+/* 背景本身别再压那么暗——玻璃自己会压，重复压两次就是闷 */
+body:before{
+  background:
+    radial-gradient(62% 42% at 50% 0,rgba(255,231,243,.10),transparent 72%),
+    linear-gradient(180deg,rgba(22,20,52,.06),rgba(20,18,48,.18));
+}
+
+/* 外壳：一片玻璃。填充白到几乎不存在，靠 brightness 压暗透过来的光 */
+.shell{
+  border:1px solid rgba(255,255,255,.50);
+  background:linear-gradient(158deg,rgba(255,255,255,.10),rgba(186,198,255,.05) 46%,rgba(255,206,232,.08));
+  backdrop-filter:blur(8px) saturate(1.5) brightness(.68) contrast(1.05);
+  -webkit-backdrop-filter:blur(8px) saturate(1.5) brightness(.68) contrast(1.05);
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 rgba(255,255,255,.62),
+    inset 0 -1px 0 rgba(255,255,255,.14),
+    inset 1px 0 0 rgba(255,255,255,.14),
+    inset -1px 0 0 rgba(255,255,255,.14);
+}
+/* 斜切高光是"晶莹"的来源：一道窄而亮的反光，不是一整片雾 */
+.shell:before{
+  background:
+    linear-gradient(118deg,rgba(255,255,255,.30),rgba(255,255,255,.05) 16%,transparent 34%,transparent 74%,rgba(255,255,255,.14));
+}
+
+.header{background:linear-gradient(90deg,rgba(255,255,255,.07),transparent 58%)}
+.step-tab:hover{background:rgba(255,255,255,.09)}
+.step-tab.active{
+  background:linear-gradient(135deg,rgba(255,255,255,.24),rgba(255,255,255,.08));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 10px 26px -16px rgba(24,18,52,.6);
+}
+
+/* 卡片：同一块玻璃上的第二层。模糊只加一点点，够把字底下的细节抹平就行；
+   brightness 再往下压一点点，让卡片比壳略沉，层级就出来了 */
+.card{
+  border:1px solid rgba(255,255,255,.38);
+  background:linear-gradient(155deg,rgba(255,255,255,.11),rgba(255,255,255,.035));
+  backdrop-filter:blur(4px) saturate(1.18) brightness(.84);
+  -webkit-backdrop-filter:blur(4px) saturate(1.18) brightness(.84);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.52),
+    inset 0 -1px 0 rgba(255,255,255,.08),
+    0 16px 36px -28px rgba(22,16,50,.55);
+}
+
+/* 输入框是玻璃上凿出来的凹槽：填充更薄，靠上沿暗影 + 下沿高光做"凹" */
+.control{
+  border:1px solid rgba(255,255,255,.30);
+  background:rgba(255,255,255,.07);
+  box-shadow:inset 0 1px 2px rgba(24,18,52,.20),inset 0 -1px 0 rgba(255,255,255,.26);
+  backdrop-filter:blur(3px) brightness(.80);
+  -webkit-backdrop-filter:blur(3px) brightness(.80);
+}
+.control:hover{border-color:rgba(255,255,255,.50);background:rgba(255,255,255,.11)}
+.control:focus{
+  border-color:rgba(255,196,222,.92);
+  background:rgba(255,255,255,.14);
+  box-shadow:0 0 0 3px rgba(255,163,201,.16),inset 0 1px 2px rgba(24,18,52,.14);
+}
+.segment{border-color:rgba(255,255,255,.26);background:rgba(255,255,255,.07)}
+.tag{border-color:rgba(255,255,255,.26);background:rgba(255,255,255,.07)}
+.range-box,.file-pick{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.24)}
+/* 阅读面：世界书正文和长文本域是要逐字读的，不是扫一眼的标签。
+   这两块单独再压一档亮度——依然是压"透过来的光"，不是糊上一层板 */
+.book-entry{
+  border-color:rgba(255,255,255,.24);
+  background:rgba(24,20,52,.26);
+  backdrop-filter:blur(5px) brightness(.66);
+  -webkit-backdrop-filter:blur(5px) brightness(.66);
+  box-shadow:inset 0 1px 2px rgba(20,16,46,.28),inset 0 -1px 0 rgba(255,255,255,.16);
+}
+.book-entry pre{color:rgba(255,255,255,.90)}
+textarea.control{background:rgba(24,20,52,.12);backdrop-filter:blur(4px) brightness(.72);-webkit-backdrop-filter:blur(4px) brightness(.72)}
+.generated{
+  border-color:rgba(255,255,255,.30);
+  background:linear-gradient(150deg,rgba(255,255,255,.13),rgba(255,255,255,.04));
+}
+.secondary{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.36)}
+.secondary:hover{background:rgba(255,255,255,.18)}
+.icon-btn{background:rgba(255,255,255,.10)}
+.quick{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.24)}
+.map-fullscreen-btn{background:rgba(255,255,255,.08)}
+.map-mode-tabs{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.28)}
+.map-current-picks>span{background:rgba(255,255,255,.07)}
+.footer{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.01))}
+.side-story{background:linear-gradient(155deg,rgba(255,255,255,.13),rgba(255,255,255,.04))}
+.selection-cost{background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.05))}
+.life-selection-card{border-color:rgba(255,255,255,.26)}
+.life-selection-card:first-child{box-shadow:inset 0 1px 0 rgba(255,255,255,.52),inset 2px 0 0 rgba(255,134,186,.85),0 16px 36px -28px rgba(22,16,50,.55)}
+.work-selection-card{box-shadow:inset 0 1px 0 rgba(255,255,255,.52),inset 2px 0 0 rgba(124,192,255,.85),0 16px 36px -28px rgba(22,16,50,.55)}
+.work-metric{background:rgba(255,255,255,.06)}
+
+/* 玻璃变薄之后，白字底下随时可能滑过一片花枝高光。
+   与其把玻璃加厚，不如给文字自己一层贴身的暗投影——
+   这是最省"通透度"的读性手段 */
+.header,.steps,.main,.footer{text-shadow:0 1px 3px rgba(20,16,46,.55),0 0 14px rgba(20,16,46,.28)}
+.segment button.on,.tag.on,.primary,.map-mode-tabs button.on{text-shadow:none}
+
+/* 弹窗：遮罩别糊死，对话框同样走薄玻璃 */
+.map-modal{background:rgba(28,22,56,.44);backdrop-filter:blur(6px) brightness(.86);-webkit-backdrop-filter:blur(6px) brightness(.86)}
+.map-dialog{
+  border-color:rgba(255,255,255,.46);
+  background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.05));
+  backdrop-filter:blur(10px) saturate(1.3) brightness(.88);
+  -webkit-backdrop-filter:blur(10px) saturate(1.3) brightness(.88);
+  box-shadow:0 35px 110px -40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.6);
+}
+.toast{background:rgba(40,34,76,.58);backdrop-filter:blur(14px) saturate(1.2)}
+
+/* 全屏地图那块本来是实心紫板，也让它透一点，跟页面同一套语言 */
+.opening-map-card:fullscreen,.opening-map-card.is-fullscreen{
+  background:linear-gradient(150deg,rgba(46,50,88,.92),rgba(23,29,60,.94) 56%,rgba(56,44,77,.92));
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+
+/* ============================================================
+   第三步：我推的主播 + 可选的自定义主播
+   ------------------------------------------------------------
+   步骤从四步变五步，所以 .steps 那条写死的 repeat(4) 得换成自动列——
+   以后再插一步也不用回来改。
+   固定主播是"挑封面"，不是"填表格"：立绘占卡片的大半，文字只够交代
+   牌子名、直播档和一句话，剩下的留给世界书。
+   ============================================================ */
+.steps{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+/* 被跳过的那一步不是"不可点"，点了会切回来，所以只压暗、不做 disabled 的手势 */
+.step-tab.skipped{opacity:.42}
+.step-tab.skipped b{text-decoration:line-through;text-decoration-thickness:1px}
+/* 人就站在这一格上的时候别再划掉它——那格是唯一能把开关打开的地方 */
+.step-tab.skipped.active{opacity:1}
+.step-tab.skipped.active b{text-decoration:none}
+
+.oshi-counter{flex:0 0 auto;display:flex;align-items:baseline;gap:7px;padding:9px 15px;border:1px solid rgba(255,255,255,.30);border-radius:999px;background:rgba(255,255,255,.08);white-space:nowrap}
+.oshi-counter span{color:var(--faint);font-size:11px}
+.oshi-counter b{color:#ffd0e4;font:600 20px/1 'Outfit'}
+.oshi-counter i{color:var(--faint);font:400 12px/1 'Outfit';font-style:normal}
+
+.oshi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.oshi-card{
+  position:relative;display:flex;flex-direction:column;overflow:hidden;text-align:left;
+  border:1px solid rgba(255,255,255,.30);border-radius:19px;
+  background:linear-gradient(158deg,rgba(255,255,255,.11),rgba(255,255,255,.035));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.44),0 16px 36px -28px rgba(22,16,50,.55);
+  backdrop-filter:blur(4px) saturate(1.18) brightness(.84);
+  -webkit-backdrop-filter:blur(4px) saturate(1.18) brightness(.84);
+  cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s,opacity .18s;
+}
+.oshi-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.56)}
+/* 选中态用粉边 + 内侧竖线，跟第二步地图那两张卡是同一套记号 */
+.oshi-card.on{
+  border-color:rgba(255,132,183,.72);
+  background:linear-gradient(158deg,rgba(255,168,205,.20),rgba(255,255,255,.05));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.58),inset 3px 0 0 var(--pink),0 18px 40px -24px rgba(255,114,174,.4);
+}
+/* 已经推满三个：剩下的压暗，但仍然可点——点了会给一句提示，比死掉的按钮好懂 */
+.oshi-card.full{opacity:.46}
+.oshi-card.full:hover{opacity:.72;transform:none}
+
+.oshi-art{position:relative;display:block;height:250px;overflow:hidden;background:linear-gradient(150deg,rgba(255,255,255,.14),rgba(255,255,255,.04))}
+/* 立绘用绝对定位铺满，不用 height:100%——窄屏那版把卡片改成左图右字之后，
+   图片容器的高度是被右边文字撑出来的，height:100% 在不定高的父级上会塌成 0，
+   结果整列立绘全消失。absolute + inset:0 对定高和不定高都成立。 */
+.oshi-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 16%;display:block}
+.oshi-art:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 52%,rgba(24,20,52,.86));pointer-events:none}
+.oshi-check{
+  position:absolute;z-index:2;right:11px;top:11px;
+  width:28px;height:28px;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.62);border-radius:50%;
+  background:rgba(24,20,52,.42);color:rgba(255,255,255,.42);
+  font:600 14px/1 'Outfit';font-style:normal;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.oshi-card.on .oshi-check{color:#3a2a45;border-color:transparent;background:linear-gradient(135deg,#ffd0e4,#cfe6ff);box-shadow:0 0 18px rgba(255,163,201,.7)}
+
+.oshi-body{display:flex;flex-direction:column;gap:7px;padding:14px 15px 15px}
+.oshi-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.oshi-top b{color:#fff;font-size:17px;font-weight:600;letter-spacing:.04em}
+.oshi-top i{
+  flex:0 0 auto;padding:3px 8px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.30);background:rgba(255,255,255,.09);
+  color:rgba(255,255,255,.84);font-size:10px;font-style:normal;letter-spacing:.04em;
+}
+.oshi-slot{color:var(--blue);font:600 10px/1.4 'Outfit','Noto Sans SC';letter-spacing:.08em}
+.oshi-scale{color:#ffd0e4;font:600 10px/1.4 'Outfit','Noto Sans SC';letter-spacing:.06em}
+.oshi-blurb{color:rgba(255,255,255,.74);font-size:11.5px;line-height:1.65}
+.oshi-tags{display:flex;flex-wrap:wrap;gap:5px}
+.oshi-tags em{padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.09);color:rgba(255,255,255,.72);font-size:10px;font-style:normal}
+.oshi-gain{
+  margin-top:3px;padding-top:9px;border-top:1px solid rgba(255,255,255,.14);
+  color:rgba(255,255,255,.50);font-size:10.5px;line-height:1.5;
+}
+.oshi-card.on .oshi-gain{color:#ffd7e7}
+
+.oshi-note{margin-top:14px}
+.oshi-note-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.oshi-note-grid>div{padding:12px 13px;border-radius:12px;background:rgba(255,255,255,.06)}
+.oshi-note-grid span{display:block;color:#ffd0e4;font:600 10px/1 'Outfit','Noto Sans SC';letter-spacing:.1em}
+.oshi-note-grid b{display:block;margin-top:7px;color:rgba(255,255,255,.80);font-size:11px;font-weight:400;line-height:1.6}
+
+/* 第四步的开关放在标题行右侧，跟第一步的性别 segment 同一个控件 */
+.optional-toggle{flex:0 0 auto;width:max-content;min-height:44px}
+.optional-toggle button{min-width:92px;padding:0 15px;font-size:12px}
+.custom-skip-note{max-width:640px}
+.custom-skip-note p{color:rgba(255,255,255,.74);font-size:12px;line-height:1.75}
+
+/* 热度：左边一个拉杆，右边三个只读读数。读数不是输入框，别做成凹槽 */
+.tier-panel{display:grid;grid-template-columns:minmax(200px,.8fr) minmax(0,1.6fr);gap:11px}
+.tier-dial{display:flex;flex-direction:column;justify-content:center}
+.tier-dial small{margin-top:9px;color:#ffd0e4;font-size:11px;letter-spacing:.06em}
+.tier-out{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.tier-metric{
+  min-width:0;padding:11px 12px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.20);
+  background:linear-gradient(150deg,rgba(255,255,255,.11),rgba(255,255,255,.04));
+}
+.tier-metric span{display:block;color:var(--faint);font-size:10px;line-height:1.2}
+.tier-metric b{display:block;margin-top:6px;color:#fff;font:600 19px/1 'Outfit'}
+.tier-metric small{display:block;margin-top:6px;color:rgba(255,255,255,.46);font-size:9.5px;line-height:1.4}
+.tier-hint{display:block;margin-top:9px;color:rgba(255,255,255,.52);font-size:10.5px;line-height:1.6}
+
+@media(max-width:1280px){
+  .oshi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .oshi-note-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:1050px){
+  .steps{grid-auto-flow:row;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-columns:auto}
+  .oshi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .oshi-art{height:230px}
+  .tier-panel{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  /* 五步在窄屏排三列：3 + 2 两行，比两列的 2+2+1 少一行 */
+  .steps{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .oshi-counter{margin-top:13px;align-self:flex-start}
+  .oshi-grid{grid-template-columns:1fr;gap:11px}
+  /* 单列的时候立绘竖着排会把一屏吃光，改成左图右字 */
+  .oshi-card{flex-direction:row}
+  .oshi-art{flex:0 0 132px;height:auto;min-height:190px}
+  .oshi-art:after{background:linear-gradient(90deg,transparent 40%,rgba(24,20,52,.5))}
+  .oshi-body{flex:1;min-width:0;padding:13px 14px}
+  .oshi-note-grid{grid-template-columns:1fr}
+  .optional-toggle{width:100%;margin-top:13px}
+  .optional-toggle button{flex:1;min-width:0}
+  .tier-out{grid-template-columns:1fr}
+  .tier-metric{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .tier-metric b{margin:0}
+  .tier-metric small{display:none}
+}
+
+/* 人设改成整段 角色详情 YAML（跟 世界书/红蔷薇 同格式），不再是十二个分字段文本框。
+   YAML 要逐行读、按缩进看层级，所以等宽字体 + 不折行 + 保留空白。 */
+/* 选择器得带上 textarea：前面那条 textarea.control{min-height:112px} 权重更高，
+   只写 .yaml-editor 会被它压回四行高。 */
+textarea.yaml-editor{
+  min-height:430px;resize:vertical;
+  white-space:pre;overflow:auto;tab-size:2;
+  font:400 12px/1.72 ui-monospace,'SFMono-Regular','Cascadia Mono',Consolas,'Noto Sans SC',monospace;
+}
+.yaml-hint{display:block;margin-top:9px;color:rgba(255,255,255,.52);font-size:10.5px;line-height:1.6}
+#generated-meta{font-family:'Outfit','Noto Sans SC',sans-serif}
+@media(max-width:700px){textarea.yaml-editor{min-height:340px;font-size:11px}}
+
+/* ============================================================
+   紧凑排布：02 / 03 / 04 三步在常见 PC 屏幕上直接装下
+   ------------------------------------------------------------
+   收之前在 1440×900 下量到的溢出：02 +524px、03 +676px、04 +948px。
+   滚动本身不致命，但这三步都是"看着全局做选择"的页面——地图被切一半、
+   七张封面只露一行，最要紧的横向对比就做不成了。
+
+   收的手段按收益排三层：
+     1. 外框先让路。header + steps + footer 在 900px 高的屏上吃掉 246px
+        （27%），这三步一律压薄，.app 的上下留白也从 60 收到 24。
+     2. 竖着排的改横排。02 的侧栏从地图下面挪到右边，03 的卡片从竖版
+        （图上字下）换成横版（图左字右），各少掉一整行。
+     3. 剩下的高度全给主体。02 的地图视口不再写死 clamp()，改成 flex
+        撑满剩余高度：屏幕多高地图就多高，且永远不会把页面顶出滚动条。
+
+   全部包在 min-width:1051px 里——1050 以下是已经调过的窄屏/手机版，
+   那边一列一列往下排本来就该滚，不要动。
+   ============================================================ */
+@media(min-width:1051px){
+
+/* ---- 第一层：外框压薄 ---------------------------------------------- */
+/* 外框留白抽成一个变量：下面 .app 的 padding、.shell 的 min-height（03/04）和
+   height（02/05 要撑满）三处都从它算，矮屏那一档只改这一个值就够，
+   不会出现 padding 收了、shell 高度没跟着收、底下空出一条的情况。 */
+body.compact-step{--frame:12px}
+body.compact-step .app{width:min(1880px,calc(100% - 24px));padding:var(--frame) 0}
+/* .shell 是四行 auto 的 grid，min-height 撑起来之后多出来的高度会平均摊给四行——
+   于是内容一短，header / steps / footer 三条横带就各自胖 28px（03 步实测 86px，
+   比不收之前的 90px 还差不多），步骤条还会在翻页时上下跳。
+   把中间那行改成 1fr，多出来的高度全给 .main，三条横带才真的是收薄了的固定高度。 */
+body.compact-step .shell{min-height:calc(100vh - var(--frame)*2);border-radius:24px;grid-template-rows:auto auto minmax(0,1fr) auto}
+/* 02（地图）和 05（确认）里有要"撑满剩余高度"的块，得先给 .shell 一个确定高度，
+   .main 才有东西可分；overflow:auto 是保险丝：窗口特别矮时宁可块内滚，也别裁掉内容。 */
+body.compact-step.life-map-step .shell,body.compact-step.confirm-step .shell{height:calc(100vh - var(--frame)*2)}
+body.compact-step.life-map-step .main,body.compact-step.confirm-step .main{min-height:0;overflow:auto}
+
+body.compact-step .header{padding:10px 26px 9px}
+body.compact-step .brand{gap:13px}
+body.compact-step .brand-mark{width:34px;height:34px}
+body.compact-step .brand-mark img{width:19px;height:19px}
+body.compact-step .brand-script{font-size:26px}
+body.compact-step .brand-copy h1{font-size:15px}
+body.compact-step .brand-copy p{margin-top:3px;font-size:10px}
+
+body.compact-step .steps{padding:0 22px;gap:6px}
+body.compact-step .step-tab{margin:5px 0;padding:7px 8px 8px;border-radius:11px}
+body.compact-step .step-tab span{font-size:9px}
+body.compact-step .step-tab b{margin-top:4px;font-size:12px}
+
+body.compact-step .main{padding:16px 24px 18px}
+body.compact-step .section-head{margin-bottom:12px}
+body.compact-step .section-head h2{margin-top:5px;font-size:22px}
+body.compact-step .section-head p{margin-top:4px;max-width:none;font-size:11.5px;line-height:1.55}
+
+body.compact-step .footer{padding:9px 26px 10px}
+body.compact-step .footer .primary,body.compact-step .footer .secondary{min-height:38px;padding:0 16px}
+}
+
+@media(min-width:1051px){
+/* ---- 第二层：02 步改成"地图左 + 侧栏右"，地图吃掉剩余高度 ------------
+   .shell 从 min-height 换成定高 + 中间那行 minmax(0,1fr)，main 才有一个
+   确定的高度可以往下分；地图视口去掉 clamp()、改 flex:1，这样 900 高的屏
+   和 1440 高的屏都是"正好一屏"，而不是各自差一截。
+   main 留 overflow:auto 是保险丝：窗口特别矮的时候宁可侧栏内部滚，
+   也不要直接把内容裁掉。 */
+body.life-map-step .main{padding:14px 24px 16px}
+body.life-map-step .panel[data-panel="2"].active{display:flex;flex-direction:column;height:100%;min-height:0}
+
+body.life-map-step .life-map-layout{
+  flex:1 1 auto;min-height:0;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,368px);gap:12px;align-items:stretch;
+}
+body.life-map-step .opening-map-card{display:flex;flex-direction:column;min-height:0;padding:10px}
+body.life-map-step .opening-map-head{padding:3px 4px 9px;gap:14px}
+body.life-map-step .opening-map-head b{font-size:16px}
+body.life-map-step .map-fullscreen-btn,body.life-map-step .map-mode-tabs button{height:auto;padding:8px 13px}
+body.life-map-step .opening-map-viewport{flex:1 1 auto;height:auto;min-height:260px}
+
+/* 侧栏变成一根竖条。两张卡都按内容高、贴着顶排：拉伸填满会在「去地图上挑工作」
+   底下留一片空的卡内区域，读起来像少了点东西；空白留在栏外反而是留白。 */
+body.life-map-step .life-inspector{
+  grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;
+  align-content:start;gap:10px;min-height:0;
+}
+body.life-map-step .life-selection-card{height:auto}
+body.life-map-step .life-selection-card{padding:14px 16px}
+body.life-map-step .life-selection-card h3{margin-top:7px;font-size:17px}
+body.life-map-step .life-selection-card p{margin-top:5px;font-size:11px;line-height:1.5}
+body.life-map-step .selection-cost{margin-top:9px;padding:8px 10px;font-size:11.5px}
+body.life-map-step .inspector-action{margin-top:9px;min-height:34px;font-size:11px}
+body.life-map-step .commute-card{margin-top:9px;padding:9px 10px}
+body.life-map-step .commute-head{padding-bottom:7px}
+/* 单程通勤那五格在 368px 的窄栏里排五列会挤成竖排的单字，改三列两行 */
+body.life-map-step .work-metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
+body.life-map-step .work-metric{padding:6px 8px}
+body.life-map-step .work-metric small{display:none}
+}
+
+@media(min-width:1051px){
+/* ---- 第三层：03 步的封面卡改横版 --------------------------------------
+   竖版（图上字下）四列两行是 2 × 450px，光卡片就 913px。换成横版
+   （图左字右）之后一张 ~190px，两行连注释卡一起 500px 出头就够。
+   立绘从"主视觉"退成"辨认用的头像条"，但这一步要做的事是横向比七个人，
+   七张脸能同时看见比每张脸更大更重要。 */
+body.compact-step .oshi-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+body.compact-step .oshi-card{flex-direction:row}
+/* height:auto 让图跟着右边文字撑高，参照窄屏那版的做法 */
+body.compact-step .oshi-art{flex:0 0 122px;height:auto;min-height:0}
+body.compact-step .oshi-art img{object-position:50% 12%}
+body.compact-step .oshi-art:after{background:linear-gradient(90deg,transparent 44%,rgba(24,20,52,.52))}
+body.compact-step .oshi-check{right:8px;top:8px;width:24px;height:24px;font-size:12px}
+body.compact-step .oshi-body{flex:1 1 auto;min-width:0;gap:4px;padding:11px 13px 12px}
+body.compact-step .oshi-top b{font-size:15px}
+body.compact-step .oshi-blurb{font-size:11px;line-height:1.55}
+body.compact-step .oshi-gain{margin-top:2px;padding-top:7px;font-size:10px}
+
+body.compact-step .oshi-counter{padding:7px 13px}
+body.compact-step .oshi-counter b{font-size:17px}
+
+body.compact-step .oshi-note{margin-top:10px}
+body.compact-step .oshi-note.card-pad{padding:14px 16px}
+body.compact-step .oshi-note .card-title{margin-bottom:10px}
+body.compact-step .oshi-note .card-title b{font-size:14px}
+body.compact-step .oshi-note-grid{gap:9px}
+body.compact-step .oshi-note-grid>div{padding:9px 11px}
+body.compact-step .oshi-note-grid b{margin-top:5px;font-size:10.5px;line-height:1.5}
+}
+
+@media(min-width:1051px){
+/* ---- 第四层：04 步排成"立绘 | 表单 | YAML"三列 ------------------------
+   这一步最高，因为 YAML 那块自己就 430px，叠在表单下面必然要滚。把它挪成
+   .stream-layout 的第三个直接子元素（HTML 里也改了位置），宽屏就是三列并排，
+   高度取三列里最高的那一列，而不是相加。
+
+   用 flex 而不是三列 grid：YAML 没生成时 .generated 是 display:none，
+   flex 里它整个不占位、表单自动摊开；grid 的第三条轨道会留一片空白。 */
+body.compact-step .stream-layout{display:flex;align-items:stretch;gap:12px}
+body.compact-step .art-card{flex:0 0 212px;min-height:0;display:flex;flex-direction:column}
+body.compact-step .art-preview{flex:1 1 auto;height:auto;min-height:210px}
+body.compact-step .art-caption b{font-size:18px}
+body.compact-step .art-tools{padding:12px;gap:9px}
+body.compact-step .stream-form{flex:1 1 auto;min-width:340px;padding:16px 18px}
+
+body.compact-step .stream-form .fields{gap:9px 12px}
+body.compact-step .stream-form .field label{margin-bottom:5px;font-size:11px}
+body.compact-step .stream-form .control{min-height:40px;padding:9px 12px}
+body.compact-step .stream-form textarea.control{min-height:56px}
+body.compact-step .tags{gap:6px}
+body.compact-step .tag{padding:5px 10px}
+body.compact-step .tier-panel{gap:9px}
+body.compact-step .range-box{padding:9px 11px}
+body.compact-step .range-box input{margin-top:8px}
+body.compact-step .tier-dial small{margin-top:6px}
+body.compact-step .tier-out{gap:7px}
+body.compact-step .tier-metric{padding:8px 10px}
+body.compact-step .tier-metric b{margin-top:4px;font-size:16px}
+body.compact-step .tier-metric small{margin-top:4px}
+body.compact-step .tier-hint{margin-top:6px;font-size:10px;line-height:1.5}
+body.compact-step .generate-row{margin-top:12px}
+body.compact-step .generate-row .primary{min-height:38px}
+body.compact-step .optional-toggle{min-height:40px}
+body.compact-step .optional-toggle button{min-height:30px;min-width:84px}
+
+/* YAML 那一列：整列高度由旁边两列决定，编辑框自己撑满并保留内部滚动。
+   这段 YAML 有一百多行，任何布局都装不下全文——所以让它在框里滚，
+   而不是把整页顶出滚动条。 */
+body.compact-step .generated{flex:1 1 0;min-width:318px;margin-top:0;padding:14px 16px}
+body.compact-step .generated.on{display:flex;flex-direction:column}
+body.compact-step .generated-head{margin-bottom:10px}
+body.compact-step textarea.yaml-editor{flex:1 1 auto;min-height:170px;font-size:11.5px;line-height:1.62}
+body.compact-step .yaml-hint{margin-top:7px;font-size:10px;line-height:1.5}
+body.compact-step .custom-skip-note.card-pad{padding:16px 18px}
+}
+
+/* 04 步的表单：四个短字段（姓名／网名／年龄／住所）本来占两行，最后 粉丝牌子名
+   还独占一行的左半边、右半边空着——两行半的高度只装了五个输入框。改成四列一行，
+   气质／时间／牌子 也正好并成一行，整块表单从 593px 收到 ~445px。
+   四列要宽度撑得住，所以再收一档断点：1360 以下还是两列（那时候多滚一点，
+   比把 11px 的中文标签压成两行强）。 */
+@media(min-width:1360px){
+  body.compact-step .stream-form .fields{grid-template-columns:repeat(4,minmax(0,1fr))}
+  /* 三列并排的比例重排一次：表单要装得下四列，YAML 那列给一个固定基准宽 */
+  body.compact-step .stream-form{flex:1 1 0;min-width:430px}
+  body.compact-step .generated{flex:0 1 372px;min-width:330px}
+}
+
+@media(min-width:1051px){
+/* 立绘列收到 212px 之后，「引用链接」和「上传本地立绘」并排放不下，各自折成两行。
+   这一列本来就窄，两个按钮竖着排更好按，也省一行的高度。 */
+body.compact-step .art-tools .file-row{grid-template-columns:1fr;gap:7px}
+body.compact-step .art-tools .secondary,body.compact-step .art-tools .file-pick{min-height:36px;font-size:11.5px}
+body.compact-step .art-tools small{font-size:10px}
+/* 三个读数在四列表单里各只剩 ~150px，b 那一行（例如「195（+提督 6）」）会把格子撑爆，
+   把说明文字挤出边界。字号各收一档，让 b 和 small 都能在格子里断行。 */
+body.compact-step .tier-metric b{font-size:15px;line-height:1.2}
+body.compact-step .tier-metric small{font-size:9px;line-height:1.35}
+}
+
+/* 1051–1359：字段还是两列，但表单被 YAML 那列挤到 ~470px，体量面板再左右一分，
+   三个读数各只剩 58px，「195（+提督 6）」会折成三行。这一段宽度里把拉杆和读数
+   改成上下排，读数就能拿到整个表单宽度。 */
+@media(min-width:1051px) and (max-width:1359px){
+  body.compact-step .tier-panel{grid-template-columns:minmax(0,1fr)}
+}
+
+/* ---- 再收一档：矮屏（1366×768 那类老笔电） ----------------------------
+   768 高的屏上，上面那套还差一点：03 溢出 38px、04 溢出 82px。
+   这一档不动布局，只把外框和留白再压一遍——收的是"空的地方"，
+   内容该多大还是多大。 */
+@media(min-width:1051px) and (max-height:820px){
+  body.compact-step{--frame:8px}
+  body.compact-step .shell{border-radius:18px}
+  body.compact-step .header{padding:7px 22px 6px}
+  body.compact-step .brand{gap:11px}
+  body.compact-step .brand-mark{width:30px;height:30px}
+  body.compact-step .brand-mark img{width:17px;height:17px}
+  body.compact-step .brand-script{font-size:23px}
+  body.compact-step .brand-copy h1{font-size:14px}
+  /* "OPENING PROFILE · 2026" 是装饰，矮屏上第一个让位 */
+  body.compact-step .brand-copy p{display:none}
+  body.compact-step .steps{padding:0 18px}
+  body.compact-step .step-tab{margin:3px 0;padding:5px 6px 6px}
+  body.compact-step .step-tab b{margin-top:3px}
+  body.compact-step .main{padding:12px 20px 14px}
+  body.compact-step .section-head{margin-bottom:9px}
+  body.compact-step .section-head h2{font-size:20px}
+  body.compact-step .section-head p{font-size:11px;line-height:1.45}
+  body.compact-step .footer{padding:7px 22px 8px}
+  body.compact-step .footer .primary,body.compact-step .footer .secondary{min-height:34px}
+  /* 04 步字段最多，再让三个读数下面那行注解让位：粉丝数／底盘热度／大航海
+     这三个词本身够自解释，注解在 480px 高的可用区里不值 26px */
+  body.compact-step .tier-metric small{display:none}
+  body.compact-step .oshi-body{gap:3px;padding:9px 11px 10px}
+  body.compact-step .oshi-note.card-pad{padding:11px 14px}
+  body.compact-step .oshi-note .card-title{margin-bottom:8px}
+  body.compact-step .oshi-note-grid>div{padding:7px 10px}
+}
+
+/* 04 步在 768 高上还差 28px，最后一遍全落在表单的行距和输入框高度上 */
+@media(min-width:1051px) and (max-height:820px){
+  body.compact-step .stream-form{padding:13px 16px}
+  body.compact-step .stream-form .fields{gap:7px 12px}
+  body.compact-step .stream-form .field label{margin-bottom:4px}
+  body.compact-step .stream-form .control{min-height:36px;padding:7px 11px}
+  body.compact-step .stream-form textarea.control{min-height:44px}
+  body.compact-step .tier-hint{margin-top:5px;font-size:9.5px;line-height:1.45}
+  body.compact-step .generate-row{margin-top:9px}
+  body.compact-step .generate-row .primary{min-height:34px}
+}
+
+@media(min-width:1051px){
+/* ---- 05 确认页 --------------------------------------------------------
+   收之前 1440×900 溢出 155px。这一页两列的内容天生一长一短：左边九行档案是
+   定量的，右边的世界书正文是一段上百行的 YAML——按内容排就永远有一列过长。
+   所以改成"两列都撑满一屏"，各自内部滚：档案九行基本装得下，YAML 那块本来就
+   写了 overflow:auto，只是原先被 max-height:350px 钉死、钉完还是把整页顶出滚动条。 */
+body.confirm-step .panel[data-panel="5"].active{display:flex;flex-direction:column;height:100%;min-height:0}
+body.confirm-step .confirm-grid{flex:1 1 auto;min-height:0;align-items:stretch;gap:14px}
+
+body.confirm-step .identity-card{display:flex;flex-direction:column;min-height:0}
+/* 那张夜景是气氛，不是信息：矮屏上第一个让位，但保留到 120px 以上，
+   免得渐变压着标题糊成一条 */
+body.confirm-step .confirm-scene{flex:0 0 auto;height:clamp(120px,17vh,190px)}
+body.confirm-step .confirm-title em{font-size:24px}
+body.confirm-step .confirm-title h3{font-size:19px}
+body.confirm-step .confirm-lines{flex:1 1 auto;min-height:0;overflow:auto;padding:13px 18px 15px;gap:8px}
+body.confirm-step .confirm-line{grid-template-columns:82px 1fr;gap:12px;padding-bottom:8px}
+
+body.confirm-step .book-preview{display:flex;flex-direction:column;min-height:0;padding:15px 18px}
+body.confirm-step .book-preview .card-title{margin-bottom:10px}
+body.confirm-step .book-preview>p{font-size:11px;line-height:1.6}
+/* book-entry 自己是滚动容器，pre 去掉写死的 max-height 交给它 */
+body.confirm-step .book-entry{flex:1 1 auto;min-height:0;display:flex;margin-top:11px;padding:13px 14px}
+body.confirm-step .book-entry pre{flex:1 1 auto;min-height:0;max-height:none}
+}
+
+/* 自定义主播的常用开播时间：只接受时间选择，不再让玩家填写自由字符串。 */
+.time-picker{
+  padding:8px 9px 7px;
+  border:1px solid rgba(235,239,255,.22);
+  border-radius:12px;
+  background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(17,20,48,.18));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+}
+.time-range-row{display:grid;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);align-items:end;gap:6px}
+.time-range-row>i{align-self:center;color:rgba(238,235,249,.48);font:400 10px/1 'Noto Sans SC';text-align:center;font-style:normal;margin-top:14px}
+.field label.time-slot{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:7px;margin:0;padding:0 8px;min-width:0;height:36px;border:1px solid rgba(235,239,255,.14);border-radius:9px;background:rgba(7,10,28,.24)}
+.time-slot>span{color:rgba(238,235,249,.48);font-size:9px;letter-spacing:.08em;white-space:nowrap}
+.time-slot input{min-width:0;width:100%;height:34px;padding:0;border:0;outline:0;background:transparent;color:rgba(255,255,255,.92);font:500 12px/1 'Outfit','Noto Sans SC',sans-serif;color-scheme:dark;text-align:center}
+.time-slot input::-webkit-calendar-picker-indicator{opacity:.65;cursor:pointer;filter:invert(1)}
+.time-presets{display:flex;gap:5px;margin-top:6px}
+.time-presets button{flex:1;min-width:0;height:25px;padding:0 5px;border:1px solid rgba(235,239,255,.12);border-radius:999px;background:rgba(9,13,34,.22);color:rgba(238,235,249,.58);font:400 9px/1 'Noto Sans SC';cursor:pointer;transition:.18s ease}
+.time-presets button:hover{border-color:rgba(194,182,226,.42);color:rgba(255,255,255,.9)}
+.time-presets button.on{border-color:rgba(210,196,239,.5);background:rgba(154,132,196,.22);color:#fff;box-shadow:0 0 15px rgba(142,120,187,.12)}
+.time-picker>small{display:block;margin:6px 2px 0;color:rgba(238,235,249,.43);font-size:9px;line-height:1.35}
+.time-picker.invalid{border-color:rgba(255,158,175,.6);box-shadow:0 0 0 2px rgba(255,123,149,.08)}
+@media(max-width:700px){.time-presets button{height:28px;font-size:10px}}
+/* 多位自定义主播与本地存档管理 */
+.compact-action{min-height:38px;padding:0 15px;border-radius:11px;cursor:pointer}
+.custom-manager{margin-bottom:12px;padding:11px 13px;border-radius:16px}
+.custom-manager-head,.archive-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.custom-manager-head>div{display:flex;align-items:baseline;gap:9px}
+.custom-manager-head b,.archive-head b{font-size:13px;font-weight:600;letter-spacing:.06em}
+.custom-manager-head span{color:var(--faint);font-size:10px}
+.custom-manager-head strong{color:#fff;font:600 16px/1 'Outfit'}
+#archive-toggle i{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-left:5px;padding:0 5px;border-radius:999px;background:rgba(255,255,255,.10);font-style:normal;font-size:10px}
+#archive-toggle.on{border-color:rgba(210,196,239,.5);color:#fff;background:rgba(154,132,196,.18)}
+.custom-roster{display:flex;align-items:stretch;gap:7px;margin-top:9px;overflow-x:auto;padding-bottom:1px}
+.custom-empty{display:flex;align-items:center;min-height:38px;color:rgba(238,235,249,.42);font-size:10.5px}
+.custom-roster-item{flex:0 0 auto;display:flex;align-items:stretch;overflow:hidden;border:1px solid rgba(235,239,255,.13);border-radius:11px;background:rgba(8,12,31,.22)}
+.custom-roster-item.on{border-color:rgba(222,202,244,.52);background:rgba(151,128,190,.18);box-shadow:0 0 18px rgba(130,106,176,.12)}
+.custom-roster-item>button:first-child,.archive-item>button:first-child{display:flex;align-items:center;gap:8px;border:0;background:transparent;padding:6px 10px;cursor:pointer;text-align:left}
+.custom-roster-item i,.archive-item i{display:grid;place-items:center;flex:0 0 27px;width:27px;height:27px;border-radius:50%;background:linear-gradient(145deg,rgba(255,211,228,.28),rgba(185,216,255,.20));color:#fff;font-style:normal;font-size:12px}
+.custom-roster-item span,.archive-item span{display:grid;gap:2px;min-width:0}
+.custom-roster-item b,.archive-item b{color:#fff;font-size:11px;font-weight:500;white-space:nowrap}
+.custom-roster-item small,.archive-item small{color:rgba(238,235,249,.48);font-size:9px;white-space:nowrap}
+.custom-remove{width:29px;border:0;border-left:1px solid rgba(235,239,255,.09);background:transparent;color:rgba(238,235,249,.45);cursor:pointer}
+.custom-remove:hover{color:#ffc5d8;background:rgba(255,112,153,.09)}
+.archive-panel{margin-top:10px;padding-top:10px;border-top:1px solid rgba(235,239,255,.10)}
+.archive-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:9px}
+.archive-item{display:flex;align-items:stretch;min-width:0;overflow:hidden;border:1px solid rgba(235,239,255,.12);border-radius:11px;background:rgba(8,12,31,.20)}
+.archive-item>button:first-child{flex:1 1 auto;min-width:0}
+.archive-item>button:last-child{flex:0 0 auto;padding:0 10px;border:0;border-left:1px solid rgba(235,239,255,.09);background:transparent;color:rgba(238,235,249,.42);font-size:9px;cursor:pointer}
+.archive-item>button:last-child:hover{color:#ffc5d8;background:rgba(255,112,153,.09)}
+.generate-row{flex-wrap:wrap}
+.generate-row #save-custom:disabled{opacity:.45;cursor:default}
+.confirm-grid.confirm-only{grid-template-columns:1fr;max-width:1080px;margin:0 auto}
+@media(min-width:1051px){
+  body.confirm-step .confirm-only .confirm-lines{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;padding:18px 22px 20px}
+  body.confirm-step .confirm-only .confirm-line:nth-last-child(-n+2){border-bottom:0}
+  body.compact-step .custom-manager{padding:8px 11px;margin-bottom:9px}
+  body.compact-step .custom-roster{margin-top:6px}
+  body.compact-step .custom-roster-item>button:first-child{padding:5px 9px}
+  body.compact-step .custom-roster-item i{width:24px;height:24px;flex-basis:24px}
+  body.compact-step .archive-panel{position:absolute;z-index:8;left:0;right:0;margin:8px 0 0;padding:12px;border:1px solid rgba(235,239,255,.20);border-radius:14px;background:rgba(18,20,48,.96);box-shadow:0 20px 55px rgba(0,0,0,.38);backdrop-filter:blur(18px)}
+}
+@media(max-width:900px){.archive-list{grid-template-columns:1fr 1fr}.confirm-grid.confirm-only{max-width:none}}
+@media(max-width:700px){
+  .section-head .compact-action{width:auto;margin-top:12px}
+  .custom-manager-head{align-items:flex-start}
+  .archive-list{grid-template-columns:1fr}
+  .custom-roster{margin-right:-5px}
+}
+/* 管理面板展开时参与排版，不遮住编辑器；确认卡占满可用宽度。 */
+.confirm-grid.confirm-only{width:100%}
+@media(min-width:1051px){
+  body.compact-step .archive-panel{position:static;left:auto;right:auto;margin-top:8px;padding:10px 0 0;border:0;border-top:1px solid rgba(235,239,255,.10);border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none}
+}
+
+/* 开局选择：中央主卡 + 前后预览，保持左右轮播但建立清晰的视觉层级。 */
+.opening-picker{position:relative;margin-top:13px;padding:15px 18px 17px;overflow:hidden;border-radius:20px;background:linear-gradient(145deg,rgba(39,37,79,.60),rgba(18,20,48,.42))}
+.opening-picker:before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(42% 160% at 50% 100%,rgba(255,152,199,.13),transparent 72%),linear-gradient(90deg,rgba(132,190,255,.04),transparent 28%,transparent 72%,rgba(255,174,210,.05))}
+.opening-picker-head{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:13px;padding:0 2px}
+.opening-picker-head h3{margin-top:5px;font-size:17px;font-weight:600;letter-spacing:.06em}
+.opening-picker-head>span{max-width:560px;color:rgba(237,235,249,.48);font-size:10px;line-height:1.55;text-align:right}
+.opening-switcher{position:relative;z-index:1;display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:11px;max-width:1480px;margin:0 auto}
+.opening-stage{display:grid;grid-template-columns:minmax(150px,.52fr) minmax(380px,1.45fr) minmax(150px,.52fr);align-items:stretch;gap:9px;min-width:0}
+.opening-arrow{display:grid;place-items:center;width:44px;height:44px;align-self:center;border:1px solid rgba(238,240,255,.18);border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.13),rgba(8,12,31,.20));color:rgba(255,255,255,.72);box-shadow:inset 0 1px rgba(255,255,255,.12),0 12px 30px -22px #000;cursor:pointer;transition:.2s ease}
+.opening-arrow span{display:block;margin-top:-2px;font:300 29px/1 'Outfit',sans-serif}
+.opening-arrow:hover{border-color:rgba(255,218,234,.58);color:#fff;background:rgba(255,255,255,.18);box-shadow:0 0 24px rgba(255,151,198,.16)}
+.opening-arrow:active{transform:scale(.96)}
+.opening-neighbor{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:12px 14px;border:1px solid rgba(235,239,255,.10);border-radius:15px;background:linear-gradient(145deg,rgba(8,12,31,.22),rgba(255,255,255,.035));color:rgba(245,244,255,.58);cursor:pointer;text-align:left;transition:.2s ease}
+.opening-neighbor-next{text-align:right;align-items:flex-end}
+.opening-neighbor:hover{border-color:rgba(235,239,255,.27);color:rgba(255,255,255,.78);background:rgba(255,255,255,.08);transform:translateY(-1px)}
+.opening-neighbor>span{color:rgba(222,217,239,.35);font:500 8px/1 'Outfit';letter-spacing:.18em}
+.opening-neighbor>b{display:block;max-width:100%;margin-top:7px;overflow:hidden;font-size:11px;font-weight:600;text-overflow:ellipsis;white-space:nowrap}
+.opening-neighbor>small{display:block;max-width:100%;margin-top:4px;overflow:hidden;color:rgba(233,230,245,.35);font-size:8.5px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
+.opening-slide{position:relative;display:grid;grid-template-columns:84px minmax(0,1fr) auto;align-items:center;gap:17px;min-height:92px;padding:15px 19px;border:1px solid rgba(244,222,236,.47);border-radius:17px;background:linear-gradient(125deg,rgba(255,218,233,.17),rgba(143,177,236,.13) 54%,rgba(255,255,255,.07));box-shadow:inset 0 1px rgba(255,255,255,.14),0 16px 42px -30px rgba(255,153,201,.72);overflow:hidden}
+.opening-slide:before{content:'Opening';position:absolute;right:24px;top:-17px;color:rgba(255,255,255,.035);font:400 76px/1 'Pinyon Script',cursive;pointer-events:none}
+.opening-slide.custom{border-color:rgba(255,199,226,.68);background:linear-gradient(125deg,rgba(255,194,221,.22),rgba(167,201,255,.16),rgba(255,255,255,.08))}
+.opening-number{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:center;align-self:stretch;padding-right:17px;border-right:1px solid rgba(243,238,251,.15)}
+.opening-number>b{color:#fff;font:500 32px/.9 'Outfit',sans-serif;letter-spacing:-.03em;text-shadow:0 4px 16px rgba(255,172,208,.28)}
+.opening-number>span{margin:0 0 2px 5px;color:rgba(236,232,247,.40);font:400 9px/1 'Outfit';letter-spacing:.06em}
+.opening-number i{font-style:normal}
+.opening-slide-copy{position:relative;z-index:1;display:grid;min-width:0;gap:4px}
+.opening-slide-copy em{color:rgba(231,226,244,.42);font:500 8px/1 'Outfit';font-style:normal;letter-spacing:.18em}
+.opening-slide-copy>b{overflow:hidden;color:#fff;font-size:17px;font-weight:600;letter-spacing:.04em;text-overflow:ellipsis;white-space:nowrap}
+.opening-slide-copy>p{overflow:hidden;max-width:760px;color:rgba(245,242,252,.64);font-size:10.5px;line-height:1.55;text-overflow:ellipsis;white-space:nowrap}
+.opening-dots{position:relative;z-index:1;display:flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid rgba(238,239,252,.10);border-radius:999px;background:rgba(8,11,28,.16)}
+.opening-dots i{display:block;width:4px;height:4px;border-radius:50%;background:rgba(237,233,247,.23);transition:.2s ease}
+.opening-dots i.on{width:16px;border-radius:999px;background:linear-gradient(90deg,#ffc3dc,#cce6ff);box-shadow:0 0 12px rgba(255,177,210,.30)}
+.custom-opening{position:relative;z-index:1;max-width:1120px;margin:11px auto 0;padding:11px 12px 0;border-top:1px solid rgba(235,239,255,.11)}
+.custom-opening label{display:block;margin:0 0 6px 2px;color:rgba(255,255,255,.72);font-size:10.5px;letter-spacing:.06em}
+.custom-opening textarea{min-height:76px;padding:10px 12px;resize:vertical;font-size:11px;line-height:1.6}
+.custom-opening small{position:absolute;right:22px;bottom:7px;color:var(--faint);font-size:9px}
+.custom-opening.hidden{display:none}
+body.compact-step .opening-picker{margin-top:9px;padding:11px 14px 13px}
+body.compact-step .opening-picker-head{margin-bottom:9px}
+body.compact-step .opening-picker-head h3{font-size:15px}
+body.compact-step .opening-stage{grid-template-columns:minmax(130px,.45fr) minmax(350px,1.5fr) minmax(130px,.45fr)}
+body.compact-step .opening-slide{min-height:76px;padding-top:11px;padding-bottom:11px}
+body.compact-step .opening-neighbor{padding-top:9px;padding-bottom:9px}
+body.compact-step .custom-opening textarea{min-height:60px}
+@media(max-width:1100px){
+  .opening-stage{grid-template-columns:minmax(0,1fr)}
+  .opening-neighbor{display:none}
+}
+@media(max-width:700px){
+  .opening-picker{padding:13px 12px 14px}
+  .opening-picker-head{display:block;margin-bottom:10px}
+  .opening-picker-head>span{display:block;margin-top:6px;text-align:left}
+  .opening-switcher{grid-template-columns:36px minmax(0,1fr) 36px;gap:7px}
+  .opening-arrow{width:36px;height:36px}
+  .opening-arrow span{font-size:24px}
+  .opening-slide{grid-template-columns:54px minmax(0,1fr);gap:12px;min-height:92px;padding:13px 14px}
+  .opening-number{padding-right:11px}
+  .opening-number>b{font-size:25px}
+  .opening-slide-copy>b{font-size:14px}
+  .opening-slide-copy>p{white-space:normal;font-size:9.5px}
+  .opening-dots{grid-column:1/-1;justify-self:center;margin-top:-2px;padding:5px 8px}
+  .custom-opening{padding-left:2px;padding-right:2px}
+  .custom-opening textarea{min-height:110px}
+}
+
+/* 我推步骤保持固定主播卡片的完整尺寸；仅这一页放宽画布，不压缩人物信息。 */
+@media(min-width:1051px){
+  body.oshi-step .app{width:min(2240px,calc(100% - 28px))}
+  body.oshi-step .oshi-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+  body.oshi-step .oshi-card{min-height:205px}
+  body.oshi-step .oshi-art{flex:0 0 150px;height:auto;min-height:205px}
+  body.oshi-step .oshi-body{gap:6px;padding:14px 16px 15px}
+  body.oshi-step .oshi-top b{font-size:16px}
+  body.oshi-step .oshi-slot{font-size:10.5px}
+  body.oshi-step .oshi-scale{font-size:10px}
+  body.oshi-step .oshi-blurb{font-size:11.5px;line-height:1.58}
+  body.oshi-step .oshi-tags em{font-size:9px}
+  body.oshi-step .oshi-gain{margin-top:auto;padding-top:9px;font-size:10px}
+  body.oshi-step .opening-picker{margin-top:12px}
+}
+@media(min-width:1051px) and (max-width:1750px){
+  body.oshi-step .app{width:calc(100% - 28px)}
+  body.oshi-step .oshi-art{flex-basis:132px}
+  body.oshi-step .oshi-body{padding-left:13px;padding-right:13px}
+  body.oshi-step .oshi-blurb{font-size:10.5px}
+}
+@media(max-width:700px){
+  body.oshi-step .opening-slide{display:block;min-height:118px;padding:15px 14px 13px}
+  body.oshi-step .opening-slide:before{display:none}
+  body.oshi-step .opening-number{position:absolute;right:13px;top:13px;display:flex;align-items:flex-end;height:auto;padding:0;border:0}
+  body.oshi-step .opening-number>b{font-size:22px}
+  body.oshi-step .opening-number>span{font-size:8px}
+  body.oshi-step .opening-slide-copy{padding-right:52px}
+  body.oshi-step .opening-slide-copy>b{margin-top:3px;font-size:15px;white-space:normal}
+  body.oshi-step .opening-slide-copy>p{margin-top:4px;font-size:10px;line-height:1.5;white-space:normal}
+  body.oshi-step .opening-dots{display:flex;justify-content:center;width:max-content;margin:13px auto 0;padding:5px 8px}
+}
+
+/* 03 步最终排版：桌面填满剩余高度，移动端使用完整宽度的单卡轮播。 */
+@media(min-width:1051px){
+  body.oshi-step .shell{height:calc(100vh - var(--frame)*2)}
+  body.oshi-step .main{min-height:0;overflow:hidden}
+  body.oshi-step .panel[data-panel="3"].active{display:flex;flex-direction:column;height:100%;min-height:0}
+  body.oshi-step .section-head{flex:0 0 auto}
+  body.oshi-step .oshi-grid{flex:0 0 auto}
+  body.oshi-step .opening-picker{
+    flex:1 1 auto;min-height:178px;
+    display:grid;grid-template-columns:210px minmax(0,1fr);grid-template-rows:1fr auto;
+    align-items:center;gap:0 20px;margin-top:12px;padding:18px 22px;
+  }
+  body.oshi-step .opening-picker-head{
+    display:flex;flex-direction:column;align-items:flex-start;justify-content:center;align-self:stretch;
+    margin:0;padding:4px 22px 4px 4px;border-right:1px solid rgba(235,239,255,.12);
+  }
+  body.oshi-step .opening-picker-head h3{font-size:20px}
+  body.oshi-step .opening-picker-head>span{margin-top:12px;text-align:left;line-height:1.7}
+  body.oshi-step .opening-switcher{width:100%;max-width:none;margin:0}
+  body.oshi-step .opening-stage{grid-template-columns:minmax(180px,.48fr) minmax(480px,1.35fr) minmax(180px,.48fr);gap:12px}
+  body.oshi-step .opening-slide{min-height:122px;padding:20px 24px}
+  body.oshi-step .opening-slide-copy>b{font-size:20px}
+  body.oshi-step .opening-slide-copy>p{font-size:11.5px;line-height:1.6}
+  body.oshi-step .opening-neighbor{min-height:106px;padding:16px 17px}
+  body.oshi-step .opening-neighbor>b{font-size:12px}
+  body.oshi-step .opening-neighbor>small{font-size:9px;line-height:1.5}
+  body.oshi-step .custom-opening{grid-column:2;align-self:end;width:100%;max-width:none;margin:12px 0 0}
+}
+@media(min-width:1051px) and (max-height:880px){
+  body.oshi-step .oshi-card{min-height:190px}
+  body.oshi-step .oshi-art{min-height:190px}
+  body.oshi-step .opening-picker{min-height:158px;padding-top:13px;padding-bottom:13px}
+  body.oshi-step .opening-slide{min-height:100px;padding-top:15px;padding-bottom:15px}
+  body.oshi-step .opening-neighbor{min-height:90px}
+}
+@media(max-width:1100px) and (min-width:701px){
+  body.oshi-step .opening-picker{display:block}
+  body.oshi-step .opening-picker-head{display:flex;flex-direction:row;align-items:flex-end;justify-content:space-between;margin-bottom:11px;padding:0;border:0}
+  body.oshi-step .opening-picker-head>span{margin:0;text-align:right}
+}
+@media(max-width:700px){
+  body.oshi-step .opening-picker{display:block;margin-top:11px;padding:14px 13px 15px;overflow:hidden}
+  body.oshi-step .opening-picker-head{display:block;margin:0 0 10px;padding:0;border:0}
+  body.oshi-step .opening-picker-head h3{font-size:16px}
+  body.oshi-step .opening-picker-head>span{display:none}
+  body.oshi-step .opening-switcher{position:relative;display:block;max-width:none;margin:0}
+  body.oshi-step .opening-stage{display:block;width:100%}
+  body.oshi-step .opening-neighbor{display:none}
+  body.oshi-step .opening-slide{
+    position:relative;display:block;box-sizing:border-box;width:100%;min-height:154px;
+    padding:20px 52px 54px;text-align:center;
+  }
+  body.oshi-step .opening-slide:before{display:none}
+  body.oshi-step .opening-number{position:absolute;right:14px;top:13px;display:flex;align-items:flex-end;height:auto;padding:0;border:0}
+  body.oshi-step .opening-number>b{font-size:20px}
+  body.oshi-step .opening-number>span{font-size:8px}
+  body.oshi-step .opening-slide-copy{display:block;padding:0}
+  body.oshi-step .opening-slide-copy em{display:block;margin-bottom:8px;font-size:7.5px}
+  body.oshi-step .opening-slide-copy>b{display:block;margin:0;font-size:17px;line-height:1.25;white-space:normal}
+  body.oshi-step .opening-slide-copy>p{display:block;margin:8px auto 0;max-width:230px;font-size:10px;line-height:1.55;white-space:normal}
+  body.oshi-step .opening-dots{position:absolute;left:50%;bottom:18px;display:flex;width:max-content;margin:0;padding:5px 8px;transform:translateX(-50%)}
+  body.oshi-step .opening-arrow{position:absolute;z-index:5;bottom:13px;width:34px;height:34px;margin:0}
+  body.oshi-step #opening-prev{left:11px}
+  body.oshi-step #opening-next{right:11px}
+  body.oshi-step .custom-opening{width:100%;margin-top:10px;padding:10px 0 0}
+}
+
+/* 主播页码与 03 步比例修正：人物是主视觉，开局选择保持紧凑。 */
+.oshi-pagination{display:flex;align-items:center;justify-content:center;gap:10px;width:min(260px,70%);margin:10px auto 0;color:rgba(239,237,250,.48);font:400 10px/1 'Outfit','Noto Sans SC';letter-spacing:.12em}
+.oshi-pagination>i{display:block;flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(237,232,248,.20))}
+.oshi-pagination>i:last-child{background:linear-gradient(90deg,rgba(237,232,248,.20),transparent)}
+.oshi-pagination>span{display:flex;align-items:baseline;gap:5px;padding:6px 12px;border:1px solid rgba(235,239,255,.12);border-radius:999px;background:rgba(8,12,31,.16)}
+.oshi-pagination b{color:#fff;font:600 15px/1 'Outfit'}
+.oshi-pagination em{color:rgba(239,237,250,.28);font-style:normal}
+@media(min-width:1051px){
+  body.oshi-step .oshi-grid{gap:14px}
+  body.oshi-step .oshi-card{min-height:238px}
+  body.oshi-step .oshi-art{flex-basis:185px;min-height:238px}
+  body.oshi-step .oshi-body{padding:16px 17px 16px}
+  body.oshi-step .oshi-top b{font-size:17px}
+  body.oshi-step .oshi-blurb{font-size:11.5px;line-height:1.62}
+  body.oshi-step .oshi-pagination{flex:0 0 auto;margin-top:9px}
+  body.oshi-step .opening-picker{
+    flex:0 0 184px;min-height:184px;max-height:184px;
+    grid-template-columns:190px minmax(0,1fr);padding:14px 20px;margin-top:9px;
+  }
+  body.oshi-step .opening-picker.custom-active{flex-basis:272px;min-height:272px;max-height:272px}
+  body.oshi-step .opening-picker-head{padding-right:18px}
+  body.oshi-step .opening-picker-head h3{font-size:18px}
+  body.oshi-step .opening-picker-head>span{margin-top:9px}
+  body.oshi-step .opening-slide{min-height:108px;padding:16px 21px}
+  body.oshi-step .opening-slide-copy>b{font-size:18px}
+  body.oshi-step .opening-neighbor{min-height:94px;padding:13px 15px}
+}
+@media(min-width:1051px) and (max-width:1750px){
+  body.oshi-step .oshi-card{min-height:220px}
+  body.oshi-step .oshi-art{flex-basis:155px;min-height:220px}
+  body.oshi-step .oshi-body{padding:14px 14px 15px}
+  body.oshi-step .opening-picker{flex-basis:172px;min-height:172px;max-height:172px}
+}
+@media(min-width:1051px) and (max-height:880px){
+  body.oshi-step .oshi-card{min-height:205px}
+  body.oshi-step .oshi-art{min-height:205px}
+  body.oshi-step .oshi-pagination{margin-top:6px}
+  body.oshi-step .opening-picker{flex-basis:150px;min-height:150px;max-height:150px;margin-top:6px;padding-top:10px;padding-bottom:10px}
+  body.oshi-step .opening-picker.custom-active{flex-basis:240px;min-height:240px;max-height:240px}
+  body.oshi-step .opening-slide{min-height:92px;padding-top:12px;padding-bottom:12px}
+  body.oshi-step .opening-neighbor{min-height:82px}
+}
+@media(max-width:700px){
+  .oshi-pagination{width:min(230px,76%);margin-top:11px}
+  body.oshi-step .opening-picker,body.oshi-step .opening-picker.custom-active{min-height:0;max-height:none}
+}
+
+/* PC 端我推页按内容自然增高，页脚跟在内容之后，避免开局卡被定高容器裁掉。 */
+@media(min-width:1051px){
+  body.oshi-step .shell{height:auto;min-height:calc(100vh - var(--frame)*2)}
+  body.oshi-step .main{min-height:0;overflow:visible}
+  body.oshi-step .panel[data-panel="3"].active{height:auto;min-height:0}
+  body.oshi-step .opening-picker{flex:none}
+}
+
+/* Mobile and tablet finish guard: keep the final action inside the visible iframe viewport.
+   The host opens this page in a full-screen iframe; on short screens the final
+   profile can be taller than the iframe, so the action bar follows the scroll
+   edge instead of sitting below the last visible line. */
+@media(max-width:1050px){
+  body.confirm-step .shell{overflow:visible}
+  body.confirm-step .footer{
+    position:sticky;
+    bottom:0;
+    z-index:20;
+    padding:10px 15px max(12px,env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,rgba(47,45,91,.94),rgba(28,29,67,.98));
+    box-shadow:0 -14px 34px rgba(12,10,35,.24),inset 0 1px rgba(255,255,255,.12);
+    backdrop-filter:blur(20px) saturate(1.2);
+    -webkit-backdrop-filter:blur(20px) saturate(1.2)
+  }
+  body.confirm-step .footer-note{display:none}
+  body.confirm-step .footer-actions{display:grid;width:100%;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  body.confirm-step .footer-actions button{min-height:48px}
+}
+
+/* Streamer profile generation status: keep API/parse failures visible instead of replacing them. */
+.generate-row #generate-status{min-width:0;line-height:1.55;overflow-wrap:anywhere}
+.generate-row #generate-status.working{color:#b9d8ff}
+.generate-row #generate-status.ok{color:#9fe2c5}
+.generate-row #generate-status.error{flex:1 1 100%;padding:9px 11px;border:1px solid rgba(255,118,146,.34);border-radius:10px;color:#ffb4c4;background:rgba(106,18,46,.22);font-size:12px;white-space:pre-wrap}
+
+/* Existing main-HUD character themes, exposed as an optional custom-streamer palette. */
+.theme-field>small{display:block;margin-top:7px;color:var(--faint);font-size:10px;line-height:1.5}
+.theme-options{display:flex;flex-wrap:wrap;gap:7px}
+.theme-choice{display:inline-flex;align-items:center;gap:7px;min-height:31px;padding:5px 9px;border:1px solid rgba(230,235,255,.16);border-radius:10px;color:var(--mute);background:rgba(7,12,31,.22);cursor:pointer;transition:.18s}
+.theme-choice:hover{color:var(--ink);border-color:rgba(230,235,255,.32);transform:translateY(-1px)}
+.theme-choice i{width:14px;height:14px;flex:0 0 auto;border:1px solid rgba(255,255,255,.48);border-radius:50%;background:var(--theme-swatch);box-shadow:0 0 10px rgba(255,255,255,.18)}
+.theme-choice span{font-size:11px;white-space:nowrap}
+.theme-choice.on{color:#fff;border-color:rgba(255,255,255,.48);background:rgba(255,255,255,.13);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+.theme-choice.on i{box-shadow:0 0 0 3px rgba(255,255,255,.12),0 0 16px rgba(255,255,255,.28)}
+body.compact-step .theme-options{gap:5px}
+body.compact-step .theme-choice{min-height:27px;padding:3px 7px}
+
+
+/* TT mobile WebViews may expose a landscape tablet as 1200-1600 CSS pixels.
+   Width-only desktop breakpoints then force four horizontal cards into one row and
+   leave each copy column only a few characters wide. The runtime adds
+   html.touch-device from UA/pointer facts so tablet cards stay readable. */
+@media (min-width:1351px) and (max-width:2200px) {
+  html.touch-device body.oshi-step .oshi-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+  html.touch-device body.oshi-step .oshi-card { min-height:238px; }
+  html.touch-device body.oshi-step .oshi-art { flex:0 0 42%; min-height:238px; }
+  html.touch-device body.oshi-step .oshi-body { padding:15px 17px 16px; }
+  html.touch-device body.oshi-step .oshi-blurb { font-size:11.5px; line-height:1.62; }
+}
+@media (min-width:1051px) and (max-width:1350px) {
+  html.touch-device body.oshi-step .oshi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; }
+  html.touch-device body.oshi-step .oshi-card { min-height:230px; }
+  html.touch-device body.oshi-step .oshi-art { flex:0 0 40%; min-height:230px; }
+}
+
+/* A touch tablet needs stable content sizes, not the desktop one-screen compression.
+   TT can report a wide CSS viewport together with a short visual viewport; the
+   desktop flex rules then shrink the map to ~260px and stretch the opening picker. */
+@media (min-width:1051px) and (max-width:2200px) {
+  html.touch-device body.life-map-step .shell { height:auto; min-height:calc(100vh - var(--frame)*2); }
+  html.touch-device body.life-map-step .main { overflow:visible; }
+  html.touch-device body.life-map-step .panel[data-panel="2"].active { height:auto; }
+  html.touch-device body.life-map-step .life-map-layout {
+    display:grid; grid-template-columns:minmax(0,1.55fr) minmax(400px,.85fr); gap:14px; align-items:stretch;
+  }
+  html.touch-device body.life-map-step .opening-map-card { display:flex; flex-direction:column; }
+  html.touch-device body.life-map-step .opening-map-viewport { flex:none; height:clamp(520px,34vw,680px); min-height:520px; }
+  html.touch-device body.life-map-step .life-inspector { align-content:stretch; grid-template-rows:1fr 1fr; }
+  html.touch-device body.life-map-step .life-selection-card { height:auto; }
+
+  html.touch-device body.oshi-step .opening-picker,
+  html.touch-device body.oshi-step .opening-picker.custom-active {
+    display:block; flex:none; min-height:0; max-height:none; margin-top:12px; padding:16px 18px 18px; overflow:visible;
+  }
+  html.touch-device body.oshi-step .opening-picker-head {
+    display:flex; flex-direction:row; align-items:flex-end; justify-content:space-between; margin:0 0 12px; padding:0; border:0;
+  }
+  html.touch-device body.oshi-step .opening-picker-head>span { margin:0; max-width:58%; text-align:right; }
+  html.touch-device body.oshi-step .opening-switcher {
+    position:relative; display:grid; grid-template-columns:48px minmax(0,1fr) 48px; gap:10px; width:100%; max-width:none; margin:0;
+  }
+  html.touch-device body.oshi-step .opening-stage { display:block; width:100%; min-width:0; }
+  html.touch-device body.oshi-step .opening-neighbor { display:none; }
+  html.touch-device body.oshi-step .opening-slide {
+    position:relative; display:grid; grid-template-columns:92px minmax(0,1fr); gap:18px; width:100%; min-height:132px; padding:18px 22px;
+  }
+  html.touch-device body.oshi-step .opening-number { position:static; display:flex; align-items:flex-end; justify-content:center; height:auto; padding:0 18px 0 0; }
+  html.touch-device body.oshi-step .opening-slide-copy { display:flex; flex-direction:column; justify-content:center; min-width:0; padding:0; }
+  html.touch-device body.oshi-step .opening-slide-copy>p { white-space:normal; }
+  html.touch-device body.oshi-step .opening-dots { grid-column:1/-1; justify-self:center; margin-top:4px; }
+  html.touch-device body.oshi-step .opening-arrow { align-self:stretch; width:48px; height:auto; min-height:132px; margin:0; }
+  html.touch-device body.oshi-step .custom-opening {
+    position:relative; z-index:12; display:block; width:100%; margin:12px 0 0; padding:12px 0 0; pointer-events:auto;
+  }
+  html.touch-device body.oshi-step .custom-opening.hidden { display:none!important; }
+  html.touch-device #custom-opening-text {
+    position:relative; z-index:1; width:100%; min-height:150px; pointer-events:auto; touch-action:manipulation;
+    -webkit-user-select:text; user-select:text; -webkit-touch-callout:default;
+  }
+}
