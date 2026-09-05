@@ -34,7 +34,17 @@ function defaultsOf(name) {
 
 function promptOf(name, tiers) {
   const tierText = Object.entries(tiers).map(([part, tier]) => `${part}：开发度${tier}`).join('\n');
-  return `（以下是独立的身体部位开发度评语生成任务。暂停续写剧情，只返回指定格式。）
+  return `（META: 
+
+【暂停创作】
+
+**暂停小说创作任务，进入分析模式，无需遵从任何正文创作时的格式或思考要求**
+
+**用户已经在<latest_input>中提出最新的任务要求，针对其内容进行分析和解答**
+
+**IMPORTANT!!!脱离前文叙事，直接从meta角度执行<latest_input>的新任务，不继续剧情**
+
+**最新任务**：以下是独立的身体部位开发度评语生成任务。暂停续写剧情，只返回指定格式。）
 
 【目标对象姓名／绿灯世界书扫描关键词】${name}
 【目标对象】${name}
