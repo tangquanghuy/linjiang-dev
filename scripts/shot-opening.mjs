@@ -154,7 +154,7 @@ await page.evaluate(() => {
 });
 await page.waitForTimeout(200);
 
-// 七位已定稿主播：底盘热度 → 档位的反解
+// 九位已定稿主播：底盘热度 → 档位的反解
 console.log('\n已定稿主播的档位反解（底盘热度取自 正文美化.html 的 LR_HOSTS.pop）:');
 for (const [name, pop] of [['时雨羽衣', 1200], ['红蔷薇', 2800], ['斯黛拉', 3100], ['沙花叉', 3600], ['东雪莲', 4200], ['璃亚梦', 6310], ['塔菲', 18240]]) {
   // 先按热度找档位，再看这个档位推出来的粉丝数
@@ -193,7 +193,7 @@ console.log('  系统配置.直播间.沈遥.代表色 =', customTheme);
 /* 拿 变量初始化 里塔菲的形状当基准，比一遍新主播缺不缺块 */
 const canonShape = ['羁绊', '位置', '性经历', '开发度', '生理', '直播'];
 const missing = canonShape.filter(k => !parsed.mvu.对象信息.沈遥[k]);
-console.log('  跟七位主播比缺的块:', missing.length ? missing.join(',') : '无');
+console.log('  跟九位主播比缺的块:', missing.length ? missing.join(',') : '无');
 const dev = parsed.mvu.对象信息.沈遥.开发度;
 console.log('  开发度四个部位齐全:', ['口腔', '胸', '小穴', '肛门'].every(k => dev[k] && typeof dev[k].档位 === 'number'));
 console.log('  性经历条目数:', Object.keys(parsed.mvu.对象信息.沈遥.性经历).length, '（应为 13）');
@@ -210,8 +210,8 @@ await phone.fill('#player-name', '林舟');
 await phone.evaluate(() => { document.querySelector('.step-tab[data-step="3"]').click(); });
 await phone.waitForTimeout(600);
 await phone.click('[data-oshi="塔菲"]');
-await phone.click('[data-oshi="璃亚梦"]');
-// 七张封面全部等到 complete，否则 fullPage 截出来是一排空框
+await phone.click('[data-oshi="神乐七奈"]');
+// 九张封面全部等到 complete，否则 fullPage 截出来是一排空框
 await phone.waitForFunction(() => [...document.querySelectorAll('.oshi-art img')].every(i => i.complete), null, { timeout: 20000 });
 await phone.waitForTimeout(700);
 await phone.screenshot({ path: `${OUT}/m-step3-oshi.png`, fullPage: true });

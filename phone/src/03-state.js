@@ -98,7 +98,7 @@ function getContactStream(contact) {
 // ==================== Character avatar configuration ====================
 const PHONE_AVATAR_BASE = 'https://anchor.bolt.qzz.io/' + encodeURIComponent('头像') + '/';
 const PHONE_BUILTIN_STREAMERS = new Set([
-    '东雪莲', '塔菲', '沙花叉', '时雨羽衣', '红蔷薇', '斯黛拉', '璃亚梦',
+    '东雪莲', '塔菲', '沙花叉', '时雨羽衣', '红蔷薇', '斯黛拉', '璃亚梦', '兔子洞初音', '神乐七奈',
 ]);
 const PHONE_CUSTOM_COVER_PREFIX = 'custom_char_cover_';
 

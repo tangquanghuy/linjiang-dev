@@ -1,7 +1,7 @@
 /**
  * 变量初始化 自检：
  *   1. 每个 位置.区域 都是「{真实行政区} · {真实地图节点名}」
- *   2. 玩家和七位主播的住处互不重复
+ *   2. 玩家和九位主播的住处互不重复
  *   3. 玩家 居住地 与 房产 的区域一致，且工作地点是真实节点
  * 用法：node scripts/check-init-vars.mjs
  */
@@ -16,7 +16,7 @@ const nodeNames = new Set(D.nodes.map(n => n.name));
 const districts = new Set(D.nodes.map(n => n.district));
 const nodeByName = new Map(D.nodes.map(n => [n.name, n]));
 
-const girls = ['东雪莲', '塔菲', '沙花叉', '时雨羽衣', '红蔷薇', '斯黛拉', '璃亚梦'];
+const girls = ['东雪莲', '塔菲', '沙花叉', '时雨羽衣', '红蔷薇', '斯黛拉', '璃亚梦', '兔子洞初音', '神乐七奈'];
 
 /** 抓某个缩进块下的第一个 位置:{区域,场所,私密度} */
 function 位置块(anchorRe) {

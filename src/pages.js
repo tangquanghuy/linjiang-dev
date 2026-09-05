@@ -698,8 +698,12 @@ function blueprintUseButton(cls = 'item-use') {
 /* Three kinds now, and they behave differently: 素材 are spent on crafting, 消耗品
    are spent on use and carry a universal 强度 1~5, 用品 are durable and instead
    carry 佩戴 -- so the meta line differs per kind rather than being one field. */
+const inventoryText = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+})[char]);
+
 function itemCard(item, kind, selected = new Map()) {
-  const meta = kind === 'material' ? item.source
+  const meta = kind === 'material' ? '素材'
     : kind === 'consumable' ? `强度 ${item.potency} / 5`
       : [item.rarity, item.worn ? '佩戴中' : '未佩戴'].filter(Boolean).join(' · ');
   /* The same cell the drawer and the portrait rows use: category art, with the hue-derived
@@ -716,7 +720,7 @@ function itemCard(item, kind, selected = new Map()) {
       style="--hue:${icon.hue}; --tilt:${icon.tilt}deg; --scale:${icon.scale}${
         kind === 'consumable' ? `; --potency:${item.potency}` : ''}">
       <label class="item-select" title="选择销毁">
-        <input type="checkbox" data-inv-select="${payload}" ${selected.has(key) ? 'checked' : ''} aria-label="选择销毁 ${item.name}">
+        <input type="checkbox" data-inv-select="${payload}" ${selected.has(key) ? 'checked' : ''} aria-label="选择销毁 ${inventoryText(item.name)}">
         <span></span>
       </label>
       <div class="item-cell">
@@ -724,71 +728,83 @@ function itemCard(item, kind, selected = new Map()) {
         <span class="item-gem ${kind}"></span>
         ${potencyNotches(kind === 'consumable' ? item.potency : 0)}
       </div>
-      <div class="item-copy"><h3>${item.name}</h3><p>${item.description}</p><span>${icon.label} · ${meta}</span></div>
+      <button type="button" class="item-copy" data-inv-detail="${payload}" aria-label="查看 ${inventoryText(item.name)} 详情">
+        <h3 title="${inventoryText(item.name)}">${inventoryText(item.name)}</h3>
+        <span>${inventoryText(icon.label)} · ${inventoryText(meta)}</span>
+      </button>
       ${item.name === MAP_MARKER_ITEM ? blueprintUseButton() : ''}
-      <b>${kind === 'goods' ? (item.worn ? '装备' : `×${item.quantity}`) : `×${item.quantity}`}</b>
+      <b>×${item.quantity}</b>
     </article>`;
 }
 
-/* 3×3 fills the sheet without scrolling: two rows left a hole, four overflowed
-   the body.  Extra items turn the board rather than lengthening it. */
-const INVENTORY_LEAF = 9;
+/* Filter before slicing; replace the grid and footer together on every turn. */
+const INVENTORY_LEAF = 12;
 const INVENTORY_KINDS = [
-  { kind: 'material', title: '素材', note: '采集与合成', take: () => player.inventory.materials },
-  { kind: 'consumable', title: '消耗品', note: '使用后数量 -1', take: () => player.inventory.consumables },
-  { kind: 'goods', title: '用品', note: '耐久品 · 使用不扣数量', take: () => player.inventory.goods },
+  { kind: 'material', title: '素材', take: () => player.inventory.materials },
+  { kind: 'consumable', title: '消耗品', take: () => player.inventory.consumables },
+  { kind: 'goods', title: '用品', take: () => player.inventory.goods },
 ];
 
-function inventoryEntries() {
-  return INVENTORY_KINDS.flatMap(({ kind, take }) => take().map((item) => ({ item, kind })));
+function inventoryEntries(kind = 'all') {
+  return INVENTORY_KINDS.filter((def) => kind === 'all' || kind === def.kind)
+    .flatMap(({ kind, take }) => take().map((item) => ({ item, kind })));
 }
 
-function inventoryBoard(leaf = 0, selected = new Map()) {
-  const all = inventoryEntries();
+function inventoryBoard(leaf = 0, selected = new Map(), kind = 'all') {
+  const all = inventoryEntries(kind);
   const pages = Math.max(1, Math.ceil(all.length / INVENTORY_LEAF));
   const cur = Math.max(0, Math.min(leaf, pages - 1));
   const slice = all.slice(cur * INVENTORY_LEAF, (cur + 1) * INVENTORY_LEAF);
-  const groups = INVENTORY_KINDS
-    .map((def) => ({ ...def, items: slice.filter((row) => row.kind === def.kind).map((row) => row.item) }))
-    .filter((group) => group.items.length);
   const body = all.length
-    ? groups.map((group) => `
-        <section>
-          <header><h3>${group.title}</h3><span>${group.note}</span></header>
-          <div class="item-grid">${group.items.map((item) => itemCard(item, group.kind, selected)).join('')}</div>
-        </section>`).join('')
-    : '<div class="inventory-empty">背包是空的</div>';
-  const turns = pages > 1 ? `
-    <button class="inventory-turn is-prev" type="button" data-inv-step="-1"
-      ${cur === 0 ? 'disabled' : ''} aria-label="上一页">${ic('chevronRight')}</button>
-    <button class="inventory-turn is-next" type="button" data-inv-step="1"
-      ${cur >= pages - 1 ? 'disabled' : ''} aria-label="下一页">${ic('chevronRight')}</button>
-    <div class="inventory-leaf">${cur + 1} / ${pages}</div>` : '';
-  return `<div class="inventory-content">${body}</div>${turns}`;
+    ? `<div class="item-grid">${slice.map(({ item, kind }) => itemCard(item, kind, selected)).join('')}</div>`
+    : `<div class="inventory-empty">${kind === 'all' ? '背包是空的' : '该分类暂无物品'}</div>`;
+  return `<div class="inventory-content" tabindex="0" aria-label="物品列表">${body}</div>
+    <nav class="inventory-pagination" aria-label="背包分页">
+      <span class="inventory-range">共 ${all.length} 项 · 每页 ${INVENTORY_LEAF} 项</span>
+      <button class="inventory-turn is-prev" type="button" data-inv-step="-1"
+        ${cur === 0 ? 'disabled' : ''} aria-label="上一页">${ic('chevronRight')}<span>上一页</span></button>
+      <span class="inventory-leaf" aria-live="polite">${cur + 1} / ${pages}</span>
+      <button class="inventory-turn is-next" type="button" data-inv-step="1"
+        ${cur >= pages - 1 ? 'disabled' : ''} aria-label="下一页"><span>下一页</span>${ic('chevronRight')}</button>
+    </nav>`;
 }
 
-function inventoryPage(leaf = 0, selected = new Map(), notice = '') {
-  const { materials, consumables, goods } = player.inventory;
+function inventoryPage(leaf = 0, selected = new Map(), notice = '', kind = 'all') {
+  const tabs = [{ kind: 'all', title: '全部物品', count: inventoryEntries().length },
+    ...INVENTORY_KINDS.map((def) => ({ ...def, count: def.take().length }))];
   return pageShell('Inventory', '背包与道具', `
     <div class="inventory-layout">
-      <aside class="inventory-side">
-        <span class="is-active">全部物品 <b>${materials.length + consumables.length + goods.length}</b></span>
-        <span>素材 <b>${materials.length}</b></span>
-        <span>消耗品 <b>${consumables.length}</b></span>
-        <span>用品 <b>${goods.length}</b></span>
+      <aside class="inventory-side" aria-label="背包分类">
+        ${tabs.map((tab) => `<button type="button" data-inv-kind="${tab.kind}" aria-pressed="${kind === tab.kind}"
+          class="${kind === tab.kind ? 'is-active' : ''}">${tab.title}<b>${tab.count}</b></button>`).join('')}
         <div class="stamina-card"><small>当前体力</small><b>${player.stamina}<em>/100</em></b><i><u style="--pct:${player.stamina}%"></u></i></div>
       </aside>
       <div class="inventory-board">
         <div class="inventory-toolbar">
-          <label class="inventory-select-all"><input type="checkbox" data-inv-select-all>全选当前页</label>
+          <label class="inventory-select-all"><input type="checkbox" data-inv-select-all ${inventoryEntries(kind).length ? '' : 'disabled'}>全选当前页</label>
           <span data-inv-selected-count>已选 ${selected.size} 项</span>
           <button type="button" class="inventory-destroy" data-inv-destroy ${selected.size ? '' : 'disabled'}>销毁选中</button>
-          <em data-inv-status>${notice}</em>
+          <em data-inv-status>${inventoryText(notice)}</em>
         </div>
-        ${inventoryBoard(leaf, selected)}
+        <div class="inventory-results">${inventoryBoard(leaf, selected, kind)}</div>
       </div>
     </div>
   `, 'inventory-page');
+}
+
+function inventoryDetail(item, kind) {
+  const category = INVENTORY_KINDS.find((def) => def.kind === kind)?.title || '';
+  return `<div class="dev-sheet-shade" data-dev-close></div>
+    <section class="dev-sheet inventory-detail" role="dialog" aria-label="物品详情">
+      <header><b>${inventoryText(item.name)}</b>
+        <button class="dev-sheet-close" type="button" data-dev-close aria-label="关闭物品详情">×</button></header>
+      <div class="inventory-detail-body" tabindex="0">
+        <span>${category} · 数量 ${item.quantity}${kind === 'goods' && item.worn ? ' · 已装备' : ''}</span>
+        <p>${inventoryText(item.description || '暂无描述')}</p>
+        ${kind === 'material' && item.source ? `<small>来源：${inventoryText(item.source)}</small>` : ''}
+        ${item.name === MAP_MARKER_ITEM ? blueprintUseButton() : ''}
+      </div>
+    </section>`;
 }
 
 /* 横向的 羁绊总览 删掉了。它唯一的入口是 更多 托盘里那颗按钮，按钮一撤这页就再也走不到，
@@ -832,6 +848,8 @@ export function mountPages(stage, { onGift, onDock, onOverlay } = {}) {
   let unmountShop = null;
   let dockName = null;
   let inventoryLeaf = 0;
+  let inventoryKind = 'all';
+  let inventoryDetailTrigger = null;
   const inventorySelection = new Map();
   let inventoryNotice = '';
   const has = (sel) => !!layer.querySelector(sel);
@@ -852,6 +870,7 @@ export function mountPages(stage, { onGift, onDock, onOverlay } = {}) {
     stage.classList.toggle('has-dock', dock);
     stage.classList.toggle('has-modal', modal || overlayOpen());
     stage.classList.toggle('has-sheet', sheet);
+    viewport.classList.toggle('has-inventory', has('.inventory-page'));
     /* 覆盖层铺满视口的时候，壳层得把它那两颗浮层钮收起来，否则它们盖住地图/街机自己的
        关闭钮。报在 sync 里而不是每个 open/close 各报一次：这里是所有开合的唯一汇合点，
        bridge 侧也只在状态真变了才发消息。 */
@@ -881,7 +900,12 @@ export function mountPages(stage, { onGift, onDock, onOverlay } = {}) {
      加第三层的时候就是三行乘六处。 */
   const closeOverlays = () => { closeMap(); closeArcade(); closeCg(); closeShop(); };
 
-  const closeNote = () => { drop('.dev-sheet, .dev-sheet-shade'); sync(); };
+  const closeNote = () => {
+    drop('.dev-sheet, .dev-sheet-shade');
+    inventoryDetailTrigger?.focus({ preventScroll: true });
+    inventoryDetailTrigger = null;
+    sync();
+  };
   const closePage = () => {
     closeNote();
     closeOverlays();
@@ -976,15 +1000,23 @@ export function mountPages(stage, { onGift, onDock, onOverlay } = {}) {
   };
   onLive(repaintDock);
 
-  const paintInventoryLeaf = (delta) => {
-    const board = layer.querySelector('.inventory-board');
-    if (!board) return;
-    const pages = Math.max(1, Math.ceil(inventoryEntries().length / INVENTORY_LEAF));
-    const next = Math.max(0, Math.min(pages - 1, inventoryLeaf + delta));
-    if (next === inventoryLeaf) return;
-    inventoryLeaf = next;
-    setSafeHTML(board.querySelector('.inventory-content') || board, inventoryBoard(inventoryLeaf, inventorySelection));
+  const paintInventoryLeaf = (delta = 0) => {
+    const results = layer.querySelector('.inventory-results');
+    if (!results) return;
+    const pages = Math.max(1, Math.ceil(inventoryEntries(inventoryKind).length / INVENTORY_LEAF));
+    inventoryLeaf = Math.max(0, Math.min(pages - 1, inventoryLeaf + delta));
+    const focusedStep = document.activeElement?.dataset.invStep;
+    setSafeHTML(results, inventoryBoard(inventoryLeaf, inventorySelection, inventoryKind));
+    layer.querySelectorAll('[data-inv-kind]').forEach((button) => {
+      const active = button.dataset.invKind === inventoryKind;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
     updateInventorySelectionUI();
+    if (focusedStep) {
+      const button = results.querySelector(`[data-inv-step="${focusedStep}"]`);
+      (button && !button.disabled ? button : results.querySelector('.inventory-content'))?.focus({ preventScroll: true });
+    }
   };
 
   const updateInventorySelectionUI = () => {
@@ -994,6 +1026,7 @@ export function mountPages(stage, { onGift, onDock, onOverlay } = {}) {
     const destroy = layer.querySelector('[data-inv-destroy]');
     const selectedOnPage = checks.filter((input) => input.checked).length;
     if (all) {
+      all.disabled = checks.length === 0;
       all.checked = checks.length > 0 && selectedOnPage === checks.length;
       all.indeterminate = selectedOnPage > 0 && selectedOnPage < checks.length;
     }
@@ -1041,7 +1074,7 @@ export function mountPages(stage, { onGift, onDock, onOverlay } = {}) {
 
   const PAGES = {
     events: eventsPage,
-    inventory: () => inventoryPage(inventoryLeaf, inventorySelection, inventoryNotice),
+    inventory: () => inventoryPage(inventoryLeaf, inventorySelection, inventoryNotice, inventoryKind),
     profile: profilePage,
     schedule: schedulePage,
     settings: settingsPage,
@@ -1059,6 +1092,7 @@ export function mountPages(stage, { onGift, onDock, onOverlay } = {}) {
     if (page === 'cg') { openCg(); return; }
     if (page === 'shop') { openShop(); return; }
     if (page === 'inventory') {
+      inventoryKind = 'all';
       inventoryLeaf = 0;
       inventorySelection.clear();
       inventoryNotice = '';
@@ -1086,6 +1120,26 @@ export function mountPages(stage, { onGift, onDock, onOverlay } = {}) {
     if (applyPrefClick(event.target)) return;
     const page = event.target.closest('[data-page]');
     if (page) { open(page.dataset.page); return; }
+    const invKind = event.target.closest('[data-inv-kind]');
+    if (invKind) {
+      inventoryKind = invKind.dataset.invKind;
+      inventoryLeaf = 0;
+      paintInventoryLeaf();
+      return;
+    }
+    const detail = event.target.closest('[data-inv-detail]');
+    if (detail) {
+      const payload = JSON.parse(decodeURIComponent(detail.dataset.invDetail));
+      const row = inventoryEntries(payload.kind).find(({ item }) => item.name === payload.name);
+      if (row) {
+        closeNote();
+        inventoryDetailTrigger = detail;
+        insertSafeHTML(layer, 'beforeend', inventoryDetail(row.item, row.kind));
+        sync();
+        layer.querySelector('.inventory-detail [data-dev-close]')?.focus({ preventScroll: true });
+      }
+      return;
+    }
     const invTurn = event.target.closest('[data-inv-step]');
     if (invTurn && !invTurn.disabled) {
       paintInventoryLeaf(Number(invTurn.dataset.invStep) || 0);
@@ -1138,6 +1192,13 @@ export function mountPages(stage, { onGift, onDock, onOverlay } = {}) {
     if (relation) openCharacter(relation.dataset.openCharacter);
   });
 
+  // Let native scrolling work without forwarding boundary gestures to the host chat.
+  layer.addEventListener('wheel', (event) => {
+    if (event.target.closest('.inventory-page, .inventory-detail, .dev-sheet-shade') && has('.inventory-page')) {
+      event.stopPropagation();
+    }
+  }, { passive: true });
+
   layer.addEventListener('change', (event) => {
     const input = event.target.closest('[data-inv-select]');
     if (input) {
@@ -1164,7 +1225,7 @@ export function mountPages(stage, { onGift, onDock, onOverlay } = {}) {
     stage.dataset.pageEscapeBound = '1';
     addEventListener('keydown', (event) => {
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-        if (!has('.inventory-page')) return;
+        if (!has('.inventory-page') || has('.dev-sheet') || event.target.closest('input, textarea, select, [contenteditable]')) return;
         event.preventDefault();
         paintInventoryLeaf(event.key === 'ArrowLeft' ? -1 : 1);
         return;

@@ -17,7 +17,7 @@ document.addEventListener('touchstart',focusTouchEditor,{capture:true,passive:tr
 document.addEventListener('pointerdown',event=>{if(event.pointerType==='touch')focusTouchEditor(event)},true);
 const ART_HOST='https://anchor.bolt.qzz.io';
 const art=(folder,file)=>ART_HOST+'/'+encodeURIComponent(folder)+'/'+encodeURIComponent(file)+'.webp';
-/* 固定主播池。名字／牌子名／直播档／封面文件名对齐 外部部署/V20260826/正文美化.html 的
+/* 固定主播池。名字／牌子名／直播档／封面文件名对齐 外部部署/0906/正文美化.html 的
    LR_HOSTS，住所对齐 酒馆变量/变量初始化。
 
    followers 是唯一的作者定值，底盘热度和大航海全部由它反解出来（tierOfFollowers
@@ -27,7 +27,7 @@ const art=(folder,file)=>ART_HOST+'/'+encodeURIComponent(folder)+'/'+encodeURICo
    顺带作废：正文美化.html 里的 LR_HOSTS.pop 是旧的一张手写热度表，跟这里推出来的
    对不上（璃亚梦 6310 vs 1390、红蔷薇 2800 vs 12400），要换成从粉丝数推的值。
 
-   这七位的 粉丝数 最终该由 酒馆变量/变量初始化 写进 MVU，这一页只负责显示和挑选。 */
+   这九位的 粉丝数 最终该由 酒馆变量/变量初始化 写进 MVU，这一页只负责显示和挑选。 */
 const OSHI=[
 {name:'塔菲',cover:'塔菲',medal:'雏草姬',slot:'晚间主档 20:00–23:30',area:'西洲区 · 云庭公寓',tags:['杂谈','游戏'],followers:550000,blurb:'抽象系头部主播，夹子音开麦、满嘴贴吧黑话，弹幕节奏最快的那一间。'},
 {name:'红蔷薇',cover:'红蔷薇',medal:'亲爱的',slot:'黄昏音乐台 19:00–22:00',area:'西洲区 · 西洲永初里',tags:['唱歌','舞蹈','杂谈'],followers:400000,blurb:'不死鸟剧院的舞者，兼职开播，说话像在台上念独白。'},
@@ -35,7 +35,9 @@ const OSHI=[
 {name:'沙花叉',cover:'沙花叉',medal:'饲养员',slot:'历史常用晚间档 21:00–00:30',area:'明湖区 · 明湖云阙',tags:['杂谈','唱歌','游戏'],followers:150000,blurb:'慵懒声线的清扫屋，开播随缘，来了就是一整晚。'},
 {name:'时雨羽衣',cover:'时雨羽衣',medal:'雨户',slot:'周更型 22:00–00:30',area:'鼓岭区 · 梧桐里',tags:['绘画','杂谈'],followers:130000,blurb:'画师主播，一周只播两三次，播了就是长夜画稿加碎嘴。'},
 {name:'斯黛拉',cover:'斯黛拉',medal:'小猪',slot:'傍晚电台 18:30–21:30',area:'落霞区 · 学府七舍天台',tags:['ASMR','杂谈'],followers:90000,blurb:'声音又轻又小的女学生，凌晨那段哄睡 ASMR 是招牌。'},
-{name:'璃亚梦',cover:'梦见璃亚梦',medal:'病友',slot:'深夜互动 23:00–02:00',area:'鼓岭区 · 云庭公寓',tags:['杂谈','唱歌'],followers:60000,blurb:'炎上体质的偶像兼主播，深夜小作文和突发开播都是常事。'}];
+{name:'璃亚梦',cover:'梦见璃亚梦',medal:'病友',slot:'深夜互动 23:00–02:00',area:'鼓岭区 · 云庭公寓',tags:['杂谈','唱歌'],followers:60000,blurb:'炎上体质的偶像兼主播，深夜小作文和突发开播都是常事。'},
+{name:'兔子洞初音',cover:'兔子洞初音',medal:'兔耳朵',slot:'夜间歌杂 20:30–23:30',area:'鼓岭区 · 鼓岭石库门老公馆',tags:['唱歌','杂谈','游戏'],followers:110000,blurb:'灰蓝双马尾的兔耳主播，歌回与轻松杂谈之间总带着一点桃粉色的恶作剧气息。'},
+{name:'神乐七奈',cover:'神乐七奈',medal:'七奈组',slot:'晚间绘聊 19:30–22:30',area:'青屏山风景区 · 松涧山居小院',tags:['绘画','杂谈','游戏'],followers:180000,blurb:'银蓝长发的画师主播，清亮的声线、随手涂鸦与轻快游戏回组成她的晚间频道。'}];
 const OSHI_MAX=1;
 const OSHI_FAVOR=300;    // 选中即加的好感，叠在 变量初始化 给的 80 上
 const CUSTOM_INITIAL_FAVOR=80; // 自定义主播与普通已定稿主播使用相同的基础好感
@@ -199,16 +201,16 @@ const OPENING_TWO_DETAIL=[
 '```'
 ].join('\n');
 const OPENING_THREE_DETAIL=[
-'> 清晨的老洋房还浸在薄薄的晨光里。玩家在自己的落脚处阳台通风纳凉，楼上则隐约传来洗漱与推拉晾衣架的声响。',
+'> 清晨，玩家在自己的落脚处阳台通风纳凉，楼上则隐约传来洗漱与推拉晾衣架的声响。',
 '> 一阵晨风掠过，一件刚甩干、带着一丝温热与独特洗剂香气的衣物从上方坠落，不偏不倚地蒙在玩家脸上。玩家扯下衣物后发现，它特殊的款式、专属色系与蕾丝刺绣细节，竟与平时见过的{{目标主播}}专属风格高度重叠。',
 '> 正上方随即传来衣架落地的脆响、拖鞋踩过木地板的凌乱脚步，以及一道被刻意压低却异常熟悉的懊恼轻呼。玩家抬头时，正好撞上扶着栏杆向下搜寻的女孩；晨光里的素颜轮廓与失控时脱口而出的招牌声线，共同坐实了她的身份。',
 '> 片刻后，她不得不跑下楼完成这场尴尬的归还交接。门扉重新关上，楼板另一侧的真实生活动静仍清晰可闻，作为普通观众的距离感也被这件从天而降的私密物彻底打破。',
 '```text',
 '### 完整开局大纲',
 '',
-'#### 【第一幕：老洋房的清晨与从天而降的私密物】',
+'#### 【第一幕：从天而降的私密物】',
 '',
-'- 节点 1：老洋房晨间日常与空间建立',
+'- 节点 1：晨间日常与空间建立',
 '',
 '  - 情节：清晨时分，玩家在落脚处的阳台通风纳凉或整理琐碎。通过对老式木窗、铁艺栏杆与纵向阳台交叠结构的白描，确立“上下楼邻里动静清晰可闻、极易发生意外交集”的物理空间基础。',
 '  - 细节：玩家享受着难得的片刻清闲，楼上隐约传来洗漱与推拉晾衣架的微弱金属摩擦声。',
@@ -260,6 +262,7 @@ const OPENINGS=[
 {id:'opening-2',title:'意外碰面',summary:'一次短暂离开直播间的取件，让线上注视与线下现实意外重叠。',detail:OPENING_ONE_DETAIL},
 {id:'opening-3',title:'小号约见',summary:'玩家在同城软件上偶然约到刚刚下播的目标主播。',detail:OPENING_TWO_DETAIL},
 {id:'opening-4',title:'天降之物',summary:'老洋房阳台的一件私密衣物意外坠落，让玩家与楼上的目标主播第一次在现实中正面相遇。',detail:OPENING_THREE_DETAIL},
+{id:'opening-5',title:'小男友',summary:'以目标主播的小男友开局，她结束一天直播后，看到了在床上呼呼大睡的男朋友。',detail:'以{{目标主播}}的小男友开局，她结束一天直播后，看到了在床上呼呼大睡的男朋友。'},
 {id:'custom',title:'自定义开局',summary:'由玩家直接输入开局内容',detail:''}];
 /* 人设不再是一组固定字段，而是一整段「角色详情」YAML —— 跟 世界书/红蔷薇、斯黛拉、
    璃亚梦 同格式，生成和写入照 参考/底部状态栏.html 的 人物详情生成 那一套。 */
@@ -294,7 +297,7 @@ function streamScale(t){t=clampTier(t);var base=50*Math.pow(8,t/25),followers=ba
   /* 提督、总督减去门槛再除，小房两档干净归零；比值比草稿更保守（24:1 / 260:1） */
   return{tier:t,label:tierLabel(t),followers:roundNice(followers),base:roundNice(base),guards:roundNice(guards),
     admirals:Math.max(0,Math.floor((guards-40)/24)),governors:Math.max(0,Math.floor((guards-300)/260))}}
-/* 粉丝数 → 档位。七位已定稿主播存的是粉丝数（作者给的权威值），底盘热度和大航海
+/* 粉丝数 → 档位。九位已定稿主播存的是粉丝数（作者给的权威值），底盘热度和大航海
    要能从它一致地推回来。曲线单调，扫 0–100 取最近的 0.1 档就够，比解析求逆好读。 */
 function tierOfFollowers(followers){var target=Math.max(0,+followers||0),best=0,gap=Infinity;
   for(var t=0;t<=100;t+=0.1){var d=Math.abs(streamScale(t).followers-target);if(d<gap){gap=d;best=t}}
@@ -327,7 +330,7 @@ function renderOshi(){var grid=document.querySelector('#oshi-grid');if(!grid)ret
     /* 推满之后剩下的卡只压暗、不 disabled：点了会给一句"先取消一个"，
        比一个没有反馈的死按钮好懂，键盘和读屏也照样能到。 */
     return '<button type="button" class="oshi-card'+(on?' on':'')+(full?' full':'')+'" data-oshi="'+esc(o.name)+'" aria-pressed="'+(on?'true':'false')+'">'
-      /* 一共就七张封面，全部直接加载：loading="lazy" 在这里只会让下面几张
+      /* 固定主播封面，全部直接加载：loading="lazy" 在这里只会让下面几张
          在滚动到时才闪出来，省不下什么流量。 */
       +'<span class="oshi-art"><img src="'+esc(art('封面',o.cover))+'" alt="'+esc(o.name)+'立绘" loading="lazy" decoding="async"><i class="oshi-check" aria-hidden="true">✓</i></span>'
       +'<span class="oshi-body">'
@@ -502,7 +505,7 @@ JSON.stringify(playerOriginConfig(payload),null,2),
 '',
 opening.detail,
 '',
-'请保持上述出身信息一致; 推进到需要玩家回复为止。正文不少于1500字'
+'请推进到需要玩家回复为止。正文不少于1500字'
 ].join('\n')}
 function sendMessageToChat(message){try{var doc=document;if(window.parent&&window.parent!==window){try{doc=window.parent.document}catch(_){}}var area=doc.getElementById('send_textarea'),button=doc.getElementById('send_but');if(!area||!button)return false;area.value=message;area.dispatchEvent(new Event('input',{bubbles:true}));area.dispatchEvent(new Event('change',{bubbles:true}));button.click();return true}catch(_){return false}}
 function finish(){const payload=openingPayload();payload.startMessage=buildStartMessage(payload);if(window.parent!==window)parent.postMessage({channel:'linjiang-opening',kind:'event',type:'commitPreview',payload},'*');else sendMessageToChat(payload.startMessage);navigator.clipboard?.writeText(payload.startMessage).catch(()=>{});console.log('[临江开局配置]',payload);toast('开局配置已发送，临江生活即将开始')}

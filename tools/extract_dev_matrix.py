@@ -30,7 +30,7 @@ PARTS = {"口腔": "oral", "胸部": "chest", "胸": "chest", "小穴": "vagina"
 TIERS = 6
 
 # Matrix files use the character's full name; the roster uses the short one.
-ROSTER = ["东雪莲", "塔菲", "沙花叉", "时雨羽衣", "红蔷薇", "斯黛拉", "璃亚梦"]
+ROSTER = ["东雪莲", "塔菲", "沙花叉", "时雨羽衣", "红蔷薇", "斯黛拉", "璃亚梦", "兔子洞初音", "神乐七奈"]
 
 part_re = re.compile(r"^##\s+(\S+?)\s*$")
 tier_re = re.compile(r"^###\s+(\S+?)\s*·\s*开发度\s*(\d)\s*$")

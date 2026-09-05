@@ -772,6 +772,46 @@ const roster = [
       schedule: { start: '23:00', end: '02:00', days: ['周一', '周三', '周四', '周五', '周六', '周日'], note: '深夜互动·周二休' },
     },
   },
+  {
+    name: '兔子洞初音', romaji: 'Hatsune', theme: 'rose', ornament: 'sparkle',
+    artFx: 0.50, artFy: 0.22, artZ: 1.08, artOx: 0.00, artTx: 0.30, artTy: 0.36,
+    bond: { favor: 720, obedience: 180, mood: '活泼' },
+    physiology: { desire: 12, stamina: 92, bladder: 18, statuses: [] },
+    experience: {
+      recentCount: 0, exposure: 0, masturbation: 0, excretion: 0,
+      toy: 0, abuse: 0, hidden: 0, outdoor: 0, sleeping: 0, hypnosis: 0,
+      roleplay: 0, voyeur: 0, stream: 0,
+    },
+    development: { oral: 0, chest: 0, vagina: 0, anus: 0 },
+    developmentProgress: { oral: 0, chest: 0, vagina: 0, anus: 0 },
+    developmentToday: { oral: 0, chest: 0, vagina: 0, anus: 0 },
+    location: { area: '鼓岭区 · 鼓岭石库门老公馆', place: '直播间', privacy: 4 },
+    fan: fan(),
+    stream: {
+      live: false, title: '', heat: 0, followers: 110000,
+      schedule: { start: '20:30', end: '23:30', days: ['周一', '周二', '周四', '周五', '周六'], note: '夜间歌杂·周三日休' },
+    },
+  },
+  {
+    name: '神乐七奈', romaji: 'Nana', theme: 'ice', ornament: 'star',
+    artFx: 0.50, artFy: 0.23, artZ: 1.04, artOx: 0.00, artTx: 0.30, artTy: 0.36,
+    bond: { favor: 680, obedience: 160, mood: '愉快' },
+    physiology: { desire: 10, stamina: 90, bladder: 22, statuses: [] },
+    experience: {
+      recentCount: 0, exposure: 0, masturbation: 0, excretion: 0,
+      toy: 0, abuse: 0, hidden: 0, outdoor: 0, sleeping: 0, hypnosis: 0,
+      roleplay: 0, voyeur: 0, stream: 0,
+    },
+    development: { oral: 0, chest: 0, vagina: 0, anus: 0 },
+    developmentProgress: { oral: 0, chest: 0, vagina: 0, anus: 0 },
+    developmentToday: { oral: 0, chest: 0, vagina: 0, anus: 0 },
+    location: { area: '青屏山风景区 · 松涧山居小院', place: '画室', privacy: 5 },
+    fan: fan(),
+    stream: {
+      live: false, title: '', heat: 0, followers: 180000,
+      schedule: { start: '19:30', end: '22:30', days: ['周二', '周三', '周四', '周六', '周日'], note: '晚间绘聊·周一五休' },
+    },
+  },
 ];
 
 /* 异常状态, on the card.
@@ -799,7 +839,7 @@ export const statusOf = (statuses) => ({
   all: Array.isArray(statuses) ? statuses : [],
 });
 
-/* The seven authored characters still own their crop/theme defaults, but the active
+/* The nine authored characters still own their crop/theme defaults, but the active
    roster comes from MVU 对象信息.  Custom streamers therefore enter the exact same
    girls / characterDetails collections as the authored cast instead of being bolted
    onto the main rail only. */

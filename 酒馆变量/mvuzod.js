@@ -8,7 +8,7 @@ import { registerMvuSchema } from 'https://testingcf.jsdelivr.net/gh/StageDog/ta
  * 由 变量相关/辅助计算脚本.js 回写；本 Schema 负责形状、默认值与截断。
  *
  * 对象名以 HUD / data.js 短名为准：
- *   东雪莲 / 塔菲 / 沙花叉 / 时雨羽衣 / 红蔷薇 / 斯黛拉 / 璃亚梦
+ *   东雪莲 / 塔菲 / 沙花叉 / 时雨羽衣 / 红蔷薇 / 斯黛拉 / 璃亚梦 / 兔子洞初音 / 神乐七奈
  */
 
 // --- 工具函数 ---
@@ -455,7 +455,7 @@ const worldSchema = z.preprocess(
         return next;
     },
     z.object({
-        年历: str('2026年4月1日'),
+        年历: safeStr(''),
         日期显示: dateDisplaySchema,
         时间: z.preprocess(
             v => isPlainObject(v) ? v : {},

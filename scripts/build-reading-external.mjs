@@ -71,6 +71,7 @@
      node scripts/build-reading-external.mjs --check          # 只校验产物是否与源同步
      node scripts/build-reading-external.mjs --target pages
      node scripts/build-reading-external.mjs --base <前缀>
+     node scripts/build-reading-external.mjs --deploy=0906
 */
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -78,8 +79,18 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const SOURCE = join(ROOT, '外部部署', 'V20260826', '正文美化.html');
-const OUTPUT = join(ROOT, '外部部署', 'V20260826', '正文美化-外链素材版.html');
+const deployArg = process.argv.find((item) => item.startsWith('--deploy='));
+const DEPLOY_NAME = (deployArg ? deployArg.slice('--deploy='.length) : 'V20260826').trim();
+if (!/^[A-Za-z0-9._-]+$/.test(DEPLOY_NAME)) {
+  console.error(`非法的 --deploy 目录名：${DEPLOY_NAME}`);
+  process.exit(1);
+}
+const DEPLOY_LABEL = `外部部署/${DEPLOY_NAME}`;
+const CHECK_COMMAND = DEPLOY_NAME === 'V20260826'
+  ? 'npm run reading:check'
+  : `node scripts/build-reading-external.mjs --deploy=${DEPLOY_NAME} --check`;
+const SOURCE = join(ROOT, '外部部署', DEPLOY_NAME, '正文美化.html');
+const OUTPUT = join(ROOT, '外部部署', DEPLOY_NAME, '正文美化-外链素材版.html');
 /* 素材放 public/reading/：vite 把 publicDir 整个拷到 dist 根（Pages 上就是 /reading/），
    而 jsDelivr 的 /gh/ 是直接读仓库路径，所以那边要带 public/ 前缀。两个源的路径形状不同，
    下面的 TARGETS 各写一份，不要试图用一个变量拼。 */
@@ -123,19 +134,20 @@ const EXPECTED = [
 
 const source = readFileSync(SOURCE, 'utf8');
 
-/* 直播间消费动作只生成酒馆消息；卡片不先写 MVU。
-   这条由源和外链产物共用，防止以后又把 roomAction 接回确认按钮。 */
-const directConsumptionCalls = [
-  "lrDoAction(state, '礼物'",
-  "lrDoAction(state, '大航海'",
-  "lrDoAction(state, '醒目留言'",
+/* 直播间消费必须先发送酒馆消息，再调用 roomAction 同步除金钱之外的状态。
+   金钱由随后模型回合扣除；这几条检查防止源文件再次只做其中一半。 */
+const consumptionPaths = [
+  ["送出${count}个${name}", "lrDoAction(state, '礼物'"],
+  ["开通${state.host}的${pending.name}", "lrDoAction(state, '大航海'"],
+  ["发送价值${pending.amount}的SC", "lrDoAction(state, '醒目留言'"],
 ];
-const directHit = directConsumptionCalls.find((marker) => source.includes(marker));
-if (directHit) throw new Error(`直播间消费又开始直接写 MVU：${directHit}`);
-for (const marker of ['送出${count}个${name}', '开通${state.host}的${pending.name}', '发送价值${pending.amount}的SC']) {
-  if (!source.includes(marker)) throw new Error(`直播间缺少酒馆消息路径：${marker}`);
+for (const [messageMarker, actionMarker] of consumptionPaths) {
+  const messageAt = source.indexOf(messageMarker);
+  const actionAt = source.indexOf(actionMarker);
+  if (messageAt < 0) throw new Error(`直播间缺少酒馆消息路径：${messageMarker}`);
+  if (actionAt < 0) throw new Error(`直播间缺少非金钱状态同步：${actionMarker}`);
+  if (actionAt < messageAt) throw new Error(`直播间必须先发送消息再同步状态：${actionMarker}`);
 }
-
 /* 找出所有 data URI，并把它所在的选择器/属性一起带出来。 */
 const DATA_URI = /url\("data:image\/(?<type>[a-z]+);base64,(?<payload>[A-Za-z0-9+/=]+)"\)/g;
 const found = [];
@@ -264,12 +276,12 @@ output = output.slice(0, spanStart) + linkBlock + output.slice(spanEnd);
 assets.push({ name: 'reading-css', file: cssFile, bytes: cssBytes, base64Length: 0, label: `合并后的样式表（22 块）` });
 
 /* 在头部留一条说明，避免有人误以为这份是手写的源。 */
-const banner = `<!-- 本文件由 scripts/build-reading-external.mjs 从 外部部署/V20260826/正文美化.html 生成，请勿直接编辑。
+const banner = `<!-- 本文件由 scripts/build-reading-external.mjs 从 ${DEPLOY_LABEL}/正文美化.html 生成，请勿直接编辑。
      与源的差异只有两处：
        1. 5 张内联 base64 WebP 改成了外链；
        2. head 里 22 个内联 <style>（共 ${(cssBytes.length / 1024).toFixed(0)}KB）合并成一个外链样式表。
      素材前缀：${BASE}
-     改动请改源文件再重新生成；npm run reading:check 会校验这份有没有过期。 -->`;
+     改动请改源文件再重新生成；${CHECK_COMMAND} 会校验这份有没有过期。 -->`;
 const withBanner = output.replace(/^(```(?:text|html)?\r?\n)?/, (fence) => `${fence || ''}${banner}\n`);
 
 const sizeKB = (n) => (n / 1024).toFixed(1);
@@ -287,13 +299,8 @@ if (CHECK) {
       failures.push(`素材与源内联的字节不一致：public/reading/${asset.file}`);
     }
   }
-  /* 换过图之后旧哈希的文件会留在目录里，会被一起部署，属于无声的垃圾。 */
-  const expectedFiles = new Set(assets.map((asset) => asset.file));
-  if (existsSync(ASSET_DIR)) {
-    for (const name of readdirSync(ASSET_DIR)) {
-      if (!expectedFiles.has(name)) failures.push(`public/reading/${name} 是过期素材，重新生成会清掉`);
-    }
-  }
+  /* public/reading 是历次归档共享的内容哈希资源池。不同归档可能继续引用不同哈希，
+     因此这里只校验本次需要的文件，不把其他哈希当成垃圾。 */
   if (failures.length) {
     console.error('正文美化外链版校验失败：');
     failures.forEach((line) => console.error(`  - ${line}`));
@@ -303,8 +310,7 @@ if (CHECK) {
   process.exit(0);
 }
 
-/* 整个目录重建，避免旧哈希的文件残留并被部署。 */
-rmSync(ASSET_DIR, { recursive: true, force: true });
+/* 内容哈希文件跨归档并存；覆盖本次同名资源，不清理其他归档仍引用的哈希。 */
 mkdirSync(ASSET_DIR, { recursive: true });
 for (const asset of assets) writeFileSync(join(ASSET_DIR, asset.file), asset.bytes);
 writeFileSync(OUTPUT, withBanner);
@@ -312,8 +318,8 @@ writeFileSync(OUTPUT, withBanner);
 const inlinedBytes = assets.reduce((total, asset) => total + asset.base64Length, 0);
 const sourceBytes = Buffer.byteLength(source);
 const outBytes = Buffer.byteLength(withBanner);
-console.log(`源     外部部署/V20260826/正文美化.html            ${sizeKB(sourceBytes)} KB`);
-console.log(`产物   外部部署/V20260826/正文美化-外链素材版.html   ${sizeKB(outBytes)} KB`);
+console.log(`源     ${DEPLOY_LABEL}/正文美化.html            ${sizeKB(sourceBytes)} KB`);
+console.log(`产物   ${DEPLOY_LABEL}/正文美化-外链素材版.html   ${sizeKB(outBytes)} KB`);
 console.log(`省下   ${sizeKB(sourceBytes - outBytes)} KB —— 其中 base64 图片 ${sizeKB(inlinedBytes)} KB，`
   + `样式表 ${sizeKB(cssBytes.length)} KB`);
 console.log(`       这是**每条 AI 消息**都要省一次的量（每条消息一个独立 iframe）\n`);

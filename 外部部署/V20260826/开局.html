@@ -791,6 +791,16 @@ ${PROFILE_FORMAT_SAMPLE.trim()}
         const data = mvu.getMvuData(scope);
         if (!data) continue;
         if (!isPlain(data.stat_data)) data.stat_data = {};
+        /* 房产和固定支出是本次开局生成的完整快照，不能像普通运行态字段一样递归合并。
+           否则变量初始化里的梧桐里花园洋房，以及上一次开局选择的住所/房租，都会残留。 */
+        if (isPlain(stat['玩家信息'])) {
+          if (!isPlain(data.stat_data['玩家信息'])) data.stat_data['玩家信息'] = {};
+          for (const key of ['房产', '生活固定支出']) {
+            if (!Object.prototype.hasOwnProperty.call(stat['玩家信息'], key)) continue;
+            const value = stat['玩家信息'][key];
+            data.stat_data['玩家信息'][key] = isPlain(value) ? deepMerge({}, value) : value;
+          }
+        }
         deepMerge(data.stat_data, stat);
         mvu.replaceMvuData(data, scope);
         written += 1;

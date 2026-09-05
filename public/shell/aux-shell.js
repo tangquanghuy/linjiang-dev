@@ -11,7 +11,7 @@
  *
  * 为什么不是整份搬走、粘贴那份只留一句 import
  * ------------------------------------------------------------------
- * 因为有一个消费方要求**同步可用**：外部部署/V20260826/正文美化.html 的 mountLiveRoom() 在初始渲染路径
+ * 因为有一个消费方要求**同步可用**：外部部署/0906/正文美化.html 的 mountLiveRoom() 在初始渲染路径
  * 里就用 LinjiangAux.roomMenu() 把礼物列表写进 DOM。取不到就退到 LR_MENU_FALLBACK，而那里的
  * 礼物/大航海是空数组 —— 那张卡片会永久显示没有礼物，不崩也不报错。
  *
@@ -56,18 +56,13 @@
     const DEVELOPMENT_PARTS = ['口腔', '胸', '小穴', '肛门'];
     const EXPERIENCE_COOLDOWN_MINUTES = 1440;
     const RECENT_EXPERIENCE_WINDOW_MINUTES = 7 * 1440;
-    const DEVELOPMENT_COOLDOWN_MINUTES = 120;
     const DEVELOPMENT_TURN_CAP = 20;
-    /* 每日上限 60 = 三场满额（单次 20，CD 120 分钟，一个游戏日装得下）。
-       原来是 30，等于一天第二场就只能算一半、第三场白给，玩家看到的就是「明明发生了事，
-       条却不动」。60 之后一档最快 1 天、最慢 5 天。 */
     const DEVELOPMENT_DAILY_CAP = 60;
+    /* Development progress has no minute cooldown and no promotion-date lock.
+       A valid game date gets a 60-point daily budget per part. Missing or invalid dates fail open. */
     /* 升档门槛：从档位 n 升到 n+1 所需的进度。档位 5 封顶，所以只有五个数。
-       原来是固定 100 一档，四天一档、档位 1 和档位 5 一样贵 —— 这跟这条轴要表达的东西
-       是反的。现在每档比上一档多要 40/50/60/70：配上每日上限 60，一档要 1/2/3/4/5 个
-       游戏日，全程 15 天（余量会顺延到下一档，实测 14 天）。
-       同一份表在 src/data.js（DEV_TIER_STEPS / DEV_DAILY_CAP，面板画进度条用）和
-       酒馆变量/mvuzod.js（截断进度用）各有一份。三处必须同时改。 */
+       同一份门槛表在 src/data.js（面板画进度条用）和酒馆变量/mvuzod.js（截断提案用）
+       各有一份，修改门槛时三处仍需同步。 */
     const DEVELOPMENT_TIER_STEPS = [40, 80, 130, 190, 260];
     /* 某档位持久化进度的上限。够门槛就该升档，所以辅助脚本消费提案后停在门槛前一格；
        MVU Schema 会临时允许“恰好等于门槛”作为交接哨兵，否则 39 → 40 会在事件到达这里前
@@ -135,6 +130,16 @@
             days: ['周一', '周三', '周四', '周五', '周六', '周日'], start: '23:00', end: '02:00',
             reliability: 0.78, surprise: 0.16,
             titles: ['深夜emo小作文', '观众投票杂谈', '突发游戏回'],
+        },
+        '兔子洞初音': {
+            days: ['周一', '周二', '周四', '周五', '周六'], start: '20:30', end: '23:30',
+            reliability: 0.84, surprise: 0.09,
+            titles: ['兔耳歌回', '夜间杂谈', '联机游戏回'],
+        },
+        '神乐七奈': {
+            days: ['周二', '周三', '周四', '周六', '周日'], start: '19:30', end: '22:30',
+            reliability: 0.83, surprise: 0.07,
+            titles: ['晚间绘画杂谈', '游戏实况', '观众点题涂鸦'],
         },
     };
     const streamManualLocks = new Map();
@@ -342,9 +347,8 @@
     }
 
     /**
-     * 玩家在直播间做的每一件事都走这一个入口，卡片不再自己拼 MVU 补丁。
+     * 玩家消费时，代码结算关注、累计打赏、牌子、热度和榜单；只把金钱扣除留给消费消息后的模型回合。
      * 入参：{ 主播, 动作: '礼物'|'大航海'|'醒目留言'|'关注'|'进房', 礼物, 数量, 金额, 内容, 关注 }
-     * 返回：{ ok, 花费, 人气, 还手, 提示, 快照 }；钱不够或名字不认识就 ok:false，什么都不写。
      */
     function roomAction(input) {
         const req = input || {};
@@ -371,7 +375,6 @@
             return { ok: true, 花费: 0, 快照: roomView(host) };
         }
 
-        // 以下都要花钱
         let cost = 0;
         let popAdd = 0;
         let guard = null;
@@ -381,7 +384,6 @@
             if (!gift) return { ok: false, 提示: `没有这件礼物: ${req.礼物}` };
             qty = Math.max(1, Math.floor(Number(req.数量) || 1));
             cost = gift.price * qty;
-            // 先算钱够不够，再动 combo：拒绝掉的那一笔不该留下连送痕迹
             if (cost > (Number(player.金钱) || 0)) return { ok: false, 提示: '余额不足' };
             popAdd = comboPop(room, gift.name, gift.pop, qty);
         } else if (action === '大航海') {
@@ -401,8 +403,7 @@
             return { ok: false, 提示: `未知动作: ${action}` };
         }
 
-        const money = Number(player.金钱) || 0;
-        player.金钱 = money - cost;
+        // 金钱保持原值，消费消息后的模型回合只负责扣除这笔 cost。
         player.所在直播间 = host;
         if (cost > 0) {
             fan.关注 = true;
@@ -421,7 +422,6 @@
         }
 
         room.本场热度 = (Number(room.本场热度) || 0) + popAdd;
-
         if (cost > 0) {
             if (!Array.isArray(room.高能榜)) room.高能榜 = [];
             const mine = room.高能榜.find(r => r.名字 === '你');
@@ -431,10 +431,8 @@
         }
 
         repaintHeat(stat, host);
-        // 单笔 ≥100 才可能招来还手；小额刷榜不惊动榜一
         const strike = cost >= 100 ? rivalStrikeBack(stat, host) : null;
         commitBundle(bundle);
-
         return {
             ok: true,
             花费: cost,
@@ -443,7 +441,6 @@
             快照: roomView(host),
         };
     }
-
     // ==========================================
     // 工具
     // ==========================================
@@ -608,7 +605,7 @@
         return Math.round(best * 10) / 10;
     }
 
-    /** 粉丝数 → 全套规模数字。七位已定稿主播存粉丝数，其余都从这里推。 */
+    /** 粉丝数 → 全套规模数字。九位已定稿主播存粉丝数，其余都从这里推。 */
     function scaleOfFollowers(followers) {
         return streamScale(tierOfFollowers(followers));
     }
@@ -1262,15 +1259,72 @@
         return Array.isArray(notes) ? String(notes[tier] || '') : '';
     }
 
-    function syncDevelopmentProgress(statData, before, nowMinute) {
-        if (!Number.isFinite(nowMinute)) return;
+    function developmentDay(rawDate) {
+        const parsed = parseMvuDate(rawDate);
+        if (!parsed) return null;
+        return {
+            key: `${parsed.year}年${parsed.month}月${parsed.day}日`,
+            index: Math.floor(
+                (Date.UTC(parsed.year, parsed.month - 1, parsed.day) - GAME_EPOCH_UTC) / 86400000
+            ),
+        };
+    }
+
+    /* 老存档懒迁移：原来用 上次更新时间 / 上次升档日期 判断锁，新版只保留
+       累计日期 / 当日累计进度。日期异常时 fail-open：清空当日额度并继续接受进度。 */
+    function prepareDevelopmentControl(control, currentDay) {
+        const hadNewDayKey = Object.prototype.hasOwnProperty.call(control, '累计日期');
+        const oldDaily = clampInt(control.当日累计进度, 0, DEVELOPMENT_DAILY_CAP, 0);
+
+        if (!hadNewDayKey) {
+            let belongsToToday = false;
+            if (currentDay) {
+                const oldLastMinute = Number(control.上次更新时间);
+                if (Number.isFinite(oldLastMinute)
+                    && gameDayOfMinute(oldLastMinute) === currentDay.index) {
+                    belongsToToday = true;
+                }
+                if (!belongsToToday) {
+                    const oldPromotionDay = developmentDay(control.上次升档日期);
+                    belongsToToday = oldPromotionDay?.key === currentDay.key;
+                }
+                control.累计日期 = currentDay.key;
+                control.当日累计进度 = belongsToToday ? oldDaily : 0;
+            } else {
+                delete control.累计日期;
+                control.当日累计进度 = 0;
+            }
+        }
+
+        delete control.上次更新时间;
+        delete control.上次升档日期;
+
+        if (!currentDay) {
+            delete control.累计日期;
+            control.当日累计进度 = 0;
+            return Number.POSITIVE_INFINITY;
+        }
+
+        if (control.累计日期 !== currentDay.key) {
+            control.累计日期 = currentDay.key;
+            control.当日累计进度 = 0;
+        }
+        control.当日累计进度 = clampInt(
+            control.当日累计进度,
+            0,
+            DEVELOPMENT_DAILY_CAP,
+            0,
+        );
+        return Math.max(0, DEVELOPMENT_DAILY_CAP - control.当日累计进度);
+    }
+
+    function syncDevelopmentProgress(statData, before, _nowMinute) {
         const girls = statData.对象信息;
         if (!girls || typeof girls !== 'object') return;
         const config = ensureObj(statData, '系统配置');
         const progress = ensureObj(config, '进展控制');
         const controls = ensureObj(progress, '对象');
-        const today = String(statData.世界信息?.年历 || '');
-        const currentDay = gameDayOfMinute(nowMinute);
+        const currentDay = developmentDay(statData.世界信息?.年历);
 
         Object.entries(girls).forEach(([name, girl]) => {
             const dev = girl?.开发度;
@@ -1289,27 +1343,23 @@
                 const oldPart = devPartState(beforeDev?.[partName]);
                 const proposed = devPartState(dev[partName]);
                 const control = ensureObj(devControl, partName);
-                const last = Number(control.上次更新时间);
-                if (Number.isFinite(last) && gameDayOfMinute(last) !== currentDay) control.当日累计进度 = 0;
-                control.当日累计进度 = Math.max(0, Math.floor(Number(control.当日累计进度) || 0));
+                const capacity = prepareDevelopmentControl(control, currentDay);
 
                 let tier = beforeDev ? oldPart.档位 : proposed.档位;
                 let value = beforeDev ? oldPart.进度 : proposed.进度;
-                const cooldownReady = !Number.isFinite(last) || nowMinute - last >= DEVELOPMENT_COOLDOWN_MINUTES;
-                const capacity = Math.max(0, DEVELOPMENT_DAILY_CAP - control.当日累计进度);
-                if (beforeDev && partName === selected && tier < 5 && cooldownReady && capacity > 0) {
-                    const accepted = Math.min(Math.max(0, proposed.进度 - oldPart.进度), DEVELOPMENT_TURN_CAP, capacity);
+                if (beforeDev && partName === selected && tier < 5 && capacity > 0) {
+                    const accepted = Math.min(
+                        Math.max(0, proposed.进度 - oldPart.进度),
+                        DEVELOPMENT_TURN_CAP,
+                        capacity,
+                    );
                     if (accepted > 0) {
                         let total = oldPart.进度 + accepted;
-                        control.当日累计进度 += accepted;
-                        control.上次更新时间 = nowMinute;
-                        /* 门槛按当前档位取，不再是固定 100。够了但今天已经升过一档，就把进度
-                           顶在门槛前一格等明天 —— 溢出的部分丢掉，否则攒一天能连跳两档。 */
+                        if (currentDay) control.当日累计进度 += accepted;
                         const need = DEVELOPMENT_TIER_STEPS[tier] || 0;
-                        if (need && total >= need && control.上次升档日期 !== today) {
+                        if (need && total >= need) {
                             tier += 1;
                             total -= need;
-                            control.上次升档日期 = today;
                         }
                         value = total;
                     }
@@ -1317,18 +1367,15 @@
 
                 if (!dev[partName] || typeof dev[partName] !== 'object') dev[partName] = {};
                 dev[partName].档位 = tier;
-                /* 统一截断，不只截断刚加过进度的那个部位：门槛改过之后，老档里存的
-                   「档位 0 · 进度 99」得压回新门槛之内，否则它会永远卡在门槛线上方。 */
                 dev[partName].进度 = clampInt(value, 0, developmentCeiling(tier), 0);
                 const note = developmentNoteFor(name, partName, tier);
                 const tierChanged = !!beforeDev && tier !== oldPart.档位;
                 if (note && (tierChanged || !String(dev[partName].评语 || '').trim())) {
                     dev[partName].评语 = note;
                 }
-                const effectiveLast = Number(control.上次更新时间);
-                dev[partName].可更新 = tier < 5
-                    && control.当日累计进度 < DEVELOPMENT_DAILY_CAP
-                    && (!Number.isFinite(effectiveLast) || nowMinute - effectiveLast >= DEVELOPMENT_COOLDOWN_MINUTES);
+                dev[partName].可更新 = tier < 5 && (
+                    !currentDay || control.当日累计进度 < DEVELOPMENT_DAILY_CAP
+                );
             });
         });
     }
