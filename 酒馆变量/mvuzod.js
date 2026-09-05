@@ -508,13 +508,54 @@ const arcadeConfigSchema = z.preprocess(
     })
 );
 
+// --- 直播间展示配置（自定义主播封面 / 部位图仅保存网络 URL） ---
+
+const remoteImageUrl = value => {
+    const text = 'string' === typeof value ? value.trim() : '';
+    return /^https?:\/\//i.test(text) ? text : '';
+};
+
+const roomConfigSchema = z.preprocess(
+    v => isPlainObject(v) ? v : {},
+    z.record(z.string(), z.any()).transform(r => {
+        const next = { ...r };
+        if ('封面' in next) next.封面 = remoteImageUrl(next.封面);
+        const rawParts = isPlainObject(next.部位图) ? next.部位图 : {};
+        const partArt = {};
+        const partKeys = [
+            ['口腔', ['口腔', 'oral']],
+            ['胸部', ['胸部', '胸', 'chest']],
+            ['小穴', ['小穴', 'vagina']],
+            ['肛门', ['肛门', 'anus']],
+        ];
+        partKeys.forEach(([target, aliases]) => {
+            const raw = aliases.map(key => rawParts[key]).find(value => value != null);
+            const url = remoteImageUrl(raw);
+            if (url) partArt[target] = url;
+        });
+        if (Object.keys(partArt).length) next.部位图 = partArt;
+        else delete next.部位图;
+        return next;
+    })
+);
+
+const liveRoomConfigSchema = z.preprocess(
+    v => isPlainObject(v) ? v : {},
+    z.record(z.string(), roomConfigSchema)
+).prefault({});
+
 // --- 主 Schema ---
 
 const sysConfigSchema = z.preprocess(
     v => isPlainObject(v) ? v : {},
     z.record(z.string(), z.any()).transform(r => {
-        const parsed = arcadeConfigSchema.safeParse(r.街机);
-        return { ...r, 街机: parsed.success ? parsed.data : arcadeConfigSchema.parse({}) };
+        const arcade = arcadeConfigSchema.safeParse(r.街机);
+        const rooms = liveRoomConfigSchema.safeParse(r.直播间);
+        return {
+            ...r,
+            直播间: rooms.success ? rooms.data : {},
+            街机: arcade.success ? arcade.data : arcadeConfigSchema.parse({}),
+        };
     })
 ).prefault({});
 

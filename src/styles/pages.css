@@ -1258,3 +1258,14 @@
 .item-use.is-broke{border-color:rgba(255,138,150,.34);background:linear-gradient(180deg,rgba(255,214,219,.5),rgba(232,160,170,.42));color:rgba(72,26,34,.82);box-shadow:none;cursor:not-allowed}
 .item-use.is-broke em{color:rgba(72,26,34,.62)}
 .item-use.is-broke:hover{filter:none}
+
+
+/* Network-only part art editor for custom streamers. */
+.part-art-editor { margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.12); display:grid; gap:7px; }
+.part-art-editor label { font:600 12px/1.2 'Noto Sans SC',sans-serif; color:rgba(255,255,255,.82); }
+.part-art-editor > div { display:flex; gap:7px; }
+.part-art-editor input { min-width:0; flex:1; height:32px; padding:0 10px; border:1px solid rgba(230,235,255,.26); border-radius:9px; background:rgba(10,14,36,.35); color:#fff; outline:none; }
+.part-art-editor input:focus { border-color:var(--rim,rgba(230,235,255,.68)); box-shadow:0 0 10px var(--glow,transparent); }
+.part-art-editor button { flex:none; height:32px; padding:0 13px; border:1px solid var(--rim,rgba(255,255,255,.35)); border-radius:9px; background:color-mix(in srgb,var(--wash,rgba(170,180,230,.3)) 72%,rgba(22,25,56,.65)); color:#fff; font-weight:600; }
+.part-art-editor small,.part-art-editor output { font:400 10px/1.4 'Noto Sans SC',sans-serif; color:rgba(235,235,249,.58); }
+.part-art-editor output { min-height:14px; color:var(--ornament,#dfe6ff); }

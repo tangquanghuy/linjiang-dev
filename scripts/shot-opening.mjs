@@ -64,6 +64,19 @@ await page.fill('#streamer-handle', '遥夜');
 await page.fill('#streamer-medal', '遥夜众');
 await page.fill('#streamer-tier', '64');
 await page.dispatchEvent('#streamer-tier', 'input');
+// 自定义主播住所弹窗：地图必须进入 opening/home 模式，15 个标准住所也必须完整可见。
+await page.click('#streamer-home');
+await page.waitForSelector('#map-modal.on');
+await page.waitForTimeout(1200);
+const customHomeFrame = page.frameLocator('#map-iframe');
+const customHomePins = await customHomeFrame.locator('[data-k^="N:"]').count();
+const customHomeQuick = await page.locator('#quick-homes .quick').count();
+if (customHomePins < 15 || customHomeQuick !== 15) {
+  throw new Error(`自定义主播住所选择器缺选项：地图 ${customHomePins} / 快选 ${customHomeQuick}`);
+}
+await page.screenshot({ path: `${OUT}/step4-custom-home-map.png` });
+await page.click('#quick-homes [data-home="2"]');
+await page.waitForFunction(() => !document.querySelector('#map-modal').classList.contains('on'));
 await page.click('[data-streamer-theme="violet"]');
 await page.evaluate(() => {
   const yaml = document.querySelector('#profile-yaml');

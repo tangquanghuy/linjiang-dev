@@ -30,6 +30,7 @@ import {
 } from '../data.js';
 import { head, ic, meter, pct, section } from './parts.js';
 import { settingsBody } from '../settings.js';
+import { partArtEditor } from '../part-art-editor.js';
 
 /* The one-line reminder of what a bucket's numbers mean, the same wording the
    landscape page uses. */
@@ -202,8 +203,8 @@ function devTiles(girl, development, progress, today) {
       <button class="pdev-open" type="button" data-dev-part="${key}"
         aria-expanded="false" aria-controls="${id}"
         aria-label="${label} 开发度 ${tier} ${DEV_TIERS[tier]}，${p.capped ? '已封顶' : `距下一档 ${p.value} / ${p.need}，${day}`}">
-        <span class="pdev-crop">
-          <img src="${partArt(girl.name, key)}" alt="" draggable="false" loading="lazy" decoding="async" data-remove-on-error>
+        <span class="pdev-crop" data-part-art-name="${girl.name}" data-part-art-key="${key}">
+          ${partArt(girl.name, key) ? `<img src="${partArt(girl.name, key)}" alt="" draggable="false" loading="lazy" decoding="async" data-remove-on-error>` : ''}
           <em>暂无截图</em>
         </span>
         <span class="pdev-meta">
@@ -223,6 +224,7 @@ function devTiles(girl, development, progress, today) {
         ${note
           ? `<p>${note}</p>`
           : `<p class="is-muted">暂无评语</p>`}
+        ${partArtEditor(girl, key)}
       </div>
     </div>`;
   }).join('');

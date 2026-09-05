@@ -602,7 +602,22 @@ export const partFile = (key) => {
   const row = DEV_PARTS.find(([k]) => k === key);
   return row ? (row[2] || row[1]) : key;
 };
-export const partArt = (name, key) => `${PART}/${name}/${partFile(key)}.webp`;
+function remoteImageUrl(value) {
+  const text = String(value || '').trim();
+  try {
+    const url = new URL(text);
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '';
+  } catch { return ''; }
+}
+
+const partArtsFromRoom = (room) => Object.fromEntries(DEV_PARTS.map(([key, label, fileLabel]) => {
+  const raw = room?.部位图?.[fileLabel || label] ?? room?.部位图?.[label] ?? room?.部位图?.[key];
+  return [key, remoteImageUrl(raw)];
+}).filter(([, src]) => src));
+
+export const partArtOverride = (name, key) => rosterByName.get(name)?.partArts?.[key] || '';
+export const partArt = (name, key) => partArtOverride(name, key)
+  || (authoredNames.has(name) ? `${PART}/${name}/${partFile(key)}.webp` : '');
 
 /* One record per character, matching the MVU shape.  `art*` is the card crop:
    artFx/artFy mark the face in the source, artTx/artTy where it should land in
@@ -773,7 +788,7 @@ const roster = [
     },
   },
   {
-    name: '兔子洞初音', romaji: 'Hatsune', theme: 'rose', ornament: 'sparkle',
+    name: '兔子洞初音', romaji: 'Hatsune', theme: 'bunny', ornament: 'sparkle',
     artFx: 0.50, artFy: 0.22, artZ: 1.08, artOx: 0.00, artTx: 0.30, artTy: 0.36,
     bond: { favor: 720, obedience: 180, mood: '活泼' },
     physiology: { desire: 12, stamina: 92, bladder: 18, statuses: [] },
@@ -793,7 +808,7 @@ const roster = [
     },
   },
   {
-    name: '神乐七奈', romaji: 'Nana', theme: 'ice', ornament: 'star',
+    name: '神乐七奈', romaji: 'Nana', theme: 'nana', ornament: 'star',
     artFx: 0.50, artFy: 0.23, artZ: 1.04, artOx: 0.00, artTx: 0.30, artTy: 0.36,
     bond: { favor: 680, obedience: 160, mood: '愉快' },
     physiology: { desire: 10, stamina: 90, bladder: 22, statuses: [] },
@@ -1600,6 +1615,7 @@ function createDynamicCharacter(name, room, ui) {
     developmentProgress: emptyDevelopmentRecord(),
     developmentToday: emptyDevelopmentRecord(),
     developmentNotes: {},
+    partArts: partArtsFromRoom(room),
     location: { area: '', place: '', privacy: 0 },
     fan: fan(),
     stream: { live: false, title: '', heat: 0, followers: 0, schedule: scheduleFromRoom(room) },
@@ -1616,26 +1632,41 @@ function syncDynamicPresentation(c, room, ui) {
   if (handle != null && String(handle).trim()) c.romaji = asStr(handle, c.romaji || 'CUSTOM');
   const coverArt = room?.封面 || pickNamed(ui?.characterCovers, c.name);
   c.art = safeCharacterArt(coverArt, placeholderCharacterArt(c.name, c.theme));
+  c.partArts = partArtsFromRoom(room);
   c.stream.schedule = scheduleFromRoom(room, c.stream.schedule);
+}
+
+/* Snapshot merge helpers may reconstruct the MVU object map and change property enumeration.
+   Record each name's first authoritative MVU position once, then append only genuinely
+   new names.  Pinning is a separate stable prefix in content.js. */
+const mvuRosterOrder = [];
+const mvuRosterRank = new Map();
+
+function rememberMvuRosterOrder(objects) {
+  Object.keys(objects).forEach((rawName) => {
+    const name = canonGirlName(rawName);
+    if (!name || mvuRosterRank.has(name)) return;
+    mvuRosterRank.set(name, mvuRosterOrder.length);
+    mvuRosterOrder.push(name);
+  });
 }
 
 function reconcileRoster(objects, rooms, ui) {
   if (!objects || typeof objects !== 'object' || Array.isArray(objects)) return;
+  rememberMvuRosterOrder(objects);
+  const present = new Set(Object.keys(objects).map(canonGirlName).filter(Boolean));
   const next = [];
-  const seen = new Set();
-  Object.keys(objects).forEach((rawName) => {
-    const name = canonGirlName(rawName);
-    if (!name || seen.has(name)) return;
-    seen.add(name);
+  mvuRosterOrder.forEach((name) => {
+    if (!present.has(name)) return;
     const room = pickNamed(rooms, name) || {};
     const c = rosterByName.get(name) || createDynamicCharacter(name, room, ui);
     c.stream.schedule = scheduleFromRoom(room, c.stream.schedule);
     syncDynamicPresentation(c, room, ui);
     next.push(c);
   });
-  /* A just-created chat can briefly expose 世界信息 before 对象信息 is populated.
-     Keep the authored preview for that transient frame, then switch to MVU order as
-     soon as at least one object exists. */
+  /* A just-created chat can briefly expose world data before the object map is populated.
+     Keep the authored preview for that transient frame, then switch to the stable MVU
+     order as soon as at least one object exists. */
   if (next.length) roster.splice(0, roster.length, ...next);
 }
 

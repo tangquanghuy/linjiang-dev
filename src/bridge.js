@@ -305,6 +305,11 @@ export async function requestDevelopmentNotesRestore(payload) {
   if (!isEmbedded()) throw new Error('评语恢复只在酒馆内可用');
   return rpc('restoreDevelopmentNotes', payload, 30000);
 }
+export async function requestCharacterPartArtSave(payload) {
+  if (!isEmbedded()) return { url: String(payload?.url || '').trim(), standalone: true };
+  return rpc('saveCharacterPartArt', payload, 30000);
+}
+
 function sendMoney(n) {
   const context = { ...bridgeContext };
   moneyChain = moneyChain.then(async () => {

@@ -2508,3 +2508,12 @@ html.is-embedded.portrait-mode.is-page-open .viewport {
 .pinv-use::after { content: ''; position: absolute; inset: -30px -12px; }
 /* 禁用时把那圈放大的热区收掉，免得点不动的按钮还在吃周围的点击。 */
 .pinv-use.is-broke::after { content: none; }
+
+
+.pdev-note .part-art-editor { margin-top:22px; padding-top:18px; gap:12px; }
+.pdev-note .part-art-editor label { font-size:25px; }
+.pdev-note .part-art-editor > div { gap:12px; }
+.pdev-note .part-art-editor input,.pdev-note .part-art-editor button { height:58px; border-radius:14px; font-size:22px; }
+.pdev-note .part-art-editor input { padding:0 16px; }
+.pdev-note .part-art-editor button { padding:0 22px; }
+.pdev-note .part-art-editor small,.pdev-note .part-art-editor output { font-size:20px; min-height:28px; }

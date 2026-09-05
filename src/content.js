@@ -274,12 +274,14 @@ function girlCard(g) {
 
 function pageSlice() {
   const list = orderedGirls();
-  const start = (page * PAGE) % list.length;
-  const slice = [];
-  for (let i = 0; i < Math.min(PAGE, list.length); i++) {
-    slice.push(list[(start + i) % list.length]);
-  }
-  return slice;
+  if (!list.length) return [];
+  const pageCount = Math.max(1, Math.ceil(list.length / PAGE));
+  page = ((page % pageCount) + pageCount) % pageCount;
+  const start = page * PAGE;
+  /* Fixed page boundaries matter once the roster is long: wrapping the final short
+     page with characters from page one makes every later click appear to reshuffle the
+     cast.  Pins already form a stable prefix; the remainder now stays in MVU order. */
+  return list.slice(start, start + PAGE);
 }
 
 function paintRail(rail) {

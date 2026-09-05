@@ -59,6 +59,11 @@
 .t-crimson { --signal: #ff355d; --rim: rgba(255, 195, 207, .92); --glow: rgba(255, 92, 126, .40); --wash: rgba(255, 131, 160, .25); --pane: rgba(255, 169, 189, .22); --ornament: #ffd3dd; --ornament-glow: rgba(255, 106, 140, .90); }
 .t-scarlet { --signal: #ff7a2f; --rim: rgba(255, 201, 205, .92); --glow: rgba(255, 93, 104, .39); --wash: rgba(255, 132, 143, .24); --pane: rgba(255, 169, 176, .21); --ornament: #ffd3ba; --ornament-glow: rgba(255, 142, 110, .88); }
 .t-candy   { --signal: #42e6a4; --rim: rgba(255, 216, 238, .92); --glow: rgba(255, 139, 201, .42); --wash: rgba(255, 167, 210, .27); --pane: rgba(255, 194, 222, .24); --ornament: #ffd4ec; --ornament-glow: rgba(255, 133, 197, .92); }
+/* Fixed-character palettes sampled from their cover impression rather than the
+   generic custom-streamer cycle: Hatsune is berry pink over blue-grey hair; Nana is
+   silver/cyan with the warm raspberry lining of her jacket. */
+.t-bunny  { --signal: #f0529b; --rim: rgba(244, 222, 239, .94); --glow: rgba(238, 82, 157, .43); --wash: rgba(151, 126, 171, .29); --pane: rgba(174, 137, 174, .25); --ornament: #ffd7ec; --ornament-glow: rgba(244, 91, 164, .92); }
+.t-nana   { --signal: #67c9df; --rim: rgba(231, 246, 252, .95); --glow: rgba(104, 205, 226, .40); --wash: rgba(205, 160, 181, .25); --pane: rgba(190, 211, 226, .23); --ornament: #d7f5fb; --ornament-glow: rgba(100, 202, 224, .90); }
 
 .card-glass {
   position: absolute;

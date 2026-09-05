@@ -46,6 +46,7 @@ import { formatTravelMessage } from '../travel.js';
 
 import { insertSafeHTML, safeFirstElement, setSafeHTML } from '../dom.js';
 import { applyPrefClick } from '../settings.js';
+import { handlePartArtSubmit } from '../part-art-editor.js';
 
 let devNotesModulePromise;
 const loadDevNotes = () => (devNotesModulePromise ||= import('../dev-notes.js'));
@@ -876,6 +877,13 @@ export function mountPortraitContent(stage, { onPage } = {}) {
     if (hit) {
       openPreview(hit.dataset.name);
     }
+  });
+
+  content.addEventListener('submit', (event) => {
+    const form = event.target.closest('[data-part-art-form]');
+    if (!form) return;
+    event.preventDefault();
+    handlePartArtSubmit(form, content);
   });
 
   content.addEventListener('change', (event) => {

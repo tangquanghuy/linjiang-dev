@@ -12,6 +12,7 @@ import { icons } from './icons.js';
 import { collapseHud, openPhone, reportOverlay, requestClockIn, sendChat } from './bridge.js';
 import { formatTravelMessage } from './travel.js';
 import { applyPrefClick, settingsBody } from './settings.js';
+import { handlePartArtSubmit, partArtEditor } from './part-art-editor.js';
 
 let devNotesModulePromise;
 const loadDevNotes = () => (devNotesModulePromise ||= import('./dev-notes.js'));
@@ -335,9 +336,8 @@ function devProgressBar(p) {
    copy rather than relying on the tile behind the shade. */
 function partCrop(girl, key, cls) {
   return `
-        <span class="${cls}">
-          <img src="${partArt(girl.name, key)}" alt="" draggable="false"
-            data-remove-on-error>
+        <span class="${cls}" data-part-art-name="${girl.name}" data-part-art-key="${key}">
+          ${partArt(girl.name, key) ? `<img src="${partArt(girl.name, key)}" alt="" draggable="false" data-remove-on-error>` : ''}
           <em>暂无截图</em>
         </span>`;
 }
@@ -373,6 +373,7 @@ function developmentNote(name, partKey) {
         ${note
           ? `<p>${note}</p>`
           : `<p class="is-muted">暂无评语</p>`}
+          ${partArtEditor(girl, partKey)}
         </div>
       </div>
     </section>`;
@@ -1198,6 +1199,13 @@ export function mountPages(stage, { onGift, onDock, onOverlay } = {}) {
       event.stopPropagation();
     }
   }, { passive: true });
+
+  layer.addEventListener('submit', (event) => {
+    const form = event.target.closest('[data-part-art-form]');
+    if (!form) return;
+    event.preventDefault();
+    handlePartArtSubmit(form, layer);
+  });
 
   layer.addEventListener('change', (event) => {
     const input = event.target.closest('[data-inv-select]');

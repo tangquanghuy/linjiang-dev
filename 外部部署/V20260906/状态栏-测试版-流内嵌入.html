@@ -98,7 +98,7 @@
 (function () {
   /* This srcdoc is same-origin with the tavern. Desktop/Tauri keep the cross-origin
      HUD iframe transport; native mobile browsers mount the HUD bundle in this document. */
-  const SHELL_VERSION = 'shell-b892bb77';
+  const SHELL_VERSION = 'shell-caa44132';
 
   /* 记号要在两道守卫**之前**就落下。引导壳靠它判断「脚本到底有没有到」，语义必须是
      「本文件执行过了」而不是「装载成功了」—— 否则下面任何一条提前 return 都会让引导壳
@@ -1003,6 +1003,27 @@
     return true;
   };
 
+  const PART_ART_LABELS = { oral: '口腔', chest: '胸部', vagina: '小穴', anus: '肛门' };
+  const saveCharacterPartArt = (payload) => {
+    const name = String(payload?.name || '').trim();
+    const key = String(payload?.part || '').trim();
+    const label = PART_ART_LABELS[key];
+    const url = String(payload?.url || '').trim();
+    if (!name || !label) throw new Error('部位图片参数不完整');
+    if (url && !/^https?:\/\//i.test(url)) throw new Error('部位图片只接受 http(s) 网络链接');
+    if (!mvuState.ready && !mvuState.check()) throw new Error('MVU 未就绪');
+    const mvuData = mvuState.mvu.getMvuData({ type: 'message', message_id: 'latest' });
+    const stat = mvuData?.stat_data;
+    if (!stat) throw new Error('MVU 数据为空');
+    const room = stat?.系统配置?.直播间?.[name];
+    if (!room || room.自定义 !== true) throw new Error('仅自定义主播可设置部位图片');
+    room.部位图 = room.部位图 && typeof room.部位图 === 'object' ? room.部位图 : {};
+    if (url) room.部位图[label] = url;
+    else delete room.部位图[label];
+    mvuState.mvu.replaceMvuData(mvuData, { type: 'message', message_id: 'latest' });
+    return { name, part: key, label, url };
+  };
+
   const handleRequest = (action, payload) => {
     switch (action) {
       case 'handshake':
@@ -1042,6 +1063,8 @@
         return generateDevelopmentNotes(payload);
       case 'restoreDevelopmentNotes':
         return writeDevelopmentNotes(String(payload?.name || '').trim(), payload?.notes || {});
+      case 'saveCharacterPartArt':
+        return saveCharacterPartArt(payload);
       default:
         throw new Error('未知桥接动作: ' + action);
     }
@@ -1065,7 +1088,7 @@
     try {
       const payload = await handleRequest(data.action, data.payload || {});
       event.source?.postMessage({ ...reply, ok: true, payload }, event.origin);
-      if (data.action === 'handshake' || data.action === 'patch' || data.action === 'clockIn' || data.action === 'arcadeEvent' || data.action === 'purchaseShopProduct' || data.action === 'saveCustomMapNode' || data.action === 'deleteCustomMapNode') {
+      if (data.action === 'handshake' || data.action === 'patch' || data.action === 'clockIn' || data.action === 'arcadeEvent' || data.action === 'purchaseShopProduct' || data.action === 'saveCustomMapNode' || data.action === 'deleteCustomMapNode' || data.action === 'saveCharacterPartArt') {
         pushSnapshot(true);
       }
     } catch (error) {
@@ -2933,7 +2956,7 @@
   const MOBILE_NATIVE_ROOT_ID = 'linjiang-mobile-native-root';
   const MOBILE_WRITE_ACTIONS = new Set([
     'patch', 'clockIn', 'arcadeEvent', 'purchaseShopProduct',
-    'saveCustomMapNode', 'deleteCustomMapNode',
+    'saveCustomMapNode', 'deleteCustomMapNode', 'saveCharacterPartArt',
   ]);
 
   /* 原生流下的「整页」几何：次级页面、以及铺满视口的覆盖层（商店 / 地图 / 街机 / CG）。

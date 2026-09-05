@@ -99,7 +99,7 @@
        封面.html 拿它当依赖探针。占位不算就位。 */
     publish(bootApi);
 
-    import('https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-dev@main/public/shell/aux-shell.js')
+    import('https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-dev@main/public/shell/aux-shell.js?v=medal-names-v1')
         /* 真实逻辑自己会把完整 api 挂到 LinjiangAux 上（它末尾就干这件事），
            所以这里不用做什么，只在它没挂上时报一声。 */
         .then(() => {
