@@ -9,7 +9,7 @@
      ==================================================================
      本文件由 scripts/build-status-shell.mjs 从 public/shell/status-shell.js 生成，请勿直接编辑。
 
-     它和 外部部署/V20260826/状态栏.html 是同一份逻辑，只多一行：加载壳层之前把
+     它和 外部部署/V20260906/状态栏.html 是同一份逻辑，只多一行：加载壳层之前把
      __linjiangInlineDock 设成 true。
 
      在手机（含 TT 移动端）上，壳层现在统一采用原生流：每个状态栏楼层都先清掉复用 iframe
@@ -98,7 +98,7 @@
 (function () {
   /* This srcdoc is same-origin with the tavern. Desktop/Tauri keep the cross-origin
      HUD iframe transport; native mobile browsers mount the HUD bundle in this document. */
-  const SHELL_VERSION = 'shell-a8a850d3';
+  const SHELL_VERSION = 'shell-b892bb77';
 
   /* 记号要在两道守卫**之前**就落下。引导壳靠它判断「脚本到底有没有到」，语义必须是
      「本文件执行过了」而不是「装载成功了」—— 否则下面任何一条提前 return 都会让引导壳

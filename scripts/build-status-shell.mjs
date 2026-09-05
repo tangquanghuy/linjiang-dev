@@ -2,9 +2,9 @@
    ==================================================================
    源只有一份（那个脚本），这里生成两个粘贴目标：
 
-     外部部署/V20260826/状态栏-引导壳.html   只有一句 <script src>，把脚本从 GitHub Pages 取下来执行。
+     外部部署/V20260906/状态栏-引导壳.html   只有一句 <script src>，把脚本从 GitHub Pages 取下来执行。
                                    粘一次就不用再动，以后改逻辑只推仓库，十分钟内所有人生效。
-     外部部署/V20260826/状态栏.html          自包含版，把脚本内联回去。给已经装了旧版、暂时不想换成
+     外部部署/V20260906/状态栏.html          自包含版，把脚本内联回去。给已经装了旧版、暂时不想换成
                                    引导壳的用户继续粘。
 
    为什么两份都要生成，而不是手抄
@@ -26,9 +26,9 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SHELL_JS = join(ROOT, 'public', 'shell', 'status-shell.js');
-const OUT_BOOT = join(ROOT, '外部部署', 'V20260826', '状态栏-引导壳.html');
-const OUT_INLINE = join(ROOT, '外部部署', 'V20260826', '状态栏.html');
-const OUT_FLOW = join(ROOT, '外部部署', 'V20260826', '状态栏-测试版-流内嵌入.html');
+const OUT_BOOT = join(ROOT, '外部部署', 'V20260906', '状态栏-引导壳.html');
+const OUT_INLINE = join(ROOT, '外部部署', 'V20260906', '状态栏.html');
+const OUT_FLOW = join(ROOT, '外部部署', 'V20260906', '状态栏-测试版-流内嵌入.html');
 
 /* 脚本的线上地址。
    ------------------------------------------------------------------
@@ -57,7 +57,7 @@ const OUT_FLOW = join(ROOT, '外部部署', 'V20260826', '状态栏-测试版-�
 
    刻意不带 ?v= 版本串：带了就意味着每次发版都要所有人重新粘贴引导壳，那正是这次要消灭的
    东西。 */
-const SHELL_URL = 'https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-glass@main/public/shell/status-shell.js';
+const SHELL_URL = 'https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-dev@main/public/shell/status-shell.js';
 
 /* 两份产物共用的骨架。留两个槽：头部说明、脚本块。
    这里的 <style> 是唯一一份 —— 它必须在首帧生效（搬进脚本会先白闪一下再变黑），所以两条
@@ -139,7 +139,7 @@ const INLINE_HEADER = `<!-- 状态栏（自包含版）。粘进角色卡「状�
 
      但它有一个改不掉的毛病 —— 粘下去就冻结了。HUD 产物在 GitHub Pages 上持续更新，这份
      不会。两者是同一个 RPC 契约的两端，脱节的后果是静默错账（已经出过一次：建设费不扣钱）。
-     新装请用 外部部署/V20260826/状态栏-引导壳.html，那一份粘一次就永远跟着线上走。 -->`;
+     新装请用 外部部署/V20260906/状态栏-引导壳.html，那一份粘一次就永远跟着线上走。 -->`;
 
 const BOOT_SCRIPT = `<!-- 壳层脚本。放在两个元素之后，所以脚本执行时它们一定已经在文档里了。
 
@@ -237,7 +237,7 @@ const FLOW_HEADER = `<!-- 状态栏（实验版：收回态改用酒馆原生嵌
      ==================================================================
      本文件由 scripts/build-status-shell.mjs 从 public/shell/status-shell.js 生成，请勿直接编辑。
 
-     它和 外部部署/V20260826/状态栏.html 是同一份逻辑，只多一行：加载壳层之前把
+     它和 外部部署/V20260906/状态栏.html 是同一份逻辑，只多一行：加载壳层之前把
      __linjiangInlineDock 设成 true。
 
      在手机（含 TT 移动端）上，壳层现在统一采用原生流：每个状态栏楼层都先清掉复用 iframe

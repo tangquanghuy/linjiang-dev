@@ -2,8 +2,8 @@
 <!-- 本文件由 scripts/build-reading-external.mjs 从 外部部署/V20260906/正文美化.html 生成，请勿直接编辑。
      与源的差异只有两处：
        1. 5 张内联 base64 WebP 改成了外链；
-       2. head 里 22 个内联 <style>（共 189KB）合并成一个外链样式表。
-     素材前缀：https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-glass@main/public/reading/
+       2. head 里 22 个内联 <style>（共 188KB）合并成一个外链样式表。
+     素材前缀：https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-dev@main/public/reading/
      改动请改源文件再重新生成；node scripts/build-reading-external.mjs --deploy=V20260906 --check 会校验这份有没有过期。 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -52,10 +52,10 @@
     })();
   </script>
     <link rel="preconnect" href="https://testingcf.jsdelivr.net" crossorigin>
-  <!-- 这里原本是 22 个内联 <style>（共 189KB）。
+  <!-- 这里原本是 22 个内联 <style>（共 188KB）。
        每条 AI 消息都是一个独立 iframe，内联就等于每层重新解析一遍，所以抽成外链。
        注意它是渲染阻塞的：取不到时浏览器会以无样式状态渲染正文。 -->
-  <link rel="stylesheet" href="https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-glass@main/public/reading/reading.4cfed672.css">
+  <link rel="stylesheet" href="https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-dev@main/public/reading/reading.ee9c099d.css">
 </head>
 
 <body class="theme-preload render-pending">

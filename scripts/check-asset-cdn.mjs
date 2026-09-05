@@ -81,8 +81,8 @@ console.log('=== 改写规则（按形态）===');
         './assets/items/nope.png',
     ]) eq(`白名单外原样: ${s}`, R(s), s);
 
-    /* 绝对地址的中段不能被命中，否则拼出 ...linjiang-glassHTTPS://... */
-    const pagesUrl = 'https://tangquanghuy.github.io/linjiang-glass/assets/bg-plate.png';
+    /* 绝对地址的中段不能被命中，否则拼出 ...linjiang-devHTTPS://... */
+    const pagesUrl = 'https://tangquanghuy.github.io/linjiang-dev/assets/bg-plate.png';
     eq('Pages 绝对地址原样', R(`"${pagesUrl}"`), `"${pagesUrl}"`);
 
     eq(

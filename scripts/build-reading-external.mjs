@@ -99,11 +99,11 @@ const ASSET_DIR = join(ROOT, 'public', 'reading');
 const TARGETS = {
   jsdelivr: {
     label: 'jsDelivr testingcf（国内可用，7 天浏览器缓存）',
-    prefix: 'https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-glass@main/public/reading/',
+    prefix: 'https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-dev@main/public/reading/',
   },
   pages: {
     label: 'GitHub Pages（只有 10 分钟浏览器缓存，作为备选）',
-    prefix: 'https://tangquanghuy.github.io/linjiang-glass/reading/',
+    prefix: 'https://tangquanghuy.github.io/linjiang-dev/reading/',
   },
 };
 

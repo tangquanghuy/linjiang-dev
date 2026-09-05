@@ -39,7 +39,7 @@
 (function () {
   /* This srcdoc is same-origin with the tavern. Desktop/Tauri keep the cross-origin
      HUD iframe transport; native mobile browsers mount the HUD bundle in this document. */
-  const SHELL_VERSION = 'shell-a8a850d3';
+  const SHELL_VERSION = 'shell-b892bb77';
 
   /* 记号要在两道守卫**之前**就落下。引导壳靠它判断「脚本到底有没有到」，语义必须是
      「本文件执行过了」而不是「装载成功了」—— 否则下面任何一条提前 return 都会让引导壳
@@ -72,7 +72,7 @@
     return;
   }
   window[GUARD] = SHELL_VERSION;
-  const HUD_URL = 'https://tangquanghuy.github.io/linjiang-glass/?v=20260823-cg-bridge-v1';
+  const HUD_URL = 'https://tangquanghuy.github.io/linjiang-dev/?v=20260823-cg-bridge-v1';
   // const HUD_URL = 'http://127.0.0.1:5173/';
   const CHANNEL = 'linjiang-hud';
   const POLL_MS = 10000;

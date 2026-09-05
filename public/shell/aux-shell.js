@@ -650,7 +650,7 @@
          Cache-Control: max-age=600 + ETag + ACAO: *，能被缓存脚本接管；
          而且这两类素材本来就在仓库里，跟着 pages.yml 一起发，不用手动上传。 */
     const ART_HOST = 'https://anchor.bolt.qzz.io';
-    const PAGES_HOST = 'https://tangquanghuy.github.io/linjiang-glass';
+    const PAGES_HOST = 'https://tangquanghuy.github.io/linjiang-dev';
 
     /* NPC 名字池：临江本地网名的调子（地名 + 生活状态），不要平台网名腔。 */
     const NPC_NAMES = [

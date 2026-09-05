@@ -15,7 +15,7 @@ const REPEAT = repeatIndex >= 0 ? Number(argv[repeatIndex + 1]) || 3 : 3;
 const TARGETS = [
   {
     id: '项目 Pages（本文件已依赖）',
-    url: 'https://tangquanghuy.github.io/linjiang-glass/',
+    url: 'https://tangquanghuy.github.io/linjiang-dev/',
     note: 'EVT_PLATE_CDN 就指向这个源',
   },
   {

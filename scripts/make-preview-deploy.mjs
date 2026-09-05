@@ -3,8 +3,8 @@
    外部部署的那批文件（状态栏、正文美化、开局、辅助计算脚本、素材缓存脚本……）是复制粘贴进
    酒馆的，它们内部写着两类指向生产的外链：
 
-     Pages      https://tangquanghuy.github.io/linjiang-glass/...
-     jsDelivr   https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-glass@main/...
+     Pages      https://tangquanghuy.github.io/linjiang-dev/...
+     jsDelivr   https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-dev@main/...
 
    只改状态栏一份是不够的：正文美化要从 Pages 取城市底图页、从 jsDelivr 取那份外链样式表；
    开局要取三张素材；辅助计算脚本要取 aux-shell.js。任何一条还指着生产，验的就是「新壳层配旧
@@ -44,11 +44,16 @@ const arg = (name, fallback) => {
 };
 /* 默认没有 ref —— 从工作区读。给了 --ref 才回到"只用已提交的那一版"。 */
 const ref = arg('ref', '');
-const mirror = arg('repo', 'tangquanghuy/linjiang-dev');
+const SOURCE_REPO = 'tangquanghuy/linjiang-dev';
+const mirror = arg('repo', process.env.LINJIANG_PREVIEW_REPO || '').trim();
+if (!/^[^/]+\/[^/]+$/.test(mirror) || mirror === SOURCE_REPO) {
+  console.error('请用 --repo=owner/name 指定一个不同于 tangquanghuy/linjiang-dev 的预览镜像仓库');
+  process.exit(1);
+}
 const mirrorName = mirror.split('/')[1];
 const mirrorOwner = mirror.split('/')[0];
 
-const DEPLOY_DIR = '外部部署/V20260826';
+const DEPLOY_DIR = '外部部署/V20260906';
 const OUT_DIR = join(PROJECT_ROOT, 'artifacts', 'preview');
 
 const git = (argv) => execFileSync('git', argv, {
@@ -105,17 +110,17 @@ const RULES = [
     /* 必须排在下面那条通用 jsDelivr 规则**前面**：两条都能匹配壳层脚本，先到的赢。
        jsDelivr 路径里带 public/，Pages 上没有（vite 把 public/ 摊平成站点根）。 */
     label: '壳层→Pages',
-    from: /https:\/\/[a-z]*\.?jsdelivr\.net\/gh\/tangquanghuy\/linjiang-glass@[^/]+\/public\/shell\//g,
+    from: /https:\/\/[a-z]*\.?jsdelivr\.net\/gh\/tangquanghuy\/linjiang-dev@[^/]+\/public\/shell\//g,
     to: SHELL_ON_PAGES,
   },
   {
     label: 'Pages',
-    from: /https:\/\/tangquanghuy\.github\.io\/linjiang-glass/g,
+    from: /https:\/\/tangquanghuy\.github\.io\/linjiang-dev/g,
     to: `https://${mirrorOwner}.github.io/${mirrorName}`,
   },
   {
     label: 'jsDelivr',
-    from: /(https:\/\/[a-z]*\.?jsdelivr\.net\/gh\/)tangquanghuy\/linjiang-glass@[^/]+\//g,
+    from: /(https:\/\/[a-z]*\.?jsdelivr\.net\/gh\/)tangquanghuy\/linjiang-dev@[^/]+\//g,
     to: `$1${mirror}@${mirrorSha}/`,
   },
 ];
@@ -279,9 +284,9 @@ writeFileSync(join(OUT_DIR, '说明-预览包.md'), `# 预览用的外部部署�
 
 | | 生产 | 预览 |
 |---|---|---|
-| Pages（HUD） | \`tangquanghuy.github.io/linjiang-glass\` | \`${mirrorOwner}.github.io/${mirrorName}\` |
+| Pages（HUD） | \`tangquanghuy.github.io/linjiang-dev\` | \`${mirrorOwner}.github.io/${mirrorName}\` |
 | 壳层脚本 | \`jsDelivr …@main/public/shell/\` | \`${mirrorOwner}.github.io/${mirrorName}/shell/\` |
-| 素材 | \`gh/tangquanghuy/linjiang-glass@main\` | \`gh/${mirror}@${mirrorSha}\` |
+| 素材 | \`gh/tangquanghuy/linjiang-dev@main\` | \`gh/${mirror}@${mirrorSha}\` |
 
 壳层脚本（\`status-shell.js\` / \`aux-shell.js\`）从 jsDelivr 换成了镜像的 **Pages**：镜像每次
 force push，而 jsDelivr 对可变引用还有一层「分支 → 提交」映射缓存，purge 文件路径救不回来 ——

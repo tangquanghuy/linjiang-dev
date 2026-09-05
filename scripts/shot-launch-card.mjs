@@ -10,7 +10,7 @@ import path from 'node:path';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CARD = readFileSync(path.join(root, '外部部署/V20260826/开局.html'), 'utf8');
-const BASE = 'https://tangquanghuy.github.io/linjiang-glass/assets/';
+const BASE = 'https://tangquanghuy.github.io/linjiang-dev/assets/';
 const LOCAL = {
   'opening-strip.webp': ['public/assets/opening-strip.webp', 'image/webp'],
   'opening-background.png': ['public/assets/opening-background.png', 'image/png'],

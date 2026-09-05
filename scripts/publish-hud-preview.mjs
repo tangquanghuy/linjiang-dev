@@ -1,4 +1,4 @@
-/* 把当前 dev 分支推到测试镜像仓库（linjiang-dev），让它的 Pages 重新构建。
+/* 把 linjiang-dev 当前工作区推到单独的测试镜像仓库，让镜像 Pages 重新构建。
    ==================================================================
    为什么要单独一个仓库
    ------------------------------------------------------------------
@@ -34,8 +34,8 @@
    要回到"只发已提交的那一版"，用 --ref=<ref>。
 
    用法：
-     node scripts/publish-hud-preview.mjs              # 推当前工作区（默认，含未提交改动）
-     node scripts/publish-hud-preview.mjs --ref=dev    # 只推已提交的 dev
+     node scripts/publish-hud-preview.mjs --repo=owner/name  # 推当前工作区（含未提交改动）
+     node scripts/publish-hud-preview.mjs --repo=owner/name --ref=dev  # 只推已提交的 dev
      node scripts/publish-hud-preview.mjs --dry        # 只准备本地快照，不推
 */
 import { execFileSync } from 'node:child_process';
@@ -52,9 +52,17 @@ const arg = (name, fallback) => {
 /* 默认没有 ref —— 快照工作区。给了 --ref 才回到"只发已提交的那一版"。 */
 const ref = arg('ref', '');
 const dry = args.includes('--dry');
+const SOURCE_REPO = 'tangquanghuy/linjiang-dev';
+const previewRepo = arg('repo', process.env.LINJIANG_PREVIEW_REPO || '').trim();
+if (!dry && (!/^[^/]+\/[^/]+$/.test(previewRepo) || previewRepo === SOURCE_REPO)) {
+  console.error('请用 --repo=owner/name 指定一个不同于 tangquanghuy/linjiang-dev 的预览镜像仓库');
+  process.exit(1);
+}
 
-export const PREVIEW_REMOTE = 'git@github.com:tangquanghuy/linjiang-dev.git';
-export const PREVIEW_PAGES = 'https://tangquanghuy.github.io/linjiang-dev/';
+export const PREVIEW_REMOTE = previewRepo ? `git@github.com:${previewRepo}.git` : '';
+export const PREVIEW_PAGES = previewRepo
+  ? `https://${previewRepo.split('/')[0]}.github.io/${previewRepo.split('/')[1]}/`
+  : '';
 /* 每次用临时目录里的唯一路径，跑完就删。
    原来固定用仓库旁边的 ../_linjiang-dev，结果第二次发布就撞上 EPERM —— 只要有个终端的 cwd
    还在里面、或者编辑器打开过里面的文件，rmSync 就删不掉，而这个脚本的第一步正是"清空重建"。
@@ -120,7 +128,7 @@ run('git', ['init', '-q', '-b', 'main'], STAGE);
 run('git', ['add', '-A'], STAGE);
 run('git', [
   '-c', 'user.name=linjiang-preview', '-c', 'user.email=preview@local',
-  'commit', '-q', '-m', `chore: linjiang-glass 快照（${origin}）\n\n测试镜像，只为真机验证 HUD 侧改动而存在。历史每次被覆盖 —— 它是产物，不是源头。`,
+  'commit', '-q', '-m', `chore: linjiang-dev 快照（${origin}）\n\n测试镜像，只为真机验证 HUD 侧改动而存在。历史每次被覆盖 —— 它是产物，不是源头。`,
 ], STAGE);
 
 /* 镜像那一侧的提交 sha。预览的 jsDelivr 外链要**钉在它上面**，不能用 @main —— 理由见下面

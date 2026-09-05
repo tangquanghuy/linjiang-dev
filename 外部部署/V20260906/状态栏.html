@@ -15,7 +15,7 @@
 
      但它有一个改不掉的毛病 —— 粘下去就冻结了。HUD 产物在 GitHub Pages 上持续更新，这份
      不会。两者是同一个 RPC 契约的两端，脱节的后果是静默错账（已经出过一次：建设费不扣钱）。
-     新装请用 外部部署/V20260826/状态栏-引导壳.html，那一份粘一次就永远跟着线上走。 -->
+     新装请用 外部部署/V20260906/状态栏-引导壳.html，那一份粘一次就永远跟着线上走。 -->
 <style>
   html, body {
     margin: 0;
@@ -92,7 +92,7 @@
 (function () {
   /* This srcdoc is same-origin with the tavern. Desktop/Tauri keep the cross-origin
      HUD iframe transport; native mobile browsers mount the HUD bundle in this document. */
-  const SHELL_VERSION = 'shell-a8a850d3';
+  const SHELL_VERSION = 'shell-b892bb77';
 
   /* 记号要在两道守卫**之前**就落下。引导壳靠它判断「脚本到底有没有到」，语义必须是
      「本文件执行过了」而不是「装载成功了」—— 否则下面任何一条提前 return 都会让引导壳

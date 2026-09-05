@@ -83,7 +83,7 @@ function rewriteAssetRefs(destRoot) {
 }
 
 export default defineConfig({
-  /* Relative so GitHub project pages (/linjiang-glass/) and local preview both work.
+  /* Relative so GitHub project pages (/linjiang-dev/) and local preview both work.
      刻意只让*素材*走 CDN，base 保持相对：HUD 靠 postMessage 和同源 DOM 跟宿主页
      通信，把 JS/CSS 挪成跨源会直接断掉，而且 dist/ 在 gitignore 里，CDN 看不到。 */
   base: './',

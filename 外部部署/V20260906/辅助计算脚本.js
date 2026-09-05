@@ -18,7 +18,7 @@
 (function () {
     'use strict';
 
-    const BOOT_VERSION = 'ai-money-code-room-v4';
+    const BOOT_VERSION = 'linjiang-dev-aux-v1';
 
     // 一件东西一行：价格、人气点数、图标文件。以前价格/点数/图标分在三张表里。
     const GIFTS = [
@@ -99,7 +99,7 @@
        封面.html 拿它当依赖探针。占位不算就位。 */
     publish(bootApi);
 
-    import('https://tangquanghuy.github.io/linjiang-dev/shell/aux-shell.js?v=ai-money-code-room-v4')
+    import('https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-dev@main/public/shell/aux-shell.js')
         /* 真实逻辑自己会把完整 api 挂到 LinjiangAux 上（它末尾就干这件事），
            所以这里不用做什么，只在它没挂上时报一声。 */
         .then(() => {

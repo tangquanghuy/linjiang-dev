@@ -47,7 +47,7 @@ import { join, posix } from 'node:path';
 
 export const CDN_HOST = 'https://testingcf.jsdelivr.net';
 export const CDN_REF = String(process.env.ASSET_CDN_REF || '').trim()
-    || 'gh/tangquanghuy/linjiang-glass@main';
+    || 'gh/tangquanghuy/linjiang-dev@main';
 
 /* 注意路径里带 public/：jsDelivr 是按仓库原样路径服务的，素材在仓库里就住在
    public/assets/ 下面（是 vite 把 public/ 摊平成 dist/ 根，CDN 不做这件事）。 */
@@ -118,8 +118,8 @@ export function listPublicAssets(root = 'public/assets') {
       才发现的 —— 当时 dist 里恰好没有这种形态，整套构建检查全绿。
 
    2. 但也不能无条件允许前缀 `/`，否则会命中绝对地址的中段：
-      `https://tangquanghuy.github.io/linjiang-glass/assets/bg-plate.png`
-      里的 `/assets/bg-plate.png` 会被换掉，拼出 `...linjiang-glassHTTPS://...`。
+      `https://tangquanghuy.github.io/linjiang-dev/assets/bg-plate.png`
+      里的 `/assets/bg-plate.png` 会被换掉，拼出 `...linjiang-devHTTPS://...`。
       要求前一个字符是定界符就排除了这种情况（那里前一个字符是 `s`）。
 
    3. 幂等是这条规则的副产品，不用另外判：改写后的地址里是 `public/assets/`，

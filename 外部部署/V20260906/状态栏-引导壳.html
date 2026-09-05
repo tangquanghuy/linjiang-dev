@@ -61,7 +61,7 @@
 
      刻意用同步的 <script src>（不加 async/defer）：这样它无论成功还是失败，都会在下面那段
      兜底之前有结果，不用自己写 onload/onerror 的状态机。 -->
-<script src="https://tangquanghuy.github.io/linjiang-dev/shell/status-shell.js"></script>
+<script src="https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-dev@main/public/shell/status-shell.js"></script>
 <script>
   /* 兜底提示。上面那条是同步的，走到这里时它已经有结果了。
      壳层一执行就会在 <html> 上留 data-linjiang-shell，没有记号就只有一种可能：脚本没取到。

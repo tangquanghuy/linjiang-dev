@@ -1,5 +1,5 @@
 /* 临时：线上 fishing.html 是不是已经瘦下来、素材是不是指向 CDN。用完即删。 */
-const URL_ = 'https://tangquanghuy.github.io/linjiang-glass/arcade/fishing.html';
+const URL_ = 'https://tangquanghuy.github.io/linjiang-dev/arcade/fishing.html';
 const DEADLINE = Date.now() + 8 * 60 * 1000;
 
 while (Date.now() < DEADLINE) {
@@ -26,7 +26,7 @@ while (Date.now() < DEADLINE) {
         console.log(`  [${b64 === 0 ? '通过' : '失败'}] 内联 base64 数 = ${b64}`);
         console.log(`  [通过] ${cdn} 处素材指向 testingcf`);
         /* 顺手量一下最大的那张素材从 CDN 取要多久。 */
-        const one = 'https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-glass@main/arcade/assets/games/fishing-background.webp';
+        const one = 'https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-dev@main/arcade/assets/games/fishing-background.webp';
         const t1 = Date.now();
         const r2 = await fetch(one, { cache: 'no-store' });
         const kb2 = Math.round((await r2.arrayBuffer()).byteLength / 1024);

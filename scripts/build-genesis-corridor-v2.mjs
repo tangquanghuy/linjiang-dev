@@ -1,4 +1,4 @@
-﻿import { createHash } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -243,7 +243,7 @@ output = output.replace(/^```\s*\n/, '```\n' + banner);
 // 基础静态断言。
 const required = ['DiceCombat', 'DiceCheck', 'Initiative', 'EnemyOverview', 'SummonOverview', 'LootLog', 'ExperienceLog', 'QuestContract', 'MerchantStore', 'CombatSnapshot'];
 for (const tag of required) if (!output.includes(tag)) fail(`输出缺少 RPG 标签 ${tag}`);
-for (const banned of ['function renderLiveRoom', 'function renderSuddenEvent', '<LiveRoom>', '<SuddenEvent>', 'linjiang-glass@main/public/reading/']) {
+for (const banned of ['function renderLiveRoom', 'function renderSuddenEvent', '<LiveRoom>', '<SuddenEvent>', 'linjiang-dev@main/public/reading/']) {
   if (output.includes(banned)) fail(`输出仍包含不应保留的内容：${banned}`);
 }
 if (!output.includes('customCharAvatarUrlInput')) fail('输出缺少新版网络头像输入');
