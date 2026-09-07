@@ -29,7 +29,7 @@
    stylesheet and this file cannot disagree. */
 
 import { EAR, PANEL, PW, SEAM, TOOL, canvasWidth, panelPath, podRowLeft } from './geometry.js';
-import { buildPortraitDefs, paintPortraitRim } from './glass.js';
+import { buildPortraitDefs, paintPortraitRim, paintFlatPortraitRim } from './glass.js';
 import { reportPortraitSize } from '../bridge.js';
 import dockArtRaw from '../dock-art.json';
 import { asset, rebaseRecord } from '../asset.js';
@@ -260,9 +260,19 @@ export function createPortraitStage(host) {
       svg.setAttribute('width', String(pw));
       svg.setAttribute('height', String(h));
     }
-    buildPortraitDefs(defs, panels, h, pw);
-    glass.innerHTML = panels.map(glassLayers).join('');
-    paintPortraitRim(rim, panels, h, pw);
+    if (document.documentElement.dataset.hudIosTtFlat === '1') {
+      /* Avoid full-canvas clip/filter intermediates on TT iOS. The silhouette
+         fill and crisp rim preserve geometry and hit targets at much lower cost. */
+      buildPortraitDefs(defs, panels, h, pw, true);
+      paintFlatPortraitRim(rim, panels, h, pw);
+      glass.innerHTML = `<svg class="pg-flat" width="${pw}" height="${h}"
+        viewBox="0 0 ${pw} ${h}" aria-hidden="true">${panels.map((p) =>
+        `<path d="${p.path}" fill="#242840"/>`).join('')}</svg>`;
+    } else {
+      buildPortraitDefs(defs, panels, h, pw);
+      glass.innerHTML = panels.map(glassLayers).join('');
+      paintPortraitRim(rim, panels, h, pw);
+    }
     blossoms.innerHTML = panels.map(blossom).join('');
   };
 

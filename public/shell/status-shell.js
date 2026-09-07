@@ -39,7 +39,7 @@
 (function () {
   /* This srcdoc is same-origin with the tavern. Desktop/Tauri keep the cross-origin
      HUD iframe transport; native mobile browsers mount the HUD bundle in this document. */
-  const SHELL_VERSION = 'shell-caa44132';
+  const SHELL_VERSION = 'shell-a611fb06';
 
   /* 记号要在两道守卫**之前**就落下。引导壳靠它判断「脚本到底有没有到」，语义必须是
      「本文件执行过了」而不是「装载成功了」—— 否则下面任何一条提前 return 都会让引导壳
@@ -3363,7 +3363,14 @@
      load，而根节点会一直空着 —— 屏幕上就是永久黑，而且没有任何一处会去重试。所以挂载的终点
      判据是根节点真的长出东西来。 */
   const nativeHudPainted = () => {
-    try { return (mobileNativeRoot?.querySelectorAll('*').length || 0) > 40; }
+    /* Decorative SVG/filter nodes vary by HUD build.  Readiness must be based on
+       actual panel content, while accepting both the current portrait markup and
+       the older landscape fallback used by cached/legacy bundles. */
+    try {
+      return !!mobileNativeRoot?.querySelector(
+        '.pcontent > .ppanel, #content > *, .content > *',
+      );
+    }
     catch (e) { return false; }
   };
 
@@ -3385,6 +3392,11 @@
     ensureMobileNativeShellStyle();
     document.documentElement.dataset.linjiangMobileNative = '1';
     window.__linjiangNativeFlow = true;
+    /* The HUD runs directly in this srcdoc on native flow, so it cannot infer
+       the TT/iOS host from the lifted iframe query string. Publish it before
+       importing the bundle so first-paint performance mode is deterministic. */
+    window.__linjiangNativeHost = isIosTauriTavernMobile() ? 'tauritavern-ios'
+      : isTauriTavernMobile() ? 'tauritavern-mobile' : 'browser';
     window.__linjiangHostMode = 'portrait';
     try { localHudFrame?.remove(); } catch (e) {}
 

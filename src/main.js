@@ -210,6 +210,21 @@ if (iosTouchHost) document.documentElement.dataset.hudIosScroll = '1';
 const nativeFlowHost = (() => {
   try { return !!window.__linjiangNativeFlow; } catch (e) { return false; }
 })();
+/* TT iOS needs the low-compositing path from first paint. A gesture can begin in
+   the host reading pane, so a HUD touch callback is too late to protect the GPU. */
+const iosTtNative = nativeFlowHost && (() => {
+  if (window.__linjiangNativeHost) return window.__linjiangNativeHost === 'tauritavern-ios';
+  for (const host of [window.parent, window.top]) {
+    try {
+      if (!host?.__TAURITAVERN__) continue;
+      const nav = host.navigator;
+      return /iphone|ipad|ipod/i.test(String(nav.userAgent || ''))
+        || (nav.platform === 'MacIntel' && Number(nav.maxTouchPoints || 0) > 1);
+    } catch { /* Cross-origin ancestors are not host evidence. */ }
+  }
+  return false;
+})();
+if (iosTtNative) document.documentElement.dataset.hudIosTtFlat = '1';
 /* 两张大贴图跟着档位走。
    ------------------------------------------------------------------
    低负载档以前只关 backdrop-filter，贴图一张不少（perf.css 顶部那句「Frost, tint and
@@ -237,6 +252,7 @@ const applyPerformanceMode = () => {
   const choice = pref('performanceMode');
   const low = choice === 'low'
     || hostNeedsFlatGlass
+    || iosTtNative
     || (nativeFlowHost && !prefStored('performanceMode'));
   document.documentElement.dataset.hudPerformance = low ? 'low' : 'auto';
   syncHeavyTextures();

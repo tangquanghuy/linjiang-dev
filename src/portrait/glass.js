@@ -15,14 +15,33 @@ import { RIM_K, panelConvexArcs, panelEdges, panelRim } from './geometry.js';
 
 const sd = (n) => +(n * RIM_K).toFixed(2);
 
+const RIM_GRADIENTS = `
+  <linearGradient id="pRimLeft" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="rgb(200,204,228)" stop-opacity=".80"/>
+    <stop offset=".40" stop-color="rgb(210,200,220)" stop-opacity=".88"/>
+    <stop offset=".78" stop-color="rgb(240,226,230)" stop-opacity=".96"/>
+    <stop offset="1" stop-color="rgb(255,250,246)" stop-opacity="1"/>
+  </linearGradient>
+  <linearGradient id="pRimRight" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="rgb(190,166,155)" stop-opacity=".84"/>
+    <stop offset=".22" stop-color="rgb(232,199,183)" stop-opacity=".92"/>
+    <stop offset=".55" stop-color="rgb(240,214,212)" stop-opacity=".95"/>
+    <stop offset=".82" stop-color="rgb(254,242,238)" stop-opacity="1"/>
+    <stop offset="1" stop-color="rgb(255,248,246)" stop-opacity="1"/>
+  </linearGradient>`;
+
 /**
  * Shared gradients and filters, plus one clip path per panel.
  * @param {SVGElement} svg   the defs host
  * @param {Array} panels     [{ id, earTop, bottom, pod, path }]
  * @param {number} height    current canvas height
  */
-export function buildPortraitDefs(svg, panels, height, pw) {
+export function buildPortraitDefs(svg, panels, height, pw, flat = false) {
   svg.setAttribute('viewBox', `0 0 ${pw} ${height}`);
+  if (flat) {
+    svg.innerHTML = `<defs>${RIM_GRADIENTS}</defs>`;
+    return;
+  }
   svg.innerHTML = `
 <defs>
   ${panels.map((p) => `
@@ -32,19 +51,7 @@ export function buildPortraitDefs(svg, panels, height, pw) {
 
   <!-- Side rims brighten downward, the same way the landscape shell's do.
        objectBoundingBox so one definition covers every panel height. -->
-  <linearGradient id="pRimLeft" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0"   stop-color="rgb(200,204,228)" stop-opacity=".80"/>
-    <stop offset=".40" stop-color="rgb(210,200,220)" stop-opacity=".88"/>
-    <stop offset=".78" stop-color="rgb(240,226,230)" stop-opacity=".96"/>
-    <stop offset="1"   stop-color="rgb(255,250,246)" stop-opacity="1"/>
-  </linearGradient>
-  <linearGradient id="pRimRight" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0"   stop-color="rgb(190,166,155)" stop-opacity=".84"/>
-    <stop offset=".22" stop-color="rgb(232,199,183)" stop-opacity=".92"/>
-    <stop offset=".55" stop-color="rgb(240,214,212)" stop-opacity=".95"/>
-    <stop offset=".82" stop-color="rgb(254,242,238)" stop-opacity="1"/>
-    <stop offset="1"   stop-color="rgb(255,248,246)" stop-opacity="1"/>
-  </linearGradient>
+  ${RIM_GRADIENTS}
 
   <!-- Shallow inner glow: cool at the top edge, warming into the underside the
        way desk light does in the landscape scene. -->
@@ -78,6 +85,16 @@ export function buildPortraitDefs(svg, panels, height, pw) {
     <feGaussianBlur stdDeviation="${sd(2.0)}"/>
   </filter>
 </defs>`;
+}
+
+export function paintFlatPortraitRim(svg, panels, height, pw) {
+  svg.setAttribute('viewBox', `0 0 ${pw} ${height}`);
+  svg.innerHTML = panels.map((p) => panelRim(p).map((s) => {
+    const colour = s.id === 'left' ? 'url(#pRimLeft)'
+      : s.id === 'right' ? 'url(#pRimRight)' : s.color;
+    return `<path d="${s.d}" fill="none" stroke="${colour}" stroke-width="${s.width}"
+      stroke-opacity="${s.opacity}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }).join('')).join('');
 }
 
 const stroke = (s, over = {}) => {
