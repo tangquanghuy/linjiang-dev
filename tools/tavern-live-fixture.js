@@ -321,6 +321,23 @@ note('predefine.js 使用精简替身（真实那份需要完整的 TavernHelper
  * 照 src/panel/render/iframe.ts 的 createSrcContent 组装 srcdoc。
  * 差异只有两处：CDN 依赖被替换/跳过，predefine 用替身。
  */
+// Real Iframe.vue offers both srcdoc and same-origin Blob documents. Opt in only for tests.
+const USE_BLOB_URL = params.get('useBlobUrl') === '1';
+const frameBlobUrls = new WeakMap();
+function setFrameContent(frame, content) {
+  const previous = frameBlobUrls.get(frame);
+  if (previous) URL.revokeObjectURL(previous);
+  const html = createSrcContent(content);
+  if (!USE_BLOB_URL) { frame.srcdoc = html; return; }
+  frame.removeAttribute('srcdoc');
+  const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+  frameBlobUrls.set(frame, url);
+  frame.src = url;
+}
+function releaseFrameContent(frame) {
+  const url = frameBlobUrls.get(frame);
+  if (url) { URL.revokeObjectURL(url); frameBlobUrls.delete(frame); }
+}
 function createSrcContent(content) {
   /* forceLifted 的注入点必须在楼层内容**之前**：壳层是在自己顶部一次性读这个全局的。 */
   const forceLifted = FORCE_LIFTED
@@ -331,6 +348,7 @@ function createSrcContent(content) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+${USE_BLOB_URL ? `<base href="${location.origin}/">` : ''}
 <style>
 *,*::before,*::after{box-sizing:border-box;}
 html,body{margin:0!important;padding:0;overflow:hidden!important;max-width:100%!important;}
@@ -696,8 +714,8 @@ async function mountChat() {
   }
 
   /* srcdoc 要在节点进 DOM 之后再赋值，否则 loading=lazy 的判定没有布局可依据。 */
-  for (const frame of statusFrames) frame.srcdoc = createSrcContent(statusSource);
-  for (const frame of renderFrames) frame.srcdoc = createSrcContent(readingSource);
+  for (const frame of statusFrames) setFrameContent(frame, statusSource);
+  for (const frame of renderFrames) setFrameContent(frame, readingSource);
 }
 
 /* ---------------------------------------------------------------- 运行时楼层事件
@@ -800,7 +818,7 @@ async function appendStatusFloor({ scrollToBottom = true } = {}) {
   /* 真实酒馆收到新消息会把 #chat 滚到底；而且 iframe 是 loading="lazy" 的（照 Iframe.vue），
      不先滚过去它根本不会加载。赋 srcdoc 之前滚，顺序不能反。 */
   if (scrollToBottom) chatEl.scrollTop = chatEl.scrollHeight;
-  block.iframe.srcdoc = createSrcContent(statusSource);
+  setFrameContent(block.iframe, statusSource);
   return statusFrames.length - 1;
 }
 
@@ -809,7 +827,7 @@ async function rerenderStatusFloor(index) {
   const frame = statusFrames[index];
   if (!frame) throw new Error(`没有第 ${index} 个状态栏楼层`);
   const statusSource = await loadProductionStatusSource();
-  frame.srcdoc = createSrcContent(statusSource);
+  setFrameContent(frame, statusSource);
   return index;
 }
 
@@ -834,10 +852,11 @@ async function recreateStatusFloor(index) {
   fresh.className = old.className;
   fresh.loading = old.loading;
   fresh.setAttribute('frameborder', '0');
+  releaseFrameContent(old);
   old.replaceWith(fresh);
   statusFrames[index] = fresh;
   if (statusFrame === old) statusFrame = fresh;
-  fresh.srcdoc = createSrcContent(statusSource);
+  setFrameContent(fresh, statusSource);
   return index;
 }
 
@@ -845,6 +864,7 @@ async function recreateStatusFloor(index) {
 function removeStatusFloor(index) {
   const frame = statusFrames[index];
   if (!frame) throw new Error(`没有第 ${index} 个状态栏楼层`);
+  releaseFrameContent(frame);
   frame.closest('.mes')?.remove();
   statusFrames.splice(index, 1);
   if (statusFrame === frame) statusFrame = statusFrames[statusFrames.length - 1] || null;

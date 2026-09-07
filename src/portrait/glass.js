@@ -15,21 +15,8 @@ import { RIM_K, panelConvexArcs, panelEdges, panelRim } from './geometry.js';
 
 const sd = (n) => +(n * RIM_K).toFixed(2);
 
-/**
- * Shared gradients and filters, plus one clip path per panel.
- * @param {SVGElement} svg   the defs host
- * @param {Array} panels     [{ id, earTop, bottom, pod, path }]
- * @param {number} height    current canvas height
- */
-export function buildPortraitDefs(svg, panels, height, pw) {
-  svg.setAttribute('viewBox', `0 0 ${pw} ${height}`);
-  svg.innerHTML = `
-<defs>
-  ${panels.map((p) => `
-  <clipPath id="pClip-${p.id}" clipPathUnits="userSpaceOnUse">
-    <path d="${p.path}"/>
-  </clipPath>`).join('')}
-
+// Shared crisp edge colours: the TT iOS painter keeps these without bloom passes.
+const RIM_GRADIENTS = `
   <!-- Side rims brighten downward, the same way the landscape shell's do.
        objectBoundingBox so one definition covers every panel height. -->
   <linearGradient id="pRimLeft" x1="0" y1="0" x2="0" y2="1">
@@ -45,6 +32,29 @@ export function buildPortraitDefs(svg, panels, height, pw) {
     <stop offset=".82" stop-color="rgb(254,242,238)" stop-opacity="1"/>
     <stop offset="1"   stop-color="rgb(255,248,246)" stop-opacity="1"/>
   </linearGradient>
+
+`;
+
+/**
+ * Shared gradients and filters, plus one clip path per panel.
+ * @param {SVGElement} svg   the defs host
+ * @param {Array} panels     [{ id, earTop, bottom, pod, path }]
+ * @param {number} height    current canvas height
+ */
+export function buildPortraitDefs(svg, panels, height, pw, flat = false) {
+  svg.setAttribute('viewBox', `0 0 ${pw} ${height}`);
+  if (flat) {
+    svg.innerHTML = `<defs>${RIM_GRADIENTS}</defs>`;
+    return;
+  }
+  svg.innerHTML = `
+<defs>
+  ${panels.map((p) => `
+  <clipPath id="pClip-${p.id}" clipPathUnits="userSpaceOnUse">
+    <path d="${p.path}"/>
+  </clipPath>`).join('')}
+
+  ${RIM_GRADIENTS}
 
   <!-- Shallow inner glow: cool at the top edge, warming into the underside the
        way desk light does in the landscape scene. -->
@@ -153,4 +163,11 @@ ${blArc ? `<path d="${blArc}" fill="none" stroke="rgb(255,248,240)" stroke-width
 <path d="${brArc}" fill="none" stroke="rgb(255,246,236)" stroke-width="${sd(3.2)}"
       stroke-opacity=".95" stroke-linecap="round"/>`;
   }).join('\n');
+}
+
+
+/** Direct coloured hairlines, without clips, bloom, or offscreen filter passes. */
+export function paintFlatPortraitRim(svg, panels, height, pw) {
+  svg.setAttribute('viewBox', `0 0 ${pw} ${height}`);
+  svg.innerHTML = panels.map(p => panelRim(p).map(s => stroke(s)).join('')).join('');
 }
