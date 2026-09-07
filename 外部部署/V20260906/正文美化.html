@@ -6535,21 +6535,6 @@ html[data-tt-mobile="1"] .evt-edge {
        自定义主播没有插画，取开局页写进 localStorage 的封面（键沿用自定义角色那套
        custom_char_cover_<名>），再退到头像。图片地址一律不进 MVU，太占地方。 */
     const LR_COVER_PREFIX = 'custom_char_cover_';
-    function lrReadCustomCover(host) {
-      const name = String(host || '').trim();
-      if (!name) return '';
-      try { return localStorage.getItem(LR_COVER_PREFIX + name) || ''; }
-      catch (e) { return ''; }
-    }
-    function lrAvatarSrc(host) {
-      const cached = getAvatarFromCache(host);
-      if (cached) return cached;
-      const configured = CHARACTER_CONFIG[host]?.avatar;
-      if (configured) return configured;
-      const cover = lrReadCustomCover(host);
-      if (cover) return cover;
-      return lrArt('头像', host);
-    }
     function lrPickSfwCover(host) {
       const entry = findImageListEntry('SFW', host, '通用');
       if (!entry || !entry.numbers.length) return '';
@@ -6560,8 +6545,10 @@ html[data-tt-mobile="1"] .evt-edge {
     function lrCoverSrc(host) {
       const sfw = lrPickSfwCover(host);
       if (sfw) return sfw;
-      const saved = lrReadCustomCover(host);
-      if (saved) return saved;
+      try {
+        const saved = localStorage.getItem(LR_COVER_PREFIX + host);
+        if (saved) return saved;
+      } catch (e) { /* 隐身模式读不到就退头像 */ }
       const avatar = getAvatarFromCache(host);
       if (avatar) return avatar;
       return lrArt('头像', host);
@@ -7273,7 +7260,7 @@ html[data-tt-mobile="1"] .evt-edge {
       const state = lrHydrate(root);
       const avatar = lrEl(root, 'avatar');
       const feed = lrEl(root, 'feed');
-      avatar.src = lrAvatarSrc(state.host);
+      avatar.src = lrArt('头像', state.host);
       avatar.alt = state.host;
       feed.src = lrCoverSrc(state.host);
       feed.alt = state.host + '立绘';

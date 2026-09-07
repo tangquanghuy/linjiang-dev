@@ -210,24 +210,6 @@ if (iosTouchHost) document.documentElement.dataset.hudIosScroll = '1';
 const nativeFlowHost = (() => {
   try { return !!window.__linjiangNativeFlow; } catch (e) { return false; }
 })();
-/* Native TT iOS needs a stable first-paint raster budget, not a gesture-time
-   toggle: a fling starting in the reading area need not touch the HUD at all.
-   Old pasted shells have no NativeHost marker; use their same-origin ancestor.
-   An iPhone UA alone is not TT evidence: native SillyTavern uses it as well. */
-const iosTtNative = nativeFlowHost && (() => {
-  if (window.__linjiangNativeHost) return window.__linjiangNativeHost === 'tauritavern-ios';
-  for (const host of [window.parent, window.top]) {
-    try {
-      if (!host?.__TAURITAVERN__) continue;
-      const nav = host.navigator;
-      return /iphone|ipad|ipod/i.test(String(nav.userAgent || ''))
-        || (nav.platform === 'MacIntel' && Number(nav.maxTouchPoints || 0) > 1);
-    } catch { /* Cross-origin ancestors are not host evidence. */ }
-  }
-  return false;
-})();
-if (iosTtNative) document.documentElement.dataset.hudIosTtFlat = '1';
-
 /* 两张大贴图跟着档位走。
    ------------------------------------------------------------------
    低负载档以前只关 backdrop-filter，贴图一张不少（perf.css 顶部那句「Frost, tint and
@@ -255,7 +237,6 @@ const applyPerformanceMode = () => {
   const choice = pref('performanceMode');
   const low = choice === 'low'
     || hostNeedsFlatGlass
-    || iosTtNative
     || (nativeFlowHost && !prefStored('performanceMode'));
   document.documentElement.dataset.hudPerformance = low ? 'low' : 'auto';
   syncHeavyTextures();
