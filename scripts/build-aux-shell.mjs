@@ -47,7 +47,7 @@ const OUTPUT = join(ROOT, '外部部署', 'V20260906', '辅助计算脚本.js');
 
 /* 线上地址。用 jsDelivr 而不是 Pages，理由（延迟差 20 倍的实测）写在
    scripts/build-status-shell.mjs 的 SHELL_URL 那一段，两处是同一个判断。 */
-const AUX_URL = 'https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-dev@main/public/shell/aux-shell.js?v=medal-names-v1';
+const AUX_URL = 'https://testingcf.jsdelivr.net/gh/tangquanghuy/linjiang-dev@main/public/shell/aux-shell.js?v=experience-key-compat-v1';
 
 const source = readFileSync(SOURCE, 'utf8');
 

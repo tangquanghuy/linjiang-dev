@@ -48,11 +48,31 @@
         '夏季', '夏季', '夏季', '秋季', '秋季', '秋季', '冬季',
     ];
     const TIER_RANK = { 无: 0, 办卡: 1, 舰长: 2, 提督: 3, 总督: 4 };
+    // 根据当前存档实际存在的字段选择新旧模式：旧 Schema 继续写旧键，新 Schema 自动切换新键。
     const EXPERIENCE_KEYS = [
+        '露出经验', '自慰经验', '排泄play经验', '道具play经验',
+        '服从play经验', '隐奸经验', '青奸经验', '昏睡Play经验',
+        '催眠play经验', '情趣扮演经验', '盗摄经验', '性直播经验',
+    ];
+    const LEGACY_EXPERIENCE_KEYS = [
         '露出经验', '自慰经验', '排泄调教经验', '道具调教经验',
         '凌辱调教经验', '隐奸经验', '青奸经验', '睡奸经验',
         '催眠奸经验', '情趣扮演经验', '盗摄经验', '性直播经验',
     ];
+    const EXPERIENCE_KEY_ALIASES = {
+        '排泄play经验': '排泄调教经验',
+        '道具play经验': '道具调教经验',
+        '服从play经验': '凌辱调教经验',
+        '昏睡Play经验': '睡奸经验',
+        '催眠play经验': '催眠奸经验',
+    };
+    const LEGACY_TO_EXPERIENCE_KEY = Object.fromEntries(
+        Object.entries(EXPERIENCE_KEY_ALIASES).map(([newKey, legacyKey]) => [legacyKey, newKey])
+    );
+    const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+    const CANONICAL_ONLY_EXPERIENCE_KEYS = Object.keys(EXPERIENCE_KEY_ALIASES);
+    const experienceKeyMode = exp => CANONICAL_ONLY_EXPERIENCE_KEYS.some(key => hasOwn(exp, key)) ? 'canonical' : 'legacy';
+
     const DEVELOPMENT_PARTS = ['口腔', '胸', '小穴', '肛门'];
     const EXPERIENCE_COOLDOWN_MINUTES = 1440;
     const RECENT_EXPERIENCE_WINDOW_MINUTES = 7 * 1440;
@@ -1207,6 +1227,37 @@
         return Math.max(0, Math.floor(Number(item) || 0));
     }
 
+    function normalizeExperienceItem(item) {
+        if (item && typeof item === 'object' && !Array.isArray(item)) {
+            return { 次数: experienceCount(item), 可更新: item.可更新 !== false };
+        }
+        return { 次数: experienceCount(item), 可更新: true };
+    }
+
+    function migrateExperienceKeys(exp, stamps = null) {
+        Object.entries(EXPERIENCE_KEY_ALIASES).forEach(([newKey, legacyKey]) => {
+            const current = exp[newKey];
+            const legacy = exp[legacyKey];
+            if (current == null && legacy == null) {
+                delete exp[legacyKey];
+                return;
+            }
+            const items = [current, legacy].filter(value => value != null).map(normalizeExperienceItem);
+            exp[newKey] = {
+                次数: Math.max(...items.map(item => item.次数)),
+                可更新: items.every(item => item.可更新),
+            };
+            delete exp[legacyKey];
+
+            if (stamps && stamps[newKey] == null && stamps[legacyKey] != null) stamps[newKey] = stamps[legacyKey];
+            else if (stamps && stamps[newKey] != null && stamps[legacyKey] != null) {
+                stamps[newKey] = Math.max(Number(stamps[newKey]) || 0, Number(stamps[legacyKey]) || 0);
+            }
+            if (stamps) delete stamps[legacyKey];
+        });
+        return exp;
+    }
+
     function ensureExperienceItem(exp, key, fallbackCount) {
         const raw = exp[key];
         if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
@@ -1230,14 +1281,18 @@
             const girlControl = ensureObj(controls, name);
             const expControl = ensureObj(girlControl, '性经历');
             const stamps = ensureObj(expControl, '各项上次更新时间');
+            const mode = experienceKeyMode(exp);
+            const activeExperienceKeys = mode === 'canonical' ? EXPERIENCE_KEYS : LEGACY_EXPERIENCE_KEYS;
+            if (mode === 'canonical') migrateExperienceKeys(exp, stamps);
             let recent = Array.isArray(expControl.近期事件时间)
                 ? expControl.近期事件时间.map(Number).filter(Number.isFinite)
                 : [];
             recent = recent.filter(value => nowMinute - value >= 0 && nowMinute - value < RECENT_EXPERIENCE_WINDOW_MINUTES);
             let acceptedEvent = false;
 
-            EXPERIENCE_KEYS.forEach((key) => {
-                const beforeCount = experienceCount(beforeExp?.[key]);
+            activeExperienceKeys.forEach((key) => {
+                const aliasKey = mode === 'canonical' ? EXPERIENCE_KEY_ALIASES[key] : LEGACY_TO_EXPERIENCE_KEY[key];
+                const beforeCount = experienceCount(beforeExp?.[key] ?? (aliasKey ? beforeExp?.[aliasKey] : undefined));
                 const item = ensureExperienceItem(exp, key, beforeCount);
                 const proposed = experienceCount(item);
                 const last = Number(stamps[key]);

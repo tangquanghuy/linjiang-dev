@@ -97,13 +97,13 @@ export const EXPERIENCE_FIELDS = [
   ['recentCount', '近期性经验次数'],
   ['exposure', '露出经验'],
   ['masturbation', '自慰经验'],
-  ['excretion', '排泄调教经验'],
-  ['toy', '道具调教经验'],
-  ['abuse', '凌辱调教经验'],
+  ['excretion', '排泄play经验', '排泄调教经验'],
+  ['toy', '道具play经验', '道具调教经验'],
+  ['abuse', '服从play经验', '凌辱调教经验'],
   ['hidden', '隐奸经验'],
   ['outdoor', '青奸经验'],
-  ['sleeping', '睡奸经验'],
-  ['hypnosis', '催眠奸经验'],
+  ['sleeping', '昏睡Play经验', '睡奸经验'],
+  ['hypnosis', '催眠play经验', '催眠奸经验'],
   ['roleplay', '情趣扮演经验'],
   ['voyeur', '盗摄经验'],
   ['stream', '性直播经验'],
@@ -1861,8 +1861,9 @@ export function applyStatData(stat, ui = {}) {
         : (phy.异常状态 && typeof phy.异常状态 === 'object' ? Object.keys(phy.异常状态) : []);
       c.physiology.statuses = statuses.map((status) => asStr(status)).filter(Boolean);
       const exp = block.性经历 || {};
-      EXPERIENCE_FIELDS.forEach(([key, label]) => {
-        c.experience[key] = asNum(exp[label]?.次数 ?? exp[label], c.experience[key]);
+      EXPERIENCE_FIELDS.forEach(([key, label, legacyLabel]) => {
+        const raw = exp[label] ?? (legacyLabel ? exp[legacyLabel] : null);
+        if (raw != null) c.experience[key] = asNum(raw?.次数 ?? raw, c.experience[key]);
       });
       const dev = block.开发度 || {};
       /* 进度 is read as well as 档位: it is the only part of this axis that moves

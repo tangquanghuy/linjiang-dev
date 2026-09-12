@@ -14,7 +14,7 @@
    and characterDetails[name].location by applyStatData. */
 
 import { CITY_BUILD_COST, characterDetails, customMapNodes, girls, onLive, player, world } from './data.js';
-import { deleteCustomMapNode, saveCustomMapNode } from './bridge.js';
+import { cleanCustomMapWorldbook, deleteCustomMapNode, saveCustomMapNode } from './bridge.js';
 import { hudPage } from './asset.js';
 import { mountFrameLoading } from './overlay-loading.js';
 import { acquireOverlayHost } from './overlay-host.js';
@@ -277,6 +277,8 @@ export function mapOverlay(bridgeToken = '') {
 
 export function mountMapOverlay(host, { onClose, onTravel, createMode = null } = {}) {
   const mount = acquireOverlayHost(host || document.body);
+  /* ??????????????????? MVU ????????????????????? */
+  cleanCustomMapWorldbook().catch((error) => console.warn('[map] clean custom worldbook', error));
   const root = mount.root;
   root.querySelectorAll('.map-layer').forEach((el) => el.remove());
   const bridgeToken = globalThis.crypto?.randomUUID?.() || `map-${Date.now()}-${Math.random()}`;

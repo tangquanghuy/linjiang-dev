@@ -277,6 +277,11 @@ export async function saveCustomMapNode(node) {
   return rpc('saveCustomMapNode', { node }, 30000);
 }
 
+export async function cleanCustomMapWorldbook() {
+  if (!isEmbedded()) return { ok: false, removed: 0, reason: 'standalone' };
+  return rpc('cleanCustomMapWorldbook', {}, 30000);
+}
+
 export async function deleteCustomMapNode(id) {
   const nodeId = String(id || '').trim();
   if (!nodeId) return false;
