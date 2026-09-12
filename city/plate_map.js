@@ -568,7 +568,7 @@
    * PLATE_MAP.setState. Keeping demo actors here makes stale people flash while
    * an iframe is loading and masks integration failures.
    */
-  const MAP_REV = '20260823-custom-nodes-v1';
+  const MAP_REV = '20260912-custom-location-detail-v1';
   const STATE = {
     district: '',
     player: { at: '' },
@@ -685,7 +685,8 @@
       archetype: String(raw.archetype || 'living').trim() || 'living',
       privacy: clamp(Number(raw.privacy) || 0, 0, 5),
       openHours: Array.isArray(raw.openHours) && raw.openHours.length ? raw.openHours.slice() : ['朝', '昼', '暮', '夜', '深夜'],
-      intro: String(raw.intro || '').trim(),
+      detail: String(raw.detail || raw.intro || '').trim(),
+      intro: '',
       draw: String(raw.draw || '').trim(),
       special: Array.isArray(raw.special) ? raw.special.slice() : [],
       features: { canGather: !!raw.features?.canGather, canDate: !!raw.features?.canDate, canWork: !!raw.features?.canWork, hasShop: !!raw.features?.hasShop },
@@ -1866,14 +1867,15 @@
   /* 保存在飞行中。renderBuildCost 会被宿主的实时刷新反复调用，
      不挡一下就会把「正在写入…」覆盖成「支付…并建设」，看起来像是没点上。 */
   let customSaving = false;
+  let customEditing = false;
   const yuan = (value) => `￥${Math.round(Number(value) || 0).toLocaleString('en-US')}`;
-  const canAffordBuild = () => !buildCost || buildFunds >= buildCost;
+  const canAffordBuild = () => customEditing || !buildCost || buildFunds >= buildCost;
 
   function syncCustomSave() {
     if (customSaving || customEditor.hidden) return;
     const broke = !canAffordBuild();
     customSave.disabled = broke;
-    customSave.textContent = broke ? '金钱不足，无法建设'
+    customSave.textContent = customEditing ? '保存修改' : broke ? '金钱不足，无法建设'
       : buildCost ? `支付 ${yuan(buildCost)} 并建设` : '保存节点';
   }
 
@@ -1886,7 +1888,7 @@
     }
     const row = document.getElementById('custom-cost');
     if (row) {
-      row.hidden = !buildCost;
+      row.hidden = customEditing || !buildCost;
       row.classList.toggle('is-broke', !canAffordBuild());
       if (buildCost) {
         row.innerHTML = canAffordBuild()
@@ -1925,10 +1927,17 @@
     return true;
   }
 
-  function exitCustomMode() {
-    customMode = false;
+  function resetCustomEditorState() {
+    customEditing = false;
     customDraft = null;
     customSaving = false;
+    document.getElementById('custom-title').textContent = '登记玩家地点';
+    document.getElementById('custom-name').disabled = false;
+  }
+
+  function exitCustomMode() {
+    customMode = false;
+    resetCustomEditorState();
     customModebar.hidden = true;
     customEditor.hidden = true;
     document.documentElement.classList.remove('custom-placing');
@@ -1936,8 +1945,7 @@
 
   function closeCustomEditor() {
     customEditor.hidden = true;
-    customDraft = null;
-    customSaving = false;
+    resetCustomEditorState();
   }
 
   function openCustomEditorAt(sx, sy) {
@@ -1950,6 +1958,7 @@
     const [plate, pl] = hit;
     const localPos = [clamp((w.x - pl.frame.x) / pl.frame.w, 0, 1), clamp((w.y - pl.frame.y) / pl.frame.w, 0, 1)];
     const anchor = NET ? NET.nearest(STATIC_NODE_W, w.x, w.y) : null;
+    customEditing = false;
     customDraft = {
       plate, localPos, district: pl.district || pl.label || '',
       anchorId: anchor?.id || '', anchorName: anchor ? ((byId[anchor.id] && byId[anchor.id].name) || anchor.id) : '',
@@ -1959,7 +1968,8 @@
     document.getElementById('custom-aliases').value = '';
     document.getElementById('custom-type').value = 'living';
     document.getElementById('custom-privacy').value = '3';
-    document.getElementById('custom-intro').value = '';
+    document.getElementById('custom-detail').value = '';
+    document.getElementById('custom-detail-count').textContent = '0 字';
     document.getElementById('custom-draw').value = '';
     document.getElementById('custom-special').value = '';
     ['custom-date', 'custom-gather', 'custom-work', 'custom-shop'].forEach(id => { document.getElementById(id).checked = false; });
@@ -1975,6 +1985,41 @@
     return true;
   }
 
+  function openCustomEditorFor(n) {
+    if (!n?.custom || !customIds.has(n.id)) return false;
+    closeSpot();
+    customEditing = true;
+    customDraft = {
+      id: n.id,
+      plate: n.plate,
+      localPos: Array.isArray(n.localPos) ? n.localPos.slice() : [],
+      district: n.district,
+      anchorId: n.anchorId,
+      anchorName: n.anchorName,
+      accessKm: n.accessKm,
+    };
+    document.getElementById('custom-title').textContent = '编辑玩家地点';
+    const nameInput = document.getElementById('custom-name');
+    nameInput.value = n.name;
+    nameInput.disabled = true;
+    document.getElementById('custom-aliases').value = (n.aliases || []).join('，');
+    document.getElementById('custom-type').value = n.archetype || 'living';
+    document.getElementById('custom-privacy').value = String(n.privacy ?? 3);
+    document.getElementById('custom-detail').value = n.detail || '';
+    document.getElementById('custom-draw').value = n.draw || '';
+    document.getElementById('custom-special').value = (n.special || []).join('\n');
+    document.getElementById('custom-date').checked = !!n.features?.canDate;
+    document.getElementById('custom-gather').checked = !!n.features?.canGather;
+    document.getElementById('custom-work').checked = !!n.features?.canWork;
+    document.getElementById('custom-shop').checked = !!n.features?.hasShop;
+    document.getElementById('custom-anchor-note').textContent = '编辑现有地点资料；保存修改不会再次收取建设费。';
+    updateCustomDetailCount();
+    customEditor.hidden = false;
+    renderBuildCost();
+    setTimeout(() => document.getElementById('custom-detail').focus(), 0);
+    return true;
+  }
+
   function customRowsWith(next, removeId = '') {
     const rows = [...customIds].filter(id => id !== removeId).map(id => byId[id]).filter(Boolean);
     if (next) {
@@ -1984,12 +2029,19 @@
     return rows;
   }
 
+  const customDetailInput = document.getElementById('custom-detail');
+  const customDetailCount = document.getElementById('custom-detail-count');
+  const updateCustomDetailCount = () => {
+    if (customDetailCount) customDetailCount.textContent = `${customDetailInput?.value.length || 0} 字`;
+  };
+  customDetailInput?.addEventListener('input', updateCustomDetailCount);
+
   async function saveCustomDraft() {
     if (!customDraft) return;
     const name = document.getElementById('custom-name').value.trim();
     if (!name) { document.getElementById('custom-name').focus(); return; }
     const normalized = name.normalize('NFKC').replace(/\s+/g, '').toLowerCase();
-    const conflict = Object.values(byId).find(n => n && n.name
+    const conflict = Object.values(byId).find(n => n && n.id !== customDraft.id && n.name
       && String(n.name).normalize('NFKC').replace(/\s+/g, '').toLowerCase() === normalized);
     if (conflict) {
       document.getElementById('custom-anchor-note').textContent = `名称已被「${conflict.name}」使用，请换一个名称。`;
@@ -1997,7 +2049,7 @@
     }
     /* 钱不够就别过桥。宿主还会自己再查一遍（那边才是权威），
        这一道只是让拒绝就地发生，不用等一次往返。 */
-    if (!canAffordBuild()) {
+    if (!customEditing && !canAffordBuild()) {
       document.getElementById('custom-anchor-note').textContent =
         `金钱不足：建设需要 ${yuan(buildCost)}，当前只有 ${yuan(buildFunds)}，还差 ${yuan(buildCost - buildFunds)}。`;
       renderBuildCost();
@@ -2009,7 +2061,7 @@
       archetype: document.getElementById('custom-type').value,
       privacy: clamp(Math.round(Number(document.getElementById('custom-privacy').value) || 0), 0, 5),
       openHours: ['朝', '昼', '暮', '夜', '深夜'],
-      intro: document.getElementById('custom-intro').value.trim(),
+      detail: document.getElementById('custom-detail').value.trim(),
       draw: document.getElementById('custom-draw').value.trim(),
       special: document.getElementById('custom-special').value.split(/\r?\n/).map(v => v.trim()).filter(Boolean),
       features: {
@@ -2022,14 +2074,14 @@
     };
     customSaving = true;
     customSave.disabled = true;
-    customSave.textContent = buildCost ? `正在支付 ${yuan(buildCost)}…` : '正在写入…';
+    customSave.textContent = customEditing ? '正在保存修改…' : buildCost ? `正在支付 ${yuan(buildCost)}…` : '正在写入…';
     try {
       const saved = onCustomCreate ? await onCustomCreate(draft) : { ...draft, id: `usr_${Date.now().toString(36)}` };
       const node = normalizeCustomNode(saved);
       if (!node) throw new Error('宿主返回的节点资料不完整');
       /* 宿主已经扣过了。本地镜像跟着减，免得在下一次快照到达之前
          面板还显示着扣款前的金额、把第二次建设错判成付得起。 */
-      if (buildCost) buildFunds = Math.max(0, buildFunds - buildCost);
+      if (!customEditing && buildCost) buildFunds = Math.max(0, buildFunds - buildCost);
       customSaving = false;
       setCustomNodes(customRowsWith(node));
       customEditor.hidden = true;
@@ -2485,7 +2537,7 @@
       ? `<span class="spot-nav-here">你在这里</span>`
       : (G && NODE_W[n.id] ? `<button class="spot-nav" type="button" id="spot-nav">到这里去</button>` : '');
     const customActions = n.custom
-      ? `<div class="spot-custom-actions"><button class="spot-delete" type="button" id="spot-delete">删除节点</button></div>`
+      ? `<div class="spot-custom-actions"><button class="spot-edit" type="button" id="spot-edit">编辑资料</button><button class="spot-delete" type="button" id="spot-delete">删除节点</button></div>`
       : '';
 
     document.getElementById('spot-head').innerHTML =
@@ -2499,6 +2551,8 @@
 
     const navBtn = document.getElementById('spot-nav');
     if (navBtn) navBtn.onclick = () => { plan(n.id); closeSpot(); };
+    const editBtn = document.getElementById('spot-edit');
+    if (editBtn) editBtn.onclick = () => openCustomEditorFor(n);
     const deleteBtn = document.getElementById('spot-delete');
     if (deleteBtn) deleteBtn.onclick = () => deleteCustomNode(n);
 

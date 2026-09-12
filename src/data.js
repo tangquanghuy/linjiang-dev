@@ -1691,7 +1691,8 @@ function mapCustomNodes(obj) {
       archetype: String(raw.类型 || 'living').trim() || 'living',
       privacy: Math.max(0, Math.min(5, Math.round(Number(raw.私密度) || 0))),
       openHours: hours.length ? hours : ['朝', '昼', '暮', '夜', '深夜'],
-      intro: String(raw.简介 || '').trim(), draw: String(raw.看点 || '').trim(), special,
+      detail: String(raw.详情 || raw.简介 || '').trim(), intro: '',
+      draw: String(raw.地图简介 || raw.看点 || '').trim(), special,
       features: { canGather: !!features.可采集, canDate: !!features.可约会, canWork: !!features.可工作, hasShop: !!features.有商店 },
       createdAt: String(raw.创建时间 || '').trim(), custom: true,
     };

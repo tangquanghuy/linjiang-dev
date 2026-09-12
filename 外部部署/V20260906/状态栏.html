@@ -92,7 +92,7 @@
 (function () {
   /* This srcdoc is same-origin with the tavern. Desktop/Tauri keep the cross-origin
      HUD iframe transport; native mobile browsers mount the HUD bundle in this document. */
-  const SHELL_VERSION = 'shell-da6adb2a';
+  const SHELL_VERSION = 'shell-a1adc263';
 
   /* 记号要在两道守卫**之前**就落下。引导壳靠它判断「脚本到底有没有到」，语义必须是
      「本文件执行过了」而不是「装载成功了」—— 否则下面任何一条提前 return 都会让引导壳
@@ -788,40 +788,17 @@
     return [];
   };
 
-  const customMapScalar = (value) => JSON.stringify(String(value ?? ''));
   const customMapWorldbookPayload = (node) => {
     const keys = [...new Set([node.name, ...(node.aliases || [])]
       .map(value => String(value || '').trim()).filter(Boolean))];
-    const flags = [];
-    if (node.features.canDate) flags.push('约会');
-    if (node.features.canGather) flags.push('采集');
-    if (node.features.canWork) flags.push('工作');
-    if (node.features.hasShop) flags.push('商店');
-    const lines = [
-      `${node.name}:`,
-      '  来源: 玩家自建地点',
-      `  区域: ${customMapScalar(node.district)}`,
-      `  类型: ${customMapScalar(node.archetype)}`,
-      `  私密度: ${node.privacy}`,
-      `  开放: [${node.openHours.map(customMapScalar).join(', ')}]`,
-      `  详情: ${customMapScalar(node.intro)}`,
-      `  看点: ${customMapScalar(node.draw)}`,
-      `  功能: [${flags.map(customMapScalar).join(', ')}]`,
-      '  地图接驳:',
-      `    节点: ${customMapScalar(node.anchorName || node.anchorId)}`,
-      `    步行距离: ${node.accessKm}km`,
-    ];
-    if (node.special.length) {
-      lines.push('  特殊:');
-      node.special.forEach(value => lines.push(`    - ${customMapScalar(value)}`));
-    }
+    const detail = String(node.detail || node.intro || '').trim();
     return {
       name: `玩家地点 - ${node.name}`,
       comment: `玩家地点 - ${node.name}`,
       enabled: true,
       keys,
       key: keys,
-      content: lines.join('\n'),
+      content: detail || node.name,
       strategy: {
         type: 'selective', keys,
         keys_secondary: { logic: 'and_any', keys: [] },
@@ -831,7 +808,7 @@
       probability: 100,
       recursion: { prevent_incoming: true, prevent_outgoing: true, delay_until: null },
       effect: { sticky: null, cooldown: null, delay: null },
-      extra: { linjiangCustomMapNode: { id: node.id, version: 1 } },
+      extra: { linjiangCustomMapNode: { id: node.id, version: 2 } },
     };
   };
 
@@ -908,7 +885,7 @@
       const node = {
         id, name: String(row?.['\u540d\u79f0'] || '').trim(), aliases: Array.isArray(row?.['\u522b\u540d']) ? row['\u522b\u540d'] : [],
         district: String(row?.['\u533a\u57df'] || '').trim(), archetype: String(row?.['\u7c7b\u578b'] || 'living').trim() || 'living', privacy: Number(row?.['\u79c1\u5bc6\u5ea6'] || 0),
-        openHours: Array.isArray(row?.['\u5f00\u653e\u65f6\u6bb5']) ? row['\u5f00\u653e\u65f6\u6bb5'] : [], intro: String(row?.['\u7b80\u4ecb'] || ''), draw: String(row?.['\u770b\u70b9'] || ''), special: Array.isArray(row?.['\u7279\u6b8a']) ? row['\u7279\u6b8a'] : [],
+        openHours: Array.isArray(row?.['\u5f00\u653e\u65f6\u6bb5']) ? row['\u5f00\u653e\u65f6\u6bb5'] : [], detail: String(row?.['\u8be6\u60c5'] || row?.['\u7b80\u4ecb'] || ''), draw: String(row?.['\u5730\u56fe\u7b80\u4ecb'] || row?.['\u770b\u70b9'] || ''), special: Array.isArray(row?.['\u7279\u6b8a']) ? row['\u7279\u6b8a'] : [],
         features: { canDate: !!row?.['\u529f\u80fd']?.['\u53ef\u7ea6\u4f1a'], canGather: !!row?.['\u529f\u80fd']?.['\u53ef\u91c7\u96c6'], canWork: !!row?.['\u529f\u80fd']?.['\u53ef\u5de5\u4f5c'], hasShop: !!row?.['\u529f\u80fd']?.['\u6709\u5546\u5e97'] },
         anchorName: String(row?.['\u9529\u70b9\u540d\u79f0'] || row?.['\u9529\u70b9'] || '').trim(), accessKm: Number(row?.['\u63a5\u9a73\u8ddd\u79bb'] || 0),
       };
@@ -945,22 +922,20 @@
     const mvuData = mvuState.mvu.getMvuData({ type: 'message', message_id: 'latest' });
     if (!mvuData?.stat_data) throw new Error('MVU 数据为空');
     const stat = mvuData.stat_data;
-    /* 建设费的门槛先过。地图那边也会拦一道，但它拿的是快照里的金钱，可能已经过时——
-       这里是唯一权威：重新读一次当前 MVU。
-
-       放在最前面是有意的：下面几行会给 系统配置.地图 补默认容器，getMvuData 给的又可能是
-       活引用。钱不够就一个字段都不碰，拒绝之后这份数据跟进函数之前完全一样。 */
+    const id = String(draft?.id || `usr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`).trim();
+    const saved = stat.系统配置?.地图?.自建节点;
+    const previous = saved && typeof saved === 'object' ? saved[id] : null;
+    const updating = !!(previous && typeof previous === 'object');
+    /* 新建节点按原规则收建设费；编辑既有节点只改资料，不重复收费。 */
     const funds = Number(stat.玩家信息?.金钱) || 0;
-    if (funds < CITY_BUILD_COST) {
+    if (!updating && funds < CITY_BUILD_COST) {
       throw new Error(`金钱不足：建设需要 ${yuan(CITY_BUILD_COST)}，当前只有 ${yuan(funds)}，还差 ${yuan(CITY_BUILD_COST - funds)}`);
     }
     stat.系统配置 = stat.系统配置 && typeof stat.系统配置 === 'object' ? stat.系统配置 : {};
     stat.系统配置.地图 = stat.系统配置.地图 && typeof stat.系统配置.地图 === 'object' ? stat.系统配置.地图 : {};
     stat.系统配置.地图.版本 = 1;
-    const saved = stat.系统配置.地图.自建节点;
     stat.系统配置.地图.自建节点 = saved && typeof saved === 'object' ? saved : {};
     const nodes = stat.系统配置.地图.自建节点;
-    const id = String(draft?.id || `usr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`).trim();
     const name = String(draft?.name || '').trim().slice(0, 30);
     if (!name) throw new Error('地点名称为空');
     const pos = Array.isArray(draft?.localPos) ? draft.localPos.map(Number) : [];
@@ -982,7 +957,7 @@
       archetype: String(draft.archetype || 'living').trim() || 'living',
       privacy: Math.max(0, Math.min(5, Math.round(Number(draft.privacy) || 0))),
       openHours: hours.length ? hours : ['朝', '昼', '暮', '夜', '深夜'],
-      intro: String(draft.intro || '').trim().slice(0, 500),
+      detail: String(draft.detail || draft.intro || '').trim(),
       draw: String(draft.draw || '').trim().slice(0, 300),
       special: Array.isArray(draft.special)
         ? draft.special.map(value => String(value || '').trim()).filter(Boolean).slice(0, 12) : [],
@@ -992,7 +967,7 @@
         canWork: !!draft.features?.canWork,
         hasShop: !!draft.features?.hasShop,
       },
-      createdAt: `${String(stat.世界信息?.年历 || '').trim()} ${String(stat.世界信息?.时间?.时钟 || '').trim()}`.trim(),
+      createdAt: String(previous?.创建时间 || '').trim() || `${String(stat.世界信息?.年历 || '').trim()} ${String(stat.世界信息?.时间?.时钟 || '').trim()}`.trim(),
     };
     let worldbook = { synced: false, uid: null };
     try { worldbook = await syncCustomMapWorldbook(node); }
@@ -1006,16 +981,16 @@
         可约会: node.features.canDate, 可采集: node.features.canGather,
         可工作: node.features.canWork, 有商店: node.features.hasShop,
       },
-      简介: node.intro, 看点: node.draw, 特殊: node.special, 创建时间: node.createdAt,
+      详情: node.detail, 地图简介: node.draw, 特殊: node.special, 创建时间: node.createdAt,
       世界书同步: { 状态: worldbook.synced ? '已同步' : '由地图加载动态注入', 条目UID: worldbook.uid },
     };
     /* 扣费和建节点是同一次 replaceMvuData：要么都落，要么都不落。
        不用 bridge 的 setMoney —— 那条是防抖 + 整字段覆盖的，街机并发推一次就能把这笔扣款冲掉。 */
     stat.玩家信息 = stat.玩家信息 && typeof stat.玩家信息 === 'object' ? stat.玩家信息 : {};
-    stat.玩家信息.金钱 = funds - CITY_BUILD_COST;
+    if (!updating) stat.玩家信息.金钱 = funds - CITY_BUILD_COST;
     syncBlueprintDescription(stat);
     mvuState.mvu.replaceMvuData(mvuData, { type: 'message', message_id: 'latest' });
-    return { node, worldbook, cost: CITY_BUILD_COST, money: stat.玩家信息.金钱 };
+    return { node, worldbook, updated: updating, cost: updating ? 0 : CITY_BUILD_COST, money: Number(stat.玩家信息.金钱) || 0 };
   };
 
   const deleteCustomMapNode = async (id) => {

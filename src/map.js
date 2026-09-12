@@ -19,7 +19,7 @@ import { hudPage } from './asset.js';
 import { mountFrameLoading } from './overlay-loading.js';
 import { acquireOverlayHost } from './overlay-host.js';
 
-const MAP_REV = '20260831-runtime-bridge-v1';
+const MAP_REV = '20260912-custom-location-detail-v1';
 const MAP_CHANNEL = 'linjiang-map';
 
 /* V3 renamed a handful of persisted locations while old saves and older prompts can
