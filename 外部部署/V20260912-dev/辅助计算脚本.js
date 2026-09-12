@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 管人痴 / 都市日系 SLG · 辅助计算脚本（引导版）
  *
  * 本文件由 scripts/build-aux-shell.mjs 从 public/shell/aux-shell.js 生成，请勿直接编辑。
@@ -118,3 +118,4 @@
 
     console.log('[辅助计算脚本] 引导版已就位', BOOT_VERSION);
 })();
+

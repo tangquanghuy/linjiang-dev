@@ -98,7 +98,7 @@
 (function () {
   /* This srcdoc is same-origin with the tavern. Desktop/Tauri keep the cross-origin
      HUD iframe transport; native mobile browsers mount the HUD bundle in this document. */
-  const SHELL_VERSION = 'shell-a611fb06';
+  const SHELL_VERSION = 'shell-da6adb2a';
 
   /* 记号要在两道守卫**之前**就落下。引导壳靠它判断「脚本到底有没有到」，语义必须是
      「本文件执行过了」而不是「装载成功了」—— 否则下面任何一条提前 return 都会让引导壳
@@ -131,7 +131,7 @@
     return;
   }
   window[GUARD] = SHELL_VERSION;
-  const HUD_URL = 'https://tangquanghuy.github.io/linjiang-dev/?v=20260823-cg-bridge-v1';
+  const HUD_URL = 'https://tangquanghuy.github.io/linjiang-dev/?v=dev-20260912';
   // const HUD_URL = 'http://127.0.0.1:5173/';
   const CHANNEL = 'linjiang-hud';
   const POLL_MS = 10000;
@@ -847,7 +847,7 @@
     const bookName = await customMapBookName(helper);
     if (!bookName) return { synced: false, uid: null };
     const rows = await readCustomMapEntries(helper, bookName);
-    const existing = rows.find(entry => String(entry?.extra?.linjiangCustomMapNode?.id || '') === node.id);
+    const existing = rows.find(entry => String(entry?.name ?? entry?.comment ?? entry?.title ?? '').trim() === `\u73a9\u5bb6\u5730\u70b9 - ${node.name}`);
     const payload = customMapWorldbookPayload(node);
     if (existing && typeof helper.updateWorldbookWith === 'function') {
       await helper.updateWorldbookWith(bookName, list => (Array.isArray(list) ? list : [])
@@ -868,26 +868,82 @@
     return { synced: false, uid: null };
   };
 
+  const cleanCustomMapWorldbook = async () => {
+    if (!mvuState.ready && !mvuState.check()) return { ok: false, removed: 0, added: 0, reason: 'mvu-not-ready' };
+    const mvuData = mvuState.mvu.getMvuData({ type: 'message', message_id: 'latest' });
+    const nodes = mvuData?.stat_data?.['\u7cfb\u7edf\u914d\u7f6e']?.['\u5730\u56fe']?.['\u81ea\u5efa\u8282\u70b9'];
+    const prefix = '\u73a9\u5bb6\u5730\u70b9 - ';
+    const entryTitle = entry => String(entry?.name ?? entry?.comment ?? entry?.title ?? '').trim();
+    const currentNames = new Set(Object.values(nodes || {}).map(row => String(row?.['\u540d\u79f0'] || '').trim()).filter(Boolean));
+    const helper = customMapHelper();
+    console.info('[linjiang-map-worldbook] clean:start', { currentNames: [...currentNames], mvuReady: !!mvuState.ready, helperMethods: helper ? Object.keys(helper).filter(key => /Worldbook|Lorebook|getChar|getOrCreate/i.test(key)) : [] });
+    if (!helper) throw new Error('TavernHelper worldbook API not found');
+    const bookName = await customMapBookName(helper);
+    if (!bookName) throw new Error('current worldbook not found');
+    console.info('[linjiang-map-worldbook] clean:book', { bookName, hasUpdateWorldbookWith: typeof helper.updateWorldbookWith === 'function', hasGetWorldbook: typeof helper.getWorldbook === 'function', hasGetLorebookEntries: typeof helper.getLorebookEntries === 'function' });
+    if (typeof helper.updateWorldbookWith !== 'function') {
+      throw new Error('TavernHelper.updateWorldbookWith is required for deletion');
+    }
+    const rows = await readCustomMapEntries(helper, bookName);
+    console.info('[linjiang-map-worldbook] clean:entries', { count: rows.length, titles: rows.map(entry => ({ name: entry?.name, comment: entry?.comment, title: entry?.title, uid: entry?.uid })) });
+    const seenCurrent = new Set();
+    const keep = [];
+    let removed = 0;
+    for (const entry of rows) {
+      const name = entryTitle(entry);
+      if (!name.startsWith(prefix)) {
+        keep.push(entry);
+        continue;
+      }
+      const nodeName = name.slice(prefix.length).trim();
+      if (!currentNames.has(nodeName) || seenCurrent.has(nodeName)) {
+        removed += 1;
+        continue;
+      }
+      seenCurrent.add(nodeName);
+      keep.push(entry);
+    }
+    console.info('[linjiang-map-worldbook] clean:plan', { removed, removeTitles: rows.filter(entry => !keep.includes(entry)).map(entry => ({ name: entry?.name, comment: entry?.comment, title: entry?.title, uid: entry?.uid })), keepCount: keep.length });
+    if (removed) {
+      await helper.updateWorldbookWith(bookName, () => keep);
+      const afterRows = await readCustomMapEntries(helper, bookName);
+      console.info('[linjiang-map-worldbook] clean:after-delete', { count: afterRows.length, titles: afterRows.map(entry => ({ name: entry?.name, comment: entry?.comment, title: entry?.title, uid: entry?.uid })) });
+    }
+    let added = 0;
+    for (const [id, row] of Object.entries(nodes || {})) {
+      const node = {
+        id, name: String(row?.['\u540d\u79f0'] || '').trim(), aliases: Array.isArray(row?.['\u522b\u540d']) ? row['\u522b\u540d'] : [],
+        district: String(row?.['\u533a\u57df'] || '').trim(), archetype: String(row?.['\u7c7b\u578b'] || 'living').trim() || 'living', privacy: Number(row?.['\u79c1\u5bc6\u5ea6'] || 0),
+        openHours: Array.isArray(row?.['\u5f00\u653e\u65f6\u6bb5']) ? row['\u5f00\u653e\u65f6\u6bb5'] : [], intro: String(row?.['\u7b80\u4ecb'] || ''), draw: String(row?.['\u770b\u70b9'] || ''), special: Array.isArray(row?.['\u7279\u6b8a']) ? row['\u7279\u6b8a'] : [],
+        features: { canDate: !!row?.['\u529f\u80fd']?.['\u53ef\u7ea6\u4f1a'], canGather: !!row?.['\u529f\u80fd']?.['\u53ef\u91c7\u96c6'], canWork: !!row?.['\u529f\u80fd']?.['\u53ef\u5de5\u4f5c'], hasShop: !!row?.['\u529f\u80fd']?.['\u6709\u5546\u5e97'] },
+        anchorName: String(row?.['\u9529\u70b9\u540d\u79f0'] || row?.['\u9529\u70b9'] || '').trim(), accessKm: Number(row?.['\u63a5\u9a73\u8ddd\u79bb'] || 0),
+      };
+      if (!node.name) continue;
+      await syncCustomMapWorldbook(node);
+      added += 1;
+    }
+    console.info('[linjiang-map-worldbook] clean:done', { removed, added });
+    return { ok: true, removed, added };
+  };
   const removeCustomMapWorldbook = async (id) => {
     const helper = customMapHelper();
-    if (!helper) return false;
+    if (!helper) throw new Error('??? TavernHelper ?????');
     const bookName = await customMapBookName(helper);
-    if (!bookName) return false;
+    if (!bookName) throw new Error('??????????');
+    if (typeof helper.updateWorldbookWith !== 'function') {
+      throw new Error('?? TavernHelper ?? updateWorldbookWith??????');
+    }
     const rows = await readCustomMapEntries(helper, bookName);
-    const existing = rows.find(entry => String(entry?.extra?.linjiangCustomMapNode?.id || '') === id);
-    if (!existing) return true;
-    if (typeof helper.updateWorldbookWith === 'function') {
-      await helper.updateWorldbookWith(bookName, list => (Array.isArray(list) ? list : [])
-        .filter(entry => entry?.uid !== existing.uid));
-      return true;
-    }
-    if (typeof helper.setLorebookEntries === 'function') {
-      await helper.setLorebookEntries(bookName, [{
-        ...existing, uid: existing.uid, enabled: false, keys: [], key: [], content: '',
-      }]);
-      return true;
-    }
-    return false;
+    const targetId = String(id || '').trim();
+    const targetName = rows.find(entry => String(entry?.extra?.linjiangCustomMapNode?.id || '').trim() === targetId)?.name;
+    let removed = 0;
+    await helper.updateWorldbookWith(bookName, list => (Array.isArray(list) ? list : []).filter(entry => {
+      const hit = String(entry?.extra?.linjiangCustomMapNode?.id || '').trim() === targetId
+        || (targetName && String(entry?.name || '').trim() === String(targetName).trim());
+      if (hit) removed += 1;
+      return !hit;
+    }));
+    return removed > 0;
   };
 
   const saveCustomMapNode = async (draft) => {
@@ -1053,6 +1109,8 @@
         return saveCustomMapNode(payload?.node || {});
       case 'deleteCustomMapNode':
         return deleteCustomMapNode(payload?.id);
+      case 'cleanCustomMapWorldbook':
+        return cleanCustomMapWorldbook();
       case 'sendMessage':
         return sendMessage(payload?.text);
       case 'collapseHud':
@@ -2956,7 +3014,7 @@
   const MOBILE_NATIVE_ROOT_ID = 'linjiang-mobile-native-root';
   const MOBILE_WRITE_ACTIONS = new Set([
     'patch', 'clockIn', 'arcadeEvent', 'purchaseShopProduct',
-    'saveCustomMapNode', 'deleteCustomMapNode', 'saveCharacterPartArt',
+    'saveCustomMapNode', 'deleteCustomMapNode', 'cleanCustomMapWorldbook', 'saveCharacterPartArt',
   ]);
 
   /* 原生流下的「整页」几何：次级页面、以及铺满视口的覆盖层（商店 / 地图 / 街机 / CG）。

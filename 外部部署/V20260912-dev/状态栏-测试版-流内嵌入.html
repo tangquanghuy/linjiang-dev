@@ -1,3 +1,62 @@
+﻿```text
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>临江 · 玻璃状态栏</title>
+<!-- 状态栏（实验版：收回态改用酒馆原生嵌入）。粘进角色卡「状态栏」。
+     ==================================================================
+     本文件由 scripts/build-status-shell.mjs 从 public/shell/status-shell.js 生成，请勿直接编辑。
+
+     它和 外部部署/V20260906/状态栏.html 是同一份逻辑，只多一行：加载壳层之前把
+     __linjiangInlineDock 设成 true。
+
+     在手机（含 TT 移动端）上，壳层现在统一采用原生流：每个状态栏楼层都先清掉复用 iframe
+     可能残留的 0 高/透明样式，再在当前调用栈立即挂载自己的 HUD；不参加跨楼层 owner 选举，
+     也不做交接和旧实例回收。因此本文件与普通版在手机上的启动行为完全一致。
+
+     这个实验开关只保留给桌面/强制抬升路径：收回态使用楼层原生嵌入，展开与全屏仍走原路径。
+     全部 RPC action、次级页面、小手机和移动端覆盖层继续共用同一份壳层逻辑。 -->
+<style>
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: #05040a;
+    overflow: hidden;
+  }
+  #hud {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #05040a;
+  }
+  #hint {
+    display: none;
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    z-index: 2;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(8, 10, 18, 0.82);
+    color: #e2e8f0;
+    font: 12px/1.4 system-ui, sans-serif;
+    pointer-events: none;
+  }
+  #hint.show { display: block; }
+</style>
+</head>
+<body>
+<iframe id="hud" title="玻璃状态栏" src="" loading="eager" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-read; clipboard-write"></iframe>
+<div id="hint"></div>
+<script>
+  /* 开关必须在壳层脚本之前落地：壳层是在自己顶部一次性读它的。 */
+  window.__linjiangInlineDock = true;
+</script>
+<script>
 /* 状态栏壳层的全部逻辑。
    ==================================================================
    这份文件是**源**，两份 HTML 包装都由 scripts/build-status-shell.mjs 从它生成：
@@ -4533,3 +4592,8 @@
   }
 
 })();
+</script>
+</body>
+</html>
+```
+
