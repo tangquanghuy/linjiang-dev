@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import vm from 'node:vm';
 import { chromium } from 'playwright';
 
@@ -58,12 +58,13 @@ for (const row of rows) {
 assert.equal(vm.runInContext("customTheme('其他主播')",hud),'rose');
 assert.ok(config['牛肉'].aliases.includes('Neuro-sama'));
 assert.equal(read(dir+'小手机脚本.js'),read('phone/小手机脚本.js'));
-assert.equal(read(dir+'开局固定主播配置.js'), openingSource);
-assert.equal(read(dir+'变量初始化'), initVars);
-assert.equal(read(dir+'变量Schema.js'), read('酒馆变量/mvuzod.js'));
-assert.equal(read(dir+'CG图鉴脚本.js'), read('cg/cg-app.js'));
-assert.equal(read(dir+'部位开发矩阵.json'), read('src/dev-matrix.json'));
-assert.ok(read('src/styles/cards.css').includes(read(dir+'主播展示配色.css')));
+for (const file of ['辅助计算脚本.js', '素材缓存脚本.js', '状态栏.html', '开局.html']) {
+  assert.equal(read(dir + file), read('外部部署/V20260906/' + file), `${file} archive copy is stale`);
+}
+assert.deepEqual(readdirSync(dir).sort(), [
+  '开局.html', '小手机脚本.js', '正文美化-外链素材版.html',
+  '正文美化.html', '状态栏.html', '素材缓存脚本.js', '辅助计算脚本.js',
+].sort());
 const inject = between(reader, 'function injectCustomCharCSS(', 'Object.entries(CHARACTER_CONFIG).forEach');
 const browser = await chromium.launch({headless:true});
 try {
@@ -90,4 +91,4 @@ try {
     }
   }
 } finally { await browser.close(); }
-console.log('PASS: two fixed streamers fully integrated across reader, opening, MVU initialization, HUD, CG, development matrices, phone, and archive synchronization.');
+console.log('PASS: two fixed streamers fully integrated across reader, opening, MVU initialization, HUD, CG, development matrices, phone, and the minimal external-deployment package.');
