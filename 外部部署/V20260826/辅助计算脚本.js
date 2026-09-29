@@ -50,7 +50,7 @@
        PAGES_HOST（GitHub Pages）放礼物图标和突发事件底图。它给
          Cache-Control: max-age=600 + ETag + ACAO: *，能被缓存脚本接管；
          而且这两类素材本来就在仓库里，跟着 pages.yml 一起发，不用手动上传。 */
-    const ART_HOST = 'https://anchor.bolt.qzz.io';
+    const ART_HOST = 'https://anchor.rown.dpdns.org';
 
     const PAGES_HOST = 'https://tangquanghuy.github.io/linjiang-glass';
 

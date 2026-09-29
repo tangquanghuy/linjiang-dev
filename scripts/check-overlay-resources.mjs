@@ -112,7 +112,7 @@ console.log('\n=== city map: all ten plate images ===');
 if(WANT_NET){
   console.log('\n=== CG: scripts/styles and external cover host ===');
   const {page,failed,errors}=await open('/cg/index.html',{wait:10000,allowExternal:true});
-  const covers=await page.evaluate(()=>[...document.images].filter(i=>i.src.startsWith('https://anchor.bolt.qzz.io/')).map(i=>({src:i.src,w:i.naturalWidth,h:i.naturalHeight,complete:i.complete})));
+  const covers=await page.evaluate(()=>[...document.images].filter(i=>i.src.startsWith('https://anchor.rown.dpdns.org/')).map(i=>({src:i.src,w:i.naturalWidth,h:i.naturalHeight,complete:i.complete})));
   check(covers.length>=6,'CG cover URLs were created',String(covers.length));
   check(covers.every(i=>i.complete&&i.w>0&&i.h>0),'CG cover images decode from image host',JSON.stringify(covers.filter(i=>!i.w).slice(0,3)));
   check(failed.length===0,'CG has no 4xx/5xx resource requests',failed.slice(0,8).join(' | '));

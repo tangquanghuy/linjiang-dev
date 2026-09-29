@@ -179,7 +179,7 @@ html, body {
     flex-direction: column !important;
     position: relative !important;
     background: #1c1c1e !important;
-    background-image: url('https://anchor.bolt.qzz.io/NSFW/%E7%BA%A2%E8%94%B7%E8%96%87/%E8%B6%B3%E4%BA%A42.webp') !important;
+    background-image: url('https://anchor.rown.dpdns.org/NSFW/%E7%BA%A2%E8%94%B7%E8%96%87/%E8%B6%B3%E4%BA%A42.webp') !important;
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -2484,7 +2484,7 @@ function getContactStream(contact) {
 }
 
 // ==================== Character avatar configuration ====================
-const PHONE_AVATAR_BASE = 'https://anchor.bolt.qzz.io/' + encodeURIComponent('头像') + '/';
+const PHONE_AVATAR_BASE = 'https://anchor.rown.dpdns.org/' + encodeURIComponent('头像') + '/';
 const PHONE_BUILTIN_STREAMERS = new Set([
     '东雪莲', '塔菲', '沙花叉', '时雨羽衣', '红蔷薇', '斯黛拉', '璃亚梦',
 ]);
@@ -2598,7 +2598,7 @@ let phoneStartY = 0;
 let isPinned = false;
 
 // 壁纸数据
-const phoneWpBaseUrl = 'https://anchor.bolt.qzz.io/%E5%B0%81%E9%9D%A2/';
+const phoneWpBaseUrl = 'https://anchor.rown.dpdns.org/%E5%B0%81%E9%9D%A2/';
 const phoneWpData = {
     "东雪莲": [
         "东雪莲"
@@ -6655,7 +6655,7 @@ const CG_LIST = {
         "躺着抬腿做爱": 2
     }
 };
-const CG_BASE_URL = "https://anchor.bolt.qzz.io/";
+const CG_BASE_URL = "https://anchor.rown.dpdns.org/";
 
 /**
  * 获取已解锁的CG数据
@@ -10077,7 +10077,7 @@ function setWallpaper(imageUrl) {
 // 恢复壁纸
 function restoreWallpaper() {
     try {
-        const defaultWallpaper = 'https://anchor.bolt.qzz.io/NSFW/%E7%BA%A2%E8%94%B7%E8%96%87/%E8%B6%B3%E4%BA%A42.webp';
+        const defaultWallpaper = 'https://anchor.rown.dpdns.org/NSFW/%E7%BA%A2%E8%94%B7%E8%96%87/%E8%B6%B3%E4%BA%A42.webp';
         let savedWallpaper = localStorage.getItem('dnf-phone-wallpaper');
 
         // 验证保存的壁纸URL是否有效（不为空且包含http）
@@ -10169,7 +10169,7 @@ function uploadCustomWallpaper(file) {
 // 重置为默认壁纸
 function resetWallpaper() {
 
-    const defaultWallpaper = 'https://anchor.bolt.qzz.io/NSFW/%E7%BA%A2%E8%94%B7%E8%96%87/%E8%B6%B3%E4%BA%A42.webp';
+    const defaultWallpaper = 'https://anchor.rown.dpdns.org/NSFW/%E7%BA%A2%E8%94%B7%E8%96%87/%E8%B6%B3%E4%BA%A42.webp';
 
     const $screen = $('#mobile-phone-overlay .mobile-phone-screen');
 

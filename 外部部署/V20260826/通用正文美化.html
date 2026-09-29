@@ -519,7 +519,7 @@
   </div>
   <script>
     // 角色配置：名字、印象色、头像URL、别名。首字色按头像取样。
-    const AVATAR_BASE = 'https://anchor.bolt.qzz.io/' + encodeURIComponent('头像') + '/';
+    const AVATAR_BASE = 'https://anchor.rown.dpdns.org/' + encodeURIComponent('头像') + '/';
     const charAvatar = (name) => AVATAR_BASE + encodeURIComponent(name) + '.webp';
     const CHARACTER_CONFIG = {
       '东雪莲': { color: '#5b8fd4', avatar: charAvatar('东雪莲'), aliases: ['东雪莲'], given_name: '东雪莲' },
@@ -609,7 +609,7 @@
         return (api && api.roomAction) ? api : null;
       } catch (e) { return null; }
     }
-    const LR_MENU_FALLBACK = { 礼物: [], 大航海: [], 数量档位: [1, 10, 66, 233], 醒目留言档位: [30, 50, 100], 资源域名: 'https://anchor.bolt.qzz.io' };
+    const LR_MENU_FALLBACK = { 礼物: [], 大航海: [], 数量档位: [1, 10, 66, 233], 醒目留言档位: [30, 50, 100], 资源域名: 'https://anchor.rown.dpdns.org' };
 
     /* 图片地址过一遍素材缓存（外部部署/V20260826/素材缓存脚本.js，挂在酒馆窗口上）。
        命中返回 blob: 地址，等于这一张图不出网；没装那个脚本、或者这个源不许跨源
@@ -3505,7 +3505,7 @@ body[data-theme="dark"] .name-initial-${CSS.escape(name)} { color: ${darkColor};
         if (!trimmedUrl.endsWith('.webp')) {
           trimmedUrl = trimmedUrl + '.webp';
         }
-        trimmedUrl = 'https://anchor.bolt.qzz.io/' + trimmedUrl;
+        trimmedUrl = 'https://anchor.rown.dpdns.org/' + trimmedUrl;
       }
 
       const imgTag = `<img src="${escapeHtmlAttr(trimmedUrl)}" alt="图片" loading="lazy" decoding="async">`;

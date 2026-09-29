@@ -37,7 +37,7 @@
     羁绊: &S_bond "{好感度:num;顺从度:num;心情:str}"
     位置: &S_loc "{区域;场所;私密度:num}"
     经验项: &S_exp_item "{次数:num;可更新:bool}"
-    性经历: &S_exp "{近期性经验次数:num;露出经验:*S_exp_item;自慰经验:*S_exp_item;排泄调教经验:*S_exp_item;道具调教经验:*S_exp_item;凌辱调教经验:*S_exp_item;隐奸经验:*S_exp_item;青奸经验:*S_exp_item;睡奸经验:*S_exp_item;催眠奸经验:*S_exp_item;情趣扮演经验:*S_exp_item;盗摄经验:*S_exp_item;性直播经验:*S_exp_item}"
+    性经历: &S_exp "{近期性经验次数:num;露出经验:*S_exp_item;自慰经验:*S_exp_item;排泄play经验:*S_exp_item;道具play经验:*S_exp_item;服从play经验:*S_exp_item;隐奸经验:*S_exp_item;青奸经验:*S_exp_item;昏睡Play经验:*S_exp_item;催眠play经验:*S_exp_item;情趣扮演经验:*S_exp_item;盗摄经验:*S_exp_item;性直播经验:*S_exp_item}"
     开发部位: &S_dev_part "{档位:num;进度:num;可更新:bool}"
     开发度: &S_dev "{口腔:*S_dev_part;胸:*S_dev_part;小穴:*S_dev_part;肛门:*S_dev_part}"
     异常状态项: &S_status "{到期条件:str}"
@@ -144,13 +144,13 @@
         type: *S_exp
         近期性经验次数:
           readonly: true
-        露出经验/自慰经验/排泄调教经验/道具调教经验/凌辱调教经验/隐奸经验/青奸经验/睡奸经验/催眠奸经验/情趣扮演经验/盗摄经验/性直播经验:
+        露出经验/自慰经验/排泄play经验/道具play经验/服从play经验/隐奸经验/青奸经验/昏睡Play经验/催眠play经验/情趣扮演经验/盗摄经验/性直播经验:
           check:
             - 只有可更新=true且本轮已完整发生对应事件时，次数+1
             - 每项本轮最多+1；可同时更新多个不同经验项
             - 可更新=false时禁止修改次数；禁止减少次数或一次增加2以上
             - 可更新按上次更新时间和1日CD自动恢复，该字段只读
-            - 归并：车震=隐奸；昏睡状态=睡奸；清醒暗示=催眠奸；口交/体位不单独建项
+            - 归并：车震=隐奸；昏睡状态=昏睡Play；清醒暗示=催眠play；旧字段读取后由 Schema 统一迁移为当前字段；口交/体位不单独建项
             - 不双计同义主项；当众行为可额外叠加露出，录像可额外叠加盗摄
       开发度:
         type: *S_dev

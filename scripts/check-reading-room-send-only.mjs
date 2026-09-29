@@ -27,7 +27,7 @@ window.LinjiangAux={
  roomMenu:()=>({
    ['\u793c\u7269']:[{name:'\u8fa3\u6761',price:1,pop:8}],
    ['\u5927\u822a\u6d77']:[{name:'\u8230\u957f',price:138,days:30}],
-   ['\u6570\u91cf\u6863\u4f4d']:[1,10],['\u9192\u76ee\u7559\u8a00\u6863\u4f4d']:[30,50],['\u8d44\u6e90\u57df\u540d']:'https://anchor.bolt.qzz.io'
+   ['\u6570\u91cf\u6863\u4f4d']:[1,10],['\u9192\u76ee\u7559\u8a00\u6863\u4f4d']:[30,50],['\u8d44\u6e90\u57df\u540d']:'https://anchor.rown.dpdns.org'
  }),
  roomAction:(payload)=>{window.__roomCalls.push(payload);return{ok:true,['\u5feb\u7167']:{['\u91d1\u94b1']:123}}}
 };

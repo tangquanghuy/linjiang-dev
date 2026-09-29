@@ -9,7 +9,7 @@ let phoneStartY = 0;
 let isPinned = false;
 
 // 壁纸数据
-const phoneWpBaseUrl = 'https://anchor.bolt.qzz.io/%E5%B0%81%E9%9D%A2/';
+const phoneWpBaseUrl = 'https://anchor.rown.dpdns.org/%E5%B0%81%E9%9D%A2/';
 const phoneWpData = {
     "东雪莲": [
         "东雪莲"
@@ -35,6 +35,8 @@ const phoneWpData = {
     "兔子洞初音": [
         "兔子洞初音"
     ],
+    "鲸鱼娘": ["鲸鱼娘"],
+    "牛肉": ["牛肉"],
     "神乐七奈": [
         "神乐七奈"
     ]

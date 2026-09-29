@@ -28,7 +28,7 @@ const TARGETS = [
   { id: 'jsDelivr 主域', url: 'https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js', note: '2022 年起国内被墙，作为对照' },
   { id: 'raw.githubusercontent', url: 'https://raw.githubusercontent.com/jquery/jquery/3.7.1/dist/jquery.min.js', note: '正文美化 2435 行的字体在用' },
   { id: 'unpkg', url: 'https://unpkg.com/jquery@3.7.1/dist/jquery.min.js' },
-  { id: '图床 anchor.bolt.qzz.io', url: 'https://anchor.bolt.qzz.io/', note: '素材缓存脚本说它不给 ACAO' },
+  { id: '图床 anchor.rown.dpdns.org', url: 'https://anchor.rown.dpdns.org/', note: '素材缓存脚本说它不给 ACAO' },
 ];
 
 const once = async (url) => {

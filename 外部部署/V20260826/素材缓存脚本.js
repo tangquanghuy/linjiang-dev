@@ -8,7 +8,7 @@
    正文美化的卡片每来一条消息就重渲染一次，图片跟着重新走一遍缓存判定。
    而两个资源站给的响应头都不够用：
 
-     图床 anchor.bolt.qzz.io   没有 Cache-Control，Cloudflare 边缘也是 DYNAMIC，
+     图床 anchor.rown.dpdns.org   没有 Cache-Control，Cloudflare 边缘也是 DYNAMIC，
                                只能靠浏览器的启发式缓存，不可控
      GitHub Pages              Cache-Control: max-age=600 + ETag，十分钟后每次
                                重开都要带 If-None-Match 换一个 304

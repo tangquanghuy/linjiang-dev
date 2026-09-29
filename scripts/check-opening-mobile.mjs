@@ -14,7 +14,7 @@ const check = (ok, label, detail = '') => {
 const mobileUa = 'Mozilla/5.0 (Linux; Android 15; Tablet) AppleWebKit/537.36 Chrome/140 Mobile Safari/537.36 TauriTavern/2.2.0';
 
 const delayExternalDecoration = async (page) => {
-  await page.route(/https:\/\/(?:fonts\.googleapis\.com|fonts\.gstatic\.com|anchor\.bolt\.qzz\.io)\/.*/, async (route) => {
+  await page.route(/https:\/\/(?:fonts\.googleapis\.com|fonts\.gstatic\.com|anchor\.rown\.dpdns\.org)\/.*/, async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 5000));
     await route.abort().catch(() => {});
   });

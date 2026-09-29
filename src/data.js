@@ -590,14 +590,14 @@ export const protagonist = {
   stamina: { label: '体力', value: player.stamina, max: 100, action: '主角档案' },
 };
 
-const COVER = 'https://anchor.bolt.qzz.io/封面';
+const COVER = 'https://anchor.rown.dpdns.org/封面';
 const cover = (name) => `${COVER}/${name}.webp`;
 
 /* Same host as 封面.  Files are /部位/{人名}/{部位}.webp -- 口腔 胸部 小穴 肛门.
    The UI label can be shorter (胸); the optional third DEV_PARTS field is the
    filename.  Folder is the display name, not coverName: 璃亚梦's covers are
    梦见璃亚梦.webp, her parts live under 璃亚梦/. */
-const PART = 'https://anchor.bolt.qzz.io/部位';
+const PART = 'https://anchor.rown.dpdns.org/部位';
 export const partFile = (key) => {
   const row = DEV_PARTS.find(([k]) => k === key);
   return row ? (row[2] || row[1]) : key;
@@ -827,6 +827,46 @@ const roster = [
       schedule: { start: '19:30', end: '22:30', days: ['周二', '周三', '周四', '周六', '周日'], note: '晚间绘聊·周一五休' },
     },
   },
+  {
+    name: '鲸鱼娘', romaji: 'DeepSeek', theme: 'whale', ornament: 'sparkle',
+    artFx: 0.50, artFy: 0.22, artZ: 1.06, artOx: 0.00, artTx: 0.30, artTy: 0.36,
+    bond: { favor: 80, obedience: 0, mood: '开朗' },
+    physiology: { desire: 0, stamina: 100, bladder: 20, statuses: [] },
+    experience: {
+      recentCount: 0, exposure: 0, masturbation: 0, excretion: 0,
+      toy: 0, abuse: 0, hidden: 0, outdoor: 0, sleeping: 0, hypnosis: 0,
+      roleplay: 0, voyeur: 0, stream: 0,
+    },
+    development: { oral: 0, chest: 0, vagina: 0, anus: 0 },
+    developmentProgress: { oral: 0, chest: 0, vagina: 0, anus: 0 },
+    developmentToday: { oral: 0, chest: 0, vagina: 0, anus: 0 },
+    location: { area: '明湖区 · 明湖天镜顶层复式', place: '直播工作室', privacy: 5 },
+    fan: fan(),
+    stream: {
+      live: false, title: '', heat: 0, followers: 260000,
+      schedule: { start: '22:00', end: '01:00', days: ['周一', '周二', '周三', '周五', '周六', '周日'], note: '深夜问答·周四休' },
+    },
+  },
+  {
+    name: '牛肉', romaji: 'Neuro', theme: 'neuro', ornament: 'star',
+    artFx: 0.50, artFy: 0.22, artZ: 1.04, artOx: 0.00, artTx: 0.30, artTy: 0.36,
+    bond: { favor: 80, obedience: 0, mood: '开朗' },
+    physiology: { desire: 0, stamina: 100, bladder: 20, statuses: [] },
+    experience: {
+      recentCount: 0, exposure: 0, masturbation: 0, excretion: 0,
+      toy: 0, abuse: 0, hidden: 0, outdoor: 0, sleeping: 0, hypnosis: 0,
+      roleplay: 0, voyeur: 0, stream: 0,
+    },
+    development: { oral: 0, chest: 0, vagina: 0, anus: 0 },
+    developmentProgress: { oral: 0, chest: 0, vagina: 0, anus: 0 },
+    developmentToday: { oral: 0, chest: 0, vagina: 0, anus: 0 },
+    location: { area: '乌溪区 · 乌溪枕水河房', place: '直播间', privacy: 4 },
+    fan: fan(),
+    stream: {
+      live: false, title: '', heat: 0, followers: 500000,
+      schedule: { start: '20:00', end: '23:00', days: ['周一', '周二', '周四', '周五', '周六', '周日'], note: '晚间游戏·周三休' },
+    },
+  },
 ];
 
 /* 异常状态, on the card.
@@ -854,7 +894,7 @@ export const statusOf = (statuses) => ({
   all: Array.isArray(statuses) ? statuses : [],
 });
 
-/* The nine authored characters still own their crop/theme defaults, but the active
+/* The eleven authored characters still own their crop/theme defaults, but the active
    roster comes from MVU 对象信息.  Custom streamers therefore enter the exact same
    girls / characterDetails collections as the authored cast instead of being bolted
    onto the main rail only. */
@@ -1428,6 +1468,10 @@ const GIRL_NAME_ALIAS = {
   梦见璃亚梦: '璃亚梦',
   伊贺栖寅: '斯黛拉',
   '斯黛拉（伊贺栖寅）': '斯黛拉',
+  DeepSeek娘: '鲸鱼娘',
+  DeepSeek: '鲸鱼娘',
+  'Neuro-sama': '牛肉',
+  Neuro: '牛肉',
 };
 
 const liveListeners = new Set();
@@ -1532,7 +1576,13 @@ function stableHash(value) {
   return hash >>> 0;
 }
 
+const STREAMER_PRESENTATION = Object.freeze({
+  '鲸鱼娘': { theme: 'whale' },
+  '牛肉': { theme: 'neuro' },
+});
+
 function customTheme(name) {
+  if (Object.hasOwn(STREAMER_PRESENTATION, name)) return STREAMER_PRESENTATION[name].theme;
   return CUSTOM_THEMES[stableHash(name) % CUSTOM_THEMES.length];
 }
 
@@ -1542,6 +1592,7 @@ function configuredCustomTheme(room, name) {
 }
 
 function placeholderCharacterArt(name, theme = customTheme(name)) {
+  if (Object.hasOwn(STREAMER_PRESENTATION, name)) return cover(name);
   const palette = {
     rose: ['#48152d', '#f45b9f'], ice: ['#123849', '#57d8ff'], violet: ['#291842', '#a879ff'],
     gold: ['#453314', '#ffd56a'], crimson: ['#471522', '#ff5a73'], scarlet: ['#492115', '#ff8b52'],

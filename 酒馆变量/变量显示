@@ -55,10 +55,17 @@ current.玩家信息 = {
 
 // ========== 对象信息 ==========
 // 只显示同行、当前直播间或附近 5 楼正文命中变量对象名的对象。
+const experienceDisplayAliases = {
+  '排泄play经验': '排泄调教经验',
+  '道具play经验': '道具调教经验',
+  '服从play经验': '凌辱调教经验',
+  '昏睡Play经验': '睡奸经验',
+  '催眠play经验': '催眠奸经验'
+};
 const experienceKeys = [
-  '露出经验', '自慰经验', '排泄调教经验', '道具调教经验',
-  '凌辱调教经验', '隐奸经验', '青奸经验', '睡奸经验',
-  '催眠奸经验', '情趣扮演经验', '盗摄经验', '性直播经验'
+  '露出经验', '自慰经验', '排泄play经验', '道具play经验',
+  '服从play经验', '隐奸经验', '青奸经验', '昏睡Play经验',
+  '催眠play经验', '情趣扮演经验', '盗摄经验', '性直播经验'
 ];
 const developmentParts = ['口腔', '胸', '小穴', '肛门'];
 const objects = data.对象信息 || {};
@@ -95,7 +102,7 @@ if (selectedNames.length) {
 
     const experiences = { 近期性经验次数: Number(expRaw.近期性经验次数) || 0 };
     experienceKeys.forEach(key => {
-      const item = expRaw[key] || {};
+      const item = expRaw[key] || expRaw[experienceDisplayAliases[key]] || {};
       experiences[key] = { 次数: Number(item.次数) || 0, 可更新: item.可更新 !== false };
     });
 

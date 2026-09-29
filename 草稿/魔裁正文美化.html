@@ -1,0 +1,2623 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>魔女审判 - 终焉记录</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    /* CSS Variables & Light/Dark Theme */
+    :root,
+    body[data-theme="warm-white"] {
+      /* Default (Warm White / Day) */
+      --bg-color: #fdfbf7;
+      --paper-color: #fffef9;
+      --text-main: #2c2c2c;
+      --text-muted: #6b5d4a;
+      --border-color: #d4caba;
+      --accent-color: #8a1c1c;
+      --font-main: 'Noto Serif SC', serif;
+      --shadow-color: rgba(0, 0, 0, 0.05);
+      --container-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --header-bg: rgba(253, 251, 247, 0.95);
+    }
+
+    body[data-theme="dark"] {
+      --bg-color: #0d0b12;
+      --paper-color: #1a1624;
+      --text-main: #d4c5b0;
+      --text-muted: #8b7d96;
+      --border-color: #3d324c;
+      --accent-color: #c2a878;
+      --shadow-color: rgba(0, 0, 0, 0.3);
+      --container-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+      --header-bg: rgba(13, 11, 18, 0.95);
+    }
+
+    body[data-theme="green"] {
+      --bg-color: #f0f5f0;
+      --paper-color: #fcfefc;
+      --text-main: #2a3a2a;
+      --text-muted: #556b55;
+      --border-color: #c8d8c8;
+      --accent-color: #556b55;
+      --shadow-color: rgba(0, 0, 0, 0.05);
+      --container-shadow: 0 5px 15px rgba(45, 60, 45, 0.05);
+      --header-bg: rgba(240, 245, 240, 0.95);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-main);
+      line-height: 2;
+      font-size: 18px;
+      min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    /* Main Container */
+    .grimoire-container {
+      max-width: 800px;
+      width: 100%;
+      margin: 121px auto 40px;
+      background: transparent;
+      box-shadow: none;
+      padding: 10px 20px 30px 20px;
+      position: relative;
+      min-height: 500px;
+    }
+
+    /* Header (Fixed) */
+    .header {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 120px !important;
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 0 40px;
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border-color);
+      z-index: 100;
+      backdrop-filter: blur(5px);
+    }
+
+    .logo-container img {
+      height: 100px !important;
+      width: auto;
+      display: block;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+
+    body[data-theme="dark"] .logo-container img {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 5px;
+    }
+
+    .theme-controls {
+      display: flex !important;
+      gap: 10px;
+      margin-left: auto !important;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .control-btn {
+      width: 60px;
+      height: 60px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--paper-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .control-btn:hover {
+      background: var(--border-color);
+      transform: translateY(-1px);
+    }
+
+    .control-btn.active {
+      background: var(--border-color);
+      color: var(--text-main);
+      /* border-color and box-shadow removed */
+    }
+
+    .settings-panel {
+      position: fixed;
+      top: 130px;
+      right: 40px;
+      z-index: 999;
+      background: #ffffff;
+      color: #333333;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      min-width: 250px;
+      display: none;
+      animation: slideInDown 0.3s ease-out
+    }
+
+    .settings-panel.active {
+      display: block
+    }
+
+    body[data-theme="dark"] .settings-panel {
+      background: #2a2a3a;
+      border-color: #4a4a5a;
+      color: #e0e0e0;
+    }
+
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+
+
+    .settings-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary-accent);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .settings-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.03);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      transition: all 0.2s ease
+    }
+
+    body[data-theme="dark"] .settings-option {
+      background: rgba(255, 255, 255, 0.05)
+    }
+
+    .settings-option:hover {
+      background: rgba(0, 0, 0, 0.05)
+    }
+
+    body[data-theme="dark"] .settings-option:hover {
+      background: rgba(255, 255, 255, 0.08)
+    }
+
+    .settings-label {
+      font-size: 14px;
+      color: #333333 !important;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    body[data-theme="dark"] .settings-label {
+      color: #e0e0e0 !important;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 26px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 13px;
+      cursor: pointer;
+      transition: all 0.3s ease
+    }
+
+    .toggle-switch.active {
+      background: var(--accent-color)
+    }
+
+    .toggle-slider {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2)
+    }
+
+    .toggle-switch.active .toggle-slider {
+      transform: translateX(24px)
+    }
+
+    .btn {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: inherit;
+      transition: all 0.2s
+    }
+
+    .btn:hover {
+      background: var(--line);
+      transform: translateY(-1px)
+    }
+  </style>
+  <style>
+    .reading-content {
+      background: transparent;
+      padding: 30px;
+      margin: 0;
+      position: relative;
+      overflow: visible;
+      min-height: auto !important;
+      height: auto !important;
+      contain: layout style;
+      font-size: 18px
+    }
+
+    .reading-content p {
+      text-indent: 2em;
+      margin-bottom: 1.5em;
+      font-size: inherit;
+      line-height: 2.2;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    /* Dialogue Styling */
+    .dialogue-container {
+      margin: 30px 0;
+    }
+
+    .dialogue-bubble {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .avatar-side {
+      flex-shrink: 0;
+      width: 90px;
+      height: 90px;
+    }
+
+    .char-avatar {
+      width: 90px;
+      height: 90px;
+      flex-shrink: 0;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 2px 5px var(--shadow-color);
+    }
+
+    .character-avatar {
+      width: 90px;
+      height: 90px;
+      max-width: 90px;
+      max-height: 90px;
+      min-width: 90px;
+      min-height: 90px;
+      flex-shrink: 0;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 2px 5px var(--shadow-color);
+    }
+
+    .character-avatar-placeholder {
+      width: 90px;
+      height: 90px;
+      flex-shrink: 0;
+      border-radius: 12px;
+      background: #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .content-side {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .character-name {
+      font-size: 16px;
+      margin-bottom: 4px;
+      line-height: 1.2;
+      color: var(--text-main);
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .name-large {
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+
+    .name-normal {
+      font-size: 1em;
+      font-weight: normal;
+      color: inherit;
+    }
+
+    .name-main {
+      font-weight: bold;
+    }
+
+    .name-large {
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+
+    .name-normal {
+      font-size: 1em;
+    }
+
+    .bubble-text {
+      color: var(--text-main);
+      padding-left: 12px;
+      border-left: 2px solid var(--border-color);
+      min-height: 40px;
+    }
+
+    /* 玩家对话框样式 - 右对齐，无头像 */
+    .dialogue-container.char-user {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .dialogue-container.char-user .avatar-side {
+      display: none;
+    }
+
+    .dialogue-container.char-user .character-name {
+      display: none;
+    }
+
+    .dialogue-container.char-user .bubble-text {
+      border-left: none;
+      border-right: 2px solid var(--border-color);
+      padding-left: 0;
+      padding-right: 12px;
+    }
+
+    body[data-theme="dark"] .char-avatar,
+    body[data-theme="dark"] .character-avatar-placeholder {
+      background: #4a4a5a;
+    }
+
+    /* 15个角色的专属颜色 */
+    .char-艾玛 .character-name .name-main {
+      color: #FFB6C1
+    }
+
+    .char-希罗 .character-name .name-main {
+      color: #DC143C
+    }
+
+    .char-蕾雅 .character-name .name-main {
+      color: #DAA520
+    }
+
+    .char-雪莉 .character-name .name-main {
+      color: #87CEEB
+    }
+
+    .char-汉娜 .character-name .name-main {
+      color: #228B22
+    }
+
+    .char-梅露露 .character-name .name-main {
+      color: #F5E6E8
+    }
+
+    .char-亚里沙 .character-name .name-main {
+      color: #B22222
+    }
+
+    .char-奈叶香 .character-name .name-main {
+      color: #708090
+    }
+
+    .char-诺亚 .character-name .name-main {
+      color: #9370DB
+    }
+
+    .char-安安 .character-name .name-main {
+      color: #708090
+    }
+
+    .char-玛格 .character-name .name-main {
+      color: #8B008B
+    }
+
+    .char-可可 .character-name .name-main {
+      color: #FF6347
+    }
+
+    .char-米莉亚 .character-name .name-main {
+      color: #E8A060
+    }
+
+    .char-月代雪 .character-name .name-main {
+      color: #C0C0C0
+    }
+
+    .char-典狱长 .character-name .name-main {
+      color: #2F4F4F
+    }
+
+    /* 头像悬停效果 */
+    .avatar-container:hover .character-avatar {
+      transform: scale(1.05);
+      transition: transform 0.2s ease
+    }
+
+    /* 双语对话样式 */
+    .bilingual-dialogue {
+      display: block;
+      line-height: 1.6
+    }
+
+    .bilingual-dialogue .primary-text {
+      display: block;
+      margin-bottom: 6px
+    }
+
+    .bilingual-dialogue .dialogue-divider {
+      display: block;
+      width: 90%;
+      height: 2px;
+      background: rgba(0, 0, 0, 0.15);
+      margin: 10px auto
+    }
+
+    .bilingual-dialogue .secondary-text {
+      display: block;
+      font-size: 0.92em;
+      color: var(--muted);
+      margin-top: 6px
+    }
+
+    body[data-theme="dark"] .bilingual-dialogue .dialogue-divider {
+      background: rgba(255, 255, 255, 0.15)
+    }
+
+    body[data-theme="dark"] .bilingual-dialogue .secondary-text {
+      color: #a0a0a0
+    }
+
+    /* 动作描写文本 */
+    .action-text {
+      text-indent: 2em;
+      margin-bottom: 1em;
+      line-height: 2.2
+    }
+  </style>
+
+  <style>
+    /* 图片样式 */
+    .image-container {
+      margin: 1.5em 0;
+      text-align: center
+    }
+
+    /* Minimalist Image Toggle & Refresh Buttons */
+    .image-toggle-btn,
+    .image-refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8em;
+      transition: all 0.2s ease;
+      box-shadow: none;
+    }
+
+    .image-refresh-btn {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border-radius: 4px;
+    }
+
+    .image-toggle-btn:hover,
+    .image-refresh-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--text-main);
+      transform: none;
+      box-shadow: none;
+    }
+
+    body[data-theme="dark"] .image-toggle-btn:hover,
+    body[data-theme="dark"] .image-refresh-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .image-toggle-btn:active,
+    .image-refresh-btn:active {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .image-toggle-icon {
+      display: none;
+    }
+
+    .image-toggle-btn.expanded {
+      background: transparent;
+    }
+
+    body[data-theme="dark"] .image-toggle-btn.expanded {
+      background: transparent;
+    }
+
+    .image-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease, opacity 0.3s ease;
+      opacity: 0
+    }
+
+    .image-content.expanded {
+      max-height: 2000px;
+      opacity: 1;
+      margin-top: 15px
+    }
+
+    .reading-content img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      border-radius: 0;
+      box-shadow: none;
+      transition: none;
+      cursor: pointer;
+      will-change: auto
+    }
+
+    body[data-theme="dark"] .reading-content img {
+      box-shadow: none
+    }
+
+    .reading-content img:hover {
+      transform: none;
+      box-shadow: none
+    }
+
+    body[data-theme="dark"] .reading-content img:hover {
+      box-shadow: none
+    }
+
+    .image-modal {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s ease;
+      cursor: zoom-out;
+    }
+
+    .image-modal.active {
+      display: flex
+    }
+
+    .image-modal img {
+      max-width: 95%;
+      max-height: 95%;
+      border-radius: 8px;
+      box-shadow: 0 0 50px rgba(255, 255, 255, 0.3);
+      cursor: zoom-out;
+      animation: zoomIn 0.3s ease
+    }
+
+    .image-modal-close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 40px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 10000;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 50%
+    }
+
+    .image-modal-close:hover {
+      transform: rotate(90deg);
+      background: rgba(255, 255, 255, 0.2)
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    @keyframes zoomIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1)
+      }
+    }
+
+    @media (max-width:768px) {
+      body {
+        padding: 5px;
+      }
+
+      /* 页眉移动端优化 - 固定高度，需要!important覆盖PC端 */
+      .header {
+        height: 70px !important;
+        padding: 5px 15px !important;
+        gap: 10px;
+      }
+
+      .logo-container img {
+        height: 55px !important;
+      }
+
+      .theme-controls {
+        gap: 6px;
+      }
+
+      .control-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+      }
+
+      .grimoire-container {
+        margin-top: 80px;
+        padding: 5px 10px 20px;
+      }
+
+      .reading-content {
+        padding: 15px 10px;
+        font-size: 16px;
+      }
+
+      .reading-content p {
+        text-indent: 1.5em;
+        margin-bottom: 1em;
+        line-height: 1.9;
+      }
+
+      /* 对白框移动端优化 */
+      .dialogue-container {
+        margin: 20px 0;
+      }
+
+      .dialogue-bubble {
+        gap: 12px;
+      }
+
+      .avatar-side {
+        width: 60px;
+        height: 60px;
+      }
+
+      .char-avatar,
+      .character-avatar,
+      .character-avatar-placeholder {
+        width: 60px !important;
+        height: 60px !important;
+        min-width: 60px !important;
+        min-height: 60px !important;
+        max-width: 60px !important;
+        max-height: 60px !important;
+        border-radius: 10px;
+      }
+
+      .character-name {
+        font-size: 14px;
+        margin-bottom: 3px;
+      }
+
+      .bubble-text {
+        padding-left: 10px;
+        font-size: 15px;
+        line-height: 1.8;
+      }
+
+      /* 移动端统一对白字体大小 */
+      body.unified-dialogue-font .bubble-text {
+        font-size: inherit;
+      }
+
+      /* 玩家对话框移动端 */
+      .dialogue-container.char-user .bubble-text {
+        padding-right: 10px;
+        padding-left: 0;
+      }
+
+      /* 设置面板移动端 */
+      .settings-panel {
+        top: 80px;
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        width: auto;
+      }
+
+      /* 图片容器移动端 */
+      .image-container {
+        margin: 1em 0;
+      }
+
+      /* 证据容器移动端 */
+      .evidence-container {
+        font-size: 0.9rem;
+      }
+
+      .evidence-summary {
+        padding: 10px 12px;
+      }
+
+      .evidence-item {
+        padding: 12px;
+      }
+
+      /* 论点菜单移动端 */
+      .arg-menu {
+        max-width: calc(100vw - 20px);
+        left: 10px !important;
+        right: 10px !important;
+        width: auto !important;
+      }
+
+      .arg-menu.input-mode {
+        width: auto !important;
+      }
+    }
+
+    /* 更小屏幕的额外优化 */
+    @media (max-width:480px) {
+      .header {
+        height: 60px !important;
+        padding: 5px 10px !important;
+      }
+
+      .logo-container img {
+        height: 45px !important;
+      }
+
+      .control-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 13px;
+      }
+
+      .grimoire-container {
+        margin-top: 70px;
+        padding: 5px 8px 15px;
+      }
+
+      .reading-content {
+        padding: 10px 8px;
+        font-size: 15px;
+      }
+
+      .avatar-side {
+        width: 50px;
+        height: 50px;
+      }
+
+      .char-avatar,
+      .character-avatar,
+      .character-avatar-placeholder {
+        width: 50px !important;
+        height: 50px !important;
+        min-width: 50px !important;
+        min-height: 50px !important;
+        max-width: 50px !important;
+        max-height: 50px !important;
+        border-radius: 8px;
+      }
+
+      .character-name {
+        font-size: 13px;
+      }
+
+      .bubble-text {
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      /* 更小屏幕统一对白字体大小 */
+      body.unified-dialogue-font .bubble-text {
+        font-size: inherit;
+      }
+
+      .settings-panel {
+        top: 70px;
+      }
+    }
+
+    /* Minimalist Evidence Log Styles */
+    .evidence-container {
+      margin: 2rem 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.95rem;
+    }
+
+    .evidence-details {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--paper-color);
+      transition: box-shadow 0.2s;
+    }
+
+    .evidence-details:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .evidence-details[open] {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .evidence-summary {
+      padding: 12px 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      list-style: none;
+      user-select: none;
+      background: rgba(0, 0, 0, 0.02);
+      font-weight: 600;
+      color: var(--text-main);
+      transition: background 0.2s;
+    }
+
+    .evidence-summary:hover {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    .evidence-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .ev-icon {
+      font-size: 1.1em;
+    }
+
+    .ev-title {
+      flex: 1;
+    }
+
+    .ev-toggle {
+      font-size: 0.8em;
+      opacity: 0.5;
+      transition: transform 0.2s ease;
+    }
+
+    .evidence-details[open] .ev-toggle {
+      transform: rotate(180deg);
+    }
+
+    .evidence-list {
+      border-top: 1px solid var(--border-color);
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .evidence-item {
+      padding: 15px 18px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .evidence-item:last-child {
+      border-bottom: none;
+    }
+
+    .evidence-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .ev-name {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .ev-type {
+      font-size: 0.75em;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--text-muted);
+    }
+
+    body[data-theme="dark"] .ev-type {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .evidence-desc {
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 0.9em;
+    }
+
+    /* 论点交互样式 */
+    .arg-point {
+      color: var(--accent-color);
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px dashed var(--accent-color);
+      padding-bottom: 1px;
+      transition: all 0.2s ease;
+    }
+
+    .arg-point:hover {
+      background: rgba(138, 28, 28, 0.1);
+      border-bottom-style: solid;
+    }
+
+    body[data-theme="dark"] .arg-point:hover {
+      background: rgba(194, 168, 120, 0.15);
+    }
+
+    .arg-menu {
+      position: fixed;
+      background: var(--paper-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      z-index: 2000;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      width: auto;
+      max-width: calc(100vw - 20px);
+      box-sizing: border-box;
+      transition: width 0.2s ease;
+    }
+
+    .arg-menu.input-mode {
+      width: 420px;
+      flex-direction: column;
+    }
+
+    .arg-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--paper-color);
+      color: var(--text-main);
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .arg-btn:hover {
+      background: var(--border-color);
+    }
+
+    .arg-btn.danger {
+      color: #c44;
+    }
+
+    .arg-btn.danger:hover {
+      background: rgba(204, 68, 68, 0.1);
+    }
+
+    .arg-input-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .arg-prefix {
+      color: var(--accent-color);
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-size: 13px;
+    }
+
+    .arg-input-wrapper {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--paper-color);
+      overflow: hidden;
+    }
+
+    .arg-input-wrapper:focus-within {
+      border-color: var(--accent-color);
+    }
+
+    .arg-input {
+      flex: 1;
+      min-width: 0;
+      padding: 6px 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .arg-evidence-btn {
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 4px 8px;
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--border-color);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .arg-evidence-btn:hover {
+      color: var(--accent-color);
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    body[data-theme="dark"] .arg-evidence-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .arg-send {
+      cursor: pointer;
+      color: var(--accent-color);
+      font-size: 14px;
+      flex-shrink: 0;
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      transition: opacity 0.2s;
+    }
+
+    .arg-send:hover {
+      opacity: 0.7;
+    }
+
+    /* 证据列表下拉 */
+    .evidence-dropdown {
+      position: relative;
+      width: 100%;
+      margin-top: 6px;
+      background: var(--paper-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
+    }
+
+    .evidence-dropdown.show {
+      display: block;
+    }
+
+    .evidence-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-color);
+      transition: background 0.15s;
+    }
+
+    .evidence-item:last-child {
+      border-bottom: none;
+    }
+
+    .evidence-item:hover {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    body[data-theme="dark"] .evidence-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .evidence-item-name {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--accent-color);
+    }
+
+    .evidence-item-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    .evidence-empty {
+      padding: 12px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* 已选证据标签 */
+    .evidence-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--accent-color);
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: default;
+      border-right: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    .evidence-tag-remove {
+      cursor: pointer;
+      opacity: 0.6;
+      font-size: 10px;
+      margin-left: 2px;
+    }
+
+    .evidence-tag-remove:hover {
+      opacity: 1;
+    }
+
+    .evidence-tag-remove:hover {
+      opacity: 1;
+    }
+
+    /* Notification Toast */
+    .toast-message {
+      position: fixed;
+      top: 140px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 3001;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      animation: fadeInOut 2s ease;
+      pointer-events: none;
+    }
+
+    @keyframes fadeInOut {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -10px);
+      }
+
+      15% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      85% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -10px);
+      }
+    }
+  </style>
+</head>
+
+<body data-theme="dark">
+
+  <div class="header">
+    <div class="logo-container">
+      <img src="https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/title.png" alt="Logo">
+    </div>
+    <div class="theme-controls">
+      <button class="control-btn" onclick="setTheme('warm-white')" title="日间">日</button>
+      <button class="control-btn" onclick="setTheme('dark')" title="夜间">夜</button>
+      <button class="control-btn" onclick="setTheme('green')" title="抹茶">茶</button>
+      <div style="width:1px; background:var(--border-color); margin:0 5px;"></div>
+      <button class="control-btn" id="settingsBtn" title="设置">⚙</button>
+    </div>
+  </div>
+
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-option">
+      <div class="settings-label">正文字体大小</div>
+      <div class="settings-actions" style="display:flex;gap:8px;">
+        <button class="control-btn" onclick="adjustReadingFontSize(-1)">−</button>
+        <button class="control-btn" onclick="adjustReadingFontSize(1)">+</button>
+      </div>
+    </div>
+    <div class="settings-option">
+      <div class="settings-label">插画大小</div>
+      <div class="settings-actions" style="display:flex;gap:8px;">
+        <button class="control-btn" onclick="adjustImageSize(-10)">−</button>
+        <button class="control-btn" onclick="adjustImageSize(10)">+</button>
+      </div>
+    </div>
+    <div class="settings-option">
+      <div class="settings-label">默认展开插画</div>
+      <div class="toggle-switch" id="imageToggle">
+        <div class="toggle-slider"></div>
+      </div>
+    </div>
+    <div class="settings-option">
+      <div class="settings-label">统一对白字体大小</div>
+      <div class="toggle-switch" id="dialogueFontToggle">
+        <div class="toggle-slider"></div>
+      </div>
+    </div>
+    <div class="settings-option">
+      <div class="settings-label">魔女化立绘</div>
+      <div class="toggle-switch" id="alterModeToggle">
+        <div class="toggle-slider"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grimoire-container">
+    <div class="reading-content" id="readingContent">
+
+
+      $1
+    </div>
+  </div>
+  <div class="image-modal" id="imageModal">
+    <span class="image-modal-close" id="modalClose">&times;</span>
+    <img id="modalImage" src="" alt="预览图片">
+  </div>
+
+  <script>
+    // 角色配置：名字、颜色、头像URL、别名
+    const CHARACTER_CONFIG = {
+      '艾玛': { color: '#FFB6C1', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Ema.webp', aliases: ['艾玛', '樱羽艾玛', '桜羽艾玛'], family_name: '桜羽', given_name: '艾玛' },
+      '希罗': { color: '#DC143C', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Hiro.webp', aliases: ['希罗', '二阶堂希罗'], family_name: '二阶堂', given_name: '希罗' },
+      '蕾雅': { color: '#DAA520', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Leia.webp', aliases: ['蕾雅', '莲见蕾雅'], family_name: '莲见', given_name: '蕾雅' },
+      '雪莉': { color: '#87CEEB', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Sherry.webp', aliases: ['雪莉', '橘雪莉'], family_name: '橘', given_name: '雪莉' },
+      '汉娜': { color: '#228B22', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Hanna.webp', aliases: ['汉娜', '远野汉娜'], family_name: '远野', given_name: '汉娜' },
+      '梅露露': { color: '#F5E6E8', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Meruru.webp', aliases: ['梅露露', '冰上梅露露'], family_name: '冰上', given_name: '梅露露' },
+      '亚里沙': { color: '#B22222', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Alisa.webp', aliases: ['亚里沙', '紫藤亚里沙'], family_name: '紫藤', given_name: '亚里沙' },
+      '奈叶香': { color: '#708090', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Nanoka.webp', aliases: ['奈叶香', '黑部奈叶香'], family_name: '黑部', given_name: '奈叶香' },
+      '诺亚': { color: '#9370DB', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Noah.webp', aliases: ['诺亚', '城崎诺亚'], family_name: '城崎', given_name: '诺亚' },
+      '安安': { color: '#708090', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_AnAn.webp', aliases: ['安安', '夏目安安'], family_name: '夏目', given_name: '安安' },
+      '玛格': { color: '#8B008B', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Margo.webp', aliases: ['玛格', '宝生玛格'], family_name: '宝生', given_name: '玛格' },
+      '可可': { color: '#FF6347', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Coco.webp', aliases: ['可可', '泽渡可可'], family_name: '泽渡', given_name: '可可' },
+      '泽渡可可': { color: '#FF6347', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Coco.webp', aliases: ['可可', '泽渡可可'], family_name: '泽渡', given_name: '可可' },
+      '米莉亚': { color: '#E8A060', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Miria.webp', aliases: ['米莉亚', '佐伯米莉亚'], family_name: '佐伯', given_name: '米莉亚' },
+      '月代雪': { color: '#C0C0C0', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Yuki.webp', aliases: ['月代雪'], family_name: '月代', given_name: '雪' },
+      '看守': { color: '#C0C0C0', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Jailer.webp', aliases: ['看守'], given_name: '看守' },
+      '典狱长': { color: '#2F4F4F', avatar: 'https://r2-proxy.saugrodep.workers.dev/b/moshen/profile/Profile_Warden.webp', aliases: ['典狱长'], given_name: '典狱长' }
+    };
+
+    // 名称规整化：去除各种引号和括号
+    function normalizeDisplayName(raw) {
+      const s = String(raw || '').trim()
+        .replace(/^[\s"'""''「」『』《》〈〉()（）【】\[\]]+|[\s"'""''「」『』《》〈〉()（）【】\[\]]+$/g, '');
+
+      // 1. 优先尝试精确匹配
+      for (const [name, config] of Object.entries(CHARACTER_CONFIG)) {
+        if (config.aliases && config.aliases.some(alias =>
+          alias.toLowerCase() === s.toLowerCase() ||
+          new RegExp(`^${alias}$`, 'i').test(s)
+        )) {
+          return name;
+        }
+      }
+
+      // 2. 尝试模糊匹配（包含别名），取最长匹配
+      // 解决类似“视频中的蕾雅”这样的情况
+      let bestMatch = null;
+      let maxLen = 0;
+
+      for (const [name, config] of Object.entries(CHARACTER_CONFIG)) {
+        if (!config.aliases) continue;
+        for (const alias of config.aliases) {
+          // 跳过单字符别名（如'我'、'你'），避免误匹配
+          if (alias.length < 2) continue;
+          if (s.includes(alias)) {
+            if (alias.length > maxLen) {
+              maxLen = alias.length;
+              bestMatch = name;
+            }
+          }
+        }
+      }
+
+      if (bestMatch) return bestMatch;
+
+      return s || '角色';
+    }
+
+    // 根据名称获取角色配置
+    function getCharacterConfig(rawName) {
+      const normalizedName = normalizeDisplayName(rawName);
+      return CHARACTER_CONFIG[normalizedName] || null;
+    }
+
+    // CG收集缓存 - 记录已解锁的NSFW图片
+    window.recordCGUnlock = function (imgSrc) {
+      try {
+        // 解析URL: .../NSFW/角色名/场景类型+编号.webp
+        const parts = imgSrc.split('/');
+        const nsfwIndex = parts.findIndex(p => p === 'NSFW');
+        if (nsfwIndex === -1 || nsfwIndex + 2 >= parts.length) return;
+
+        const character = decodeURIComponent(parts[nsfwIndex + 1]);
+        const fileNameWithExt = decodeURIComponent(parts[nsfwIndex + 2]);
+        const fileName = fileNameWithExt.replace(/\.webp$/, '');
+
+        // 提取场景类型（去掉末尾数字）
+        const match = fileName.match(/^(.+?)(\d+)$/);
+        if (!match) return;
+
+        const sceneType = match[1];
+        const maxCount = IMAGE_LISTS.NSFW?.[character]?.[sceneType];
+        if (!maxCount) return;
+
+        // 读取现有缓存
+        let unlocked = {};
+        try {
+          const data = localStorage.getItem('unlocked_cg');
+          if (data) unlocked = JSON.parse(data);
+        } catch (e) { }
+
+        // 检查是否已存在
+        if (!unlocked[character]) unlocked[character] = {};
+        if (unlocked[character][sceneType]) return; // 已存在，不重复写入
+
+        // 写入缓存
+        unlocked[character][sceneType] = maxCount;
+        localStorage.setItem('unlocked_cg', JSON.stringify(unlocked));
+      } catch (e) {
+        console.error('记录CG解锁失败:', e);
+      }
+    };
+
+    // 图片列表数据
+    const IMAGE_LISTS = {
+      "NSFW": {
+        "奈叶香": { "亲吻": 4, "传教士体位做爱": 6, "做爱事后": 4, "卧姿抱腿做爱": 2, "口交": 4, "后入做爱": 4, "吮吸乳头": 2, "女上位做爱": 2, "抬着腿做爱": 3, "抱起来做爱": 3, "拘束": 22, "拘束事后口交": 2, "拘束做爱": 6, "拘束做爱事后": 5, "拘束做爱亲吻": 2, "拘束做爱射精": 4, "拘束做爱高潮": 4, "拘束准备插入肉棒": 2, "拘束口交": 2, "拘束指交": 3, "指交": 3, "掰开小穴": 3, "摸胸": 4, "暴露小穴": 3, "站姿后入做爱": 2, "站姿抬腿做爱": 2, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 3, "足交": 3 },
+        "亚里沙": { "亲吻": 5, "传教士体位做爱": 4, "做爱事后": 4, "卧姿抱腿做爱": 2, "口交": 5, "后入做爱": 3, "吮吸乳头": 2, "女上位做爱": 3, "抬着腿做爱": 3, "抱起来做爱": 3, "拘束": 22, "拘束事后口交": 2, "拘束做爱": 6, "拘束做爱事后": 4, "拘束做爱亲吻": 2, "拘束做爱射精": 2, "拘束做爱高潮": 4, "拘束准备插入肉棒": 3, "拘束口交": 2, "拘束指交": 3, "指交": 3, "掰开小穴": 3, "摸胸": 5, "暴露小穴": 3, "站姿后入做爱": 3, "站姿抬腿做爱": 2, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 3, "足交": 2 },
+        "安安": { "亲吻": 5, "传教士体位做爱": 5, "做爱事后": 4, "卧姿抱腿做爱": 2, "口交": 4, "后入做爱": 3, "吮吸乳头": 2, "女上位做爱": 3, "抬着腿做爱": 4, "抱起来做爱": 3, "拘束": 25, "拘束事后口交": 2, "拘束做爱": 8, "拘束做爱事后": 7, "拘束做爱亲吻": 2, "拘束做爱射精": 4, "拘束做爱高潮": 4, "拘束准备插入肉棒": 5, "拘束口交": 3, "拘束指交": 3, "拘束高潮": 2, "指交": 3, "掰开小穴": 3, "摸胸": 5, "暴露小穴": 3, "站姿后入做爱": 3, "站姿抬腿做爱": 3, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 2, "足交": 2, "骑木马": 2 },
+        "希罗": { "亲吻": 7, "传教士体位做爱": 5, "做爱事后": 7, "卧姿抱腿做爱": 2, "口交": 5, "后入做爱": 3, "吮吸乳头": 3, "女上位做爱": 3, "抬着腿做爱": 2, "抱起来做爱": 3, "拘束": 24, "拘束事后口交": 2, "拘束做爱": 6, "拘束做爱事后": 6, "拘束做爱亲吻": 2, "拘束做爱射精": 5, "拘束做爱高潮": 4, "拘束准备插入肉棒": 4, "拘束口交": 2, "拘束指交": 3, "指交": 3, "掰开小穴": 3, "摸胸": 5, "暴露小穴": 3, "站姿后入做爱": 6, "站姿抬腿做爱": 2, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 3, "足交": 2 },
+        "梅露露": { "亲吻": 4, "传教士体位做爱": 5, "做爱事后": 5, "卧姿抱腿做爱": 2, "口交": 5, "后入做爱": 3, "强奸": 2, "抬着腿做爱": 2, "抱起来做爱": 3, "拘束": 25, "拘束事后口交": 2, "拘束做爱": 8, "拘束做爱事后": 5, "拘束做爱亲吻": 2, "拘束做爱射精": 4, "拘束做爱高潮": 5, "拘束准备插入肉棒": 5, "拘束口交": 2, "拘束指交": 3, "指交": 2, "掰开小穴": 3, "摸胸": 6, "站姿后入做爱": 3, "站姿抬腿做爱": 3, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 2, "足交": 3, "露出小穴": 3 },
+        "玛格": { "亲吻": 4, "传教士体位做爱": 4, "做爱事后": 4, "卧姿抱腿做爱": 2, "双手吊起侵犯": 1, "口交": 4, "后入做爱": 3, "吮吸乳头": 2, "女上位做爱": 3, "抬着腿做爱": 3, "拘束": 23, "拘束事后口交": 2, "拘束做爱": 7, "拘束做爱事后": 5, "拘束做爱亲吻": 2, "拘束做爱射精": 6, "拘束做爱高潮": 4, "拘束准备插入肉棒": 2, "拘束口交": 2, "拘束指交": 2, "指交": 3, "摸胸": 3, "站姿后入做爱": 3, "站姿抬腿做爱": 3, "肉棒准备插入": 2, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 2, "足交": 3, "骑木马": 2 },
+        "米莉亚": { "亲吻": 5, "传教士体位做爱": 5, "做爱事后": 4, "卧姿抱腿做爱": 2, "口交": 4, "后入做爱": 3, "吮吸乳头": 2, "女上位做爱": 3, "抬着腿做爱": 2, "抱起来做爱": 3, "拘束": 23, "拘束事后口交": 2, "拘束做爱": 6, "拘束做爱事后": 5, "拘束做爱亲吻": 2, "拘束做爱射精": 2, "拘束做爱高潮": 4, "拘束准备插入肉棒": 5, "拘束口交": 2, "拘束指交": 2, "指交": 3, "掰开小穴": 3, "摸胸": 5, "暴露小穴": 3, "站姿后入做爱": 3, "站姿抬腿做爱": 3, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 3, "足交": 2 },
+        "艾玛": { "亲吻": 5, "传教士体位做爱": 4, "做爱事后": 4, "卧姿抱腿做爱": 2, "口交": 4, "后入做爱": 3, "吮吸乳头": 2, "女上位做爱": 3, "抬着腿做爱": 4, "抱起来做爱": 3, "拘束": 22, "拘束事后口交": 2, "拘束做爱": 9, "拘束做爱事后": 5, "拘束做爱亲吻": 2, "拘束做爱射精": 4, "拘束做爱高潮": 4, "拘束准备插入肉棒": 5, "拘束口交": 2, "拘束指交": 3, "指交": 2, "掰开小穴": 3, "摸胸": 5, "暴露小穴": 3, "站姿后入做爱": 3, "站姿抬腿做爱": 3, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 3, "足交": 3 },
+        "雪莉": { "亲吻": 4, "传教士体位做爱": 5, "做爱事后": 4, "卧姿抱腿做爱": 2, "口交": 4, "后入做爱": 3, "吮吸乳头": 3, "女上位做爱": 3, "抬着腿做爱": 2, "抱起来做爱": 3, "拘束": 22, "拘束事后口交": 2, "拘束做爱": 8, "拘束做爱事后": 5, "拘束做爱亲吻": 4, "拘束做爱射精": 4, "拘束做爱高潮": 5, "拘束准备插入肉棒": 5, "拘束口交": 2, "拘束指交": 3, "指交": 3, "掰开小穴": 3, "摸胸": 5, "站姿后入做爱": 3, "站姿抬腿做爱": 2, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 2, "足交": 2, "露出小穴": 3 },
+        "汉娜": { "亲吻": 4, "传教士体位做爱": 5, "做爱事后": 4, "卧姿抱腿做爱": 2, "口交": 5, "后入做爱": 3, "吮吸乳头": 3, "女上位做爱": 3, "抬着腿做爱": 3, "抱起来做爱": 3, "拘束": 22, "拘束事后口交": 2, "拘束做爱": 6, "拘束做爱事后": 4, "拘束做爱亲吻": 2, "拘束做爱射精": 2, "拘束做爱高潮": 4, "拘束准备插入肉棒": 3, "拘束口交": 2, "拘束指交": 2, "指交": 2, "掰开小穴": 3, "摸胸": 4, "暴露小穴": 3, "站姿后入做爱": 3, "站姿抬腿做爱": 2, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 3, "足交": 3 },
+        "诺亚": { "亲吻": 5, "传教士体位做爱": 4, "做爱事后": 6, "卧姿抱腿做爱": 3, "口交": 4, "后入做爱": 3, "吮吸乳头": 2, "女上位做爱": 3, "抬着腿做爱": 3, "抱起来做爱": 3, "拘束": 21, "拘束事后口交": 2, "拘束做爱": 6, "拘束做爱事后": 4, "拘束做爱亲吻": 2, "拘束做爱射精": 2, "拘束做爱高潮": 4, "拘束准备插入肉棒": 3, "拘束口交": 2, "拘束指交": 2, "指交": 3, "掰开小穴": 3, "摸胸": 4, "暴露小穴": 3, "站姿后入做爱": 4, "站姿抬腿做爱": 3, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 2, "足交": 3 },
+        "月代雪": { "亲吻": 7, "传教士体位做爱": 5, "做爱事后": 4, "卧姿抱腿做爱": 2, "口交": 4, "后入做爱": 3, "吮吸乳头": 3, "女上位做爱": 3, "抬着腿做爱": 3, "抱起来做爱": 3, "拘束": 23, "拘束事后口交": 2, "拘束做爱": 6, "拘束做爱事后": 4, "拘束做爱亲吻": 2, "拘束做爱射精": 2, "拘束做爱高潮": 4, "拘束准备插入肉棒": 3, "拘束口交": 2, "拘束指交": 3, "指交": 2, "掰开小穴": 3, "摸胸": 4, "暴露小穴": 4, "站姿后入做爱": 4, "站姿抬腿做爱": 2, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 3, "足交": 2 },
+        "蕾雅": { "亲吻": 5, "传教士体位做爱": 5, "做爱事后": 4, "卧姿抱腿做爱": 2, "口交": 4, "后入做爱": 3, "吮吸乳头": 3, "女上位做爱": 3, "抬着腿做爱": 3, "抱起来做爱": 3, "拘束": 23, "拘束事后口交": 2, "拘束做爱": 6, "拘束做爱事后": 4, "拘束做爱亲吻": 2, "拘束做爱射精": 3, "拘束做爱高潮": 4, "拘束准备插入肉棒": 3, "拘束口交": 2, "拘束指交": 2, "指交": 2, "掰开小穴": 3, "摸胸": 4, "暴露小穴": 3, "站姿后入做爱": 5, "站姿抬腿做爱": 2, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 3, "足交": 2 },
+        "可可": { "亲吻": 4, "传教士体位做爱": 4, "做爱事后": 4, "卧姿抱腿做爱": 2, "口交": 4, "后入做爱": 3, "吮吸乳头": 2, "女上位做爱": 3, "抬着腿做爱": 2, "抱起来做爱": 3, "拘束": 22, "拘束事后口交": 2, "拘束做爱": 6, "拘束做爱事后": 4, "拘束做爱亲吻": 2, "拘束做爱射精": 2, "拘束做爱高潮": 4, "拘束准备插入肉棒": 3, "拘束口交": 2, "拘束指交": 3, "指交": 2, "掰开小穴": 3, "摸胸": 4, "暴露小穴": 3, "站姿后入做爱": 3, "站姿抬腿做爱": 2, "背后坐位做爱": 3, "自慰": 3, "舔小穴": 2, "足交": 2 }
+      },
+      "SFW": {
+        "奈叶香": { "不好意思": 3, "亲吻": 3, "伤心": 3, "叹气": 3, "哭泣": 3, "害怕": 3, "害羞": 3, "心虚": 3, "思考": 3, "惊讶": 3, "慌乱": 3, "担心": 3, "生气": 3, "通常": 5, "高兴": 3 },
+        "亚里沙": { "不好意思": 3, "亲吻": 3, "伤心": 3, "叹气": 3, "哭泣": 3, "害怕": 3, "害羞": 3, "思考": 3, "惊讶": 3, "慌乱": 3, "生气": 3, "通常": 5, "高兴": 3 },
+        "可可": { "不好意思": 3, "亲吻": 3, "伤心": 3, "叹气": 3, "哭泣": 3, "嘲笑": 2, "害怕": 3, "害羞": 3, "得意": 3, "心虚": 3, "思考": 3, "恶心": 3, "惊讶": 3, "慌乱": 3, "生气": 3, "通常": 5, "高兴": 3 },
+        "安安": { "不好意思": 2, "亲吻": 3, "伤心": 3, "叹气": 3, "哭泣": 3, "害怕": 2, "害羞": 3, "开心": 3, "得意": 2, "心虚": 3, "思考": 3, "惊讶": 3, "慌乱": 2, "生气": 3, "笔谈哭泣": 2, "笔谈害怕": 2, "笔谈开心": 2, "笔谈惊讶": 2, "笔谈生气": 2, "笔谈通常": 5, "苦笑": 2, "通常": 5, "难受": 3 },
+        "希罗": { "不好意思": 3, "亲吻": 3, "叹气": 3, "哭泣": 3, "害怕": 3, "害羞": 3, "心虚": 3, "思考": 3, "惊慌": 3, "惊讶": 3, "生气": 3, "苦笑": 3, "通常": 5, "高兴": 3 },
+        "梅露露": { "不好意思": 3, "亲吻": 3, "伤心": 3, "叹气": 3, "哭泣": 3, "害怕": 3, "害羞": 3, "心虚": 3, "思考": 3, "惊讶": 3, "慌乱": 3, "担心": 3, "生气": 3, "通常": 5, "高兴": 3 },
+        "汉娜": { "不好意思": 3, "亲吻": 3, "伤心": 3, "叹气": 3, "哭泣": 3, "害怕": 3, "害羞": 3, "心虚": 3, "思考": 3, "惊慌": 3, "惊讶": 3, "生气": 3, "通常": 5, "高兴": 3 },
+        "玛格": { "不好意思": 3, "亲吻": 3, "伤心": 3, "哭泣": 3, "害怕": 3, "害羞": 3, "心虚": 3, "思考": 3, "惊讶": 3, "慌乱": 3, "暧昧的笑": 3, "生气": 3, "苦笑": 3, "通常": 5, "高兴": 3 },
+        "米莉亚": { "不好意思": 3, "亲吻": 3, "伤心": 3, "叹气": 3, "哭泣": 3, "害羞": 3, "得意": 3, "心虚": 3, "思考": 3, "惊讶": 3, "慌乱": 3, "担心": 3, "生气": 3, "通常": 5, "难受": 3, "高兴": 3 },
+        "艾玛": { "不好意思": 3, "亲吻": 3, "伤心": 3, "叹气": 3, "哭泣": 3, "害怕": 3, "害羞": 3, "得意": 3, "思考": 3, "惊慌": 3, "惊讶": 3, "担心": 3, "生气": 3, "苦笑": 3, "通常": 5, "高兴": 3 },
+        "蕾雅": { "不好意思": 3, "亲吻": 3, "伤心": 2, "叹气": 3, "哭泣": 3, "害怕": 3, "害羞": 3, "得意": 3, "心虚": 3, "思考": 3, "惊讶": 3, "感兴趣": 3, "慌乱": 3, "生气": 3, "通常": 5, "高兴": 3 },
+        "诺亚": { "不好意思": 3, "亲吻": 3, "伤心": 3, "哭泣": 3, "害怕": 3, "害羞": 3, "心虚": 3, "思考": 3, "惊慌": 3, "惊讶": 3, "想要": 3, "生气": 3, "通常": 5, "难受": 3, "高兴": 3 },
+        "雪莉": { "不好意思": 3, "亲吻": 3, "伤心": 3, "哭泣": 3, "害怕": 3, "害羞": 6, "尴尬": 3, "得意": 3, "心虚": 3, "思考": 3, "惊讶": 3, "想亲亲": 1, "感兴趣": 3, "慌乱": 3, "生气": 3, "苦笑": 3, "调皮": 3, "通常": 5, "高兴": 5 },
+        "月代雪": { "伤心": 3, "叹气": 3, "审判": 3, "得意": 3, "心虚": 3, "思考": 3, "惊讶": 3, "慌乱": 3, "生气": 3, "通常": 5, "高兴": 3 }
+      }
+    };
+
+    function safeDecodeURIComponent(str) {
+      try { return decodeURIComponent(str); } catch (e) {
+        try { return decodeURI(str); } catch (e2) { return str; }
+      }
+    }
+
+    window.refreshImage = function (imageId, event) {
+      const imageContent = document.getElementById(imageId);
+      const img = imageContent.querySelector('img');
+      if (!img) return;
+      const button = event ? event.target.closest('.image-refresh-btn') : null;
+      if (button) {
+        button.style.transform = 'rotate(360deg)';
+        button.style.transition = 'transform 0.5s ease';
+        setTimeout(() => { button.style.transform = ''; }, 500);
+      }
+      img.style.opacity = '0.5';
+      img.style.transition = 'opacity 0.3s ease';
+      const currentSrc = img.src;
+      try {
+        const parts = currentSrc.split('/');
+        const nsfwIndex = parts.findIndex(p => p === 'NSFW' || p === 'SFW' || p === 'ALTER');
+        if (nsfwIndex === -1 || nsfwIndex + 2 >= parts.length) return;
+        const category = parts[nsfwIndex];
+        // ALTER使用SFW的数据
+        const categoryForLookup = (category === 'ALTER') ? 'SFW' : category;
+        const character = safeDecodeURIComponent(parts[nsfwIndex + 1]);
+        const fileNameWithExt = safeDecodeURIComponent(parts[nsfwIndex + 2]);
+        const fileName = fileNameWithExt.replace(/\.webp$/, '');
+
+        // 尝试匹配带编号的格式：类型+数字
+        const fileMatch = fileName.match(/^(.+?)(\d+)$/);
+        let type, currentNumber;
+
+        if (fileMatch) {
+          // 有编号的情况：如 "心虚1"
+          type = fileMatch[1];
+          currentNumber = parseInt(fileMatch[2]);
+        } else {
+          // 无编号的情况：如 "心虚"，视为编号0或1
+          type = fileName;
+          currentNumber = 0; // 标记为无编号状态
+        }
+
+        const categoryData = IMAGE_LISTS[categoryForLookup];
+        if (!categoryData) return;
+        let characterData = categoryData[character];
+        if (!characterData) {
+          const normalizedChar = character.trim().normalize('NFC');
+          characterData = categoryData[normalizedChar];
+          if (!characterData) {
+            const matched = Object.keys(categoryData).find(c =>
+              c.trim().normalize('NFC') === normalizedChar || c.replace(/\s/g, '') === character.replace(/\s/g, '')
+            );
+            if (matched) characterData = categoryData[matched];
+            else return;
+          }
+        }
+        let maxNumber = characterData[type];
+        if (!maxNumber) {
+          const normalizedType = type.trim().normalize('NFC');
+          maxNumber = characterData[normalizedType];
+          if (!maxNumber) {
+            const matched = Object.keys(characterData).find(t =>
+              t.trim().normalize('NFC') === normalizedType || t.replace(/\s/g, '') === type.replace(/\s/g, '')
+            );
+            if (matched) maxNumber = characterData[matched];
+            else return;
+          }
+        }
+        let newNumber;
+        if (maxNumber === 1) {
+          newNumber = 1;
+        } else {
+          // 随机生成新编号，避免与当前编号相同
+          do {
+            newNumber = Math.floor(Math.random() * maxNumber) + 1;
+          } while (currentNumber > 0 && newNumber === currentNumber);
+        }
+        // 始终生成带编号的文件名
+        parts[nsfwIndex + 2] = encodeURIComponent(type + newNumber + '.webp');
+        let newSrc = parts.join('/');
+
+        // 如果开启了ALTER模式，替换SFW为ALTER
+        if (localStorage.getItem('alter-mode') === 'true') {
+          newSrc = newSrc.replace(/\/SFW\//, '/ALTER/');
+        }
+
+        img.onload = function () {
+          img.style.opacity = '1';
+          img.style.width = imageSize + '%';
+          img.style.maxWidth = imageSize + '%';
+        };
+        img.onerror = function () { img.style.opacity = '1'; };
+        img.src = newSrc;
+      } catch (e) { console.error('刷新图片失败:', e); }
+    };
+
+    function generateStyledNameHtml(config, normalizedName) {
+      if (!config) {
+        return `<span class="name-main">${normalizedName}</span>`;
+      }
+
+      const nameColor = config.color || 'var(--muted)';
+
+      if (config.family_name) {
+        const fName = config.family_name;
+        const gName = config.given_name;
+        // 姓氏首字：放大且染色
+        let html = `<span class="name-large" style="color:${nameColor}">${fName[0]}</span>`;
+        if (fName.length > 1) html += `<span class="name-normal">${fName.slice(1)}</span>`;
+
+        // 移除过大的 margin-left，使用 CSS 默认间隔
+
+        // 名字首字：放大但不染色
+        html += `<span class="name-large">${gName[0]}</span>`;
+        if (gName.length > 1) html += `<span class="name-normal">${gName.slice(1)}</span>`;
+        return html;
+      } else if (config.given_name) {
+        const gName = config.given_name;
+        let html = `<span class="name-large" style="color:${nameColor}">${gName[0]}</span>`;
+        if (gName.length > 1) html += `<span class="name-normal">${gName.slice(1)}</span>`;
+        return html;
+      } else {
+        if (normalizedName.length > 0) {
+          return `<span class="name-large" style="color:${nameColor}">${normalizedName[0]}</span><span class="name-normal">${normalizedName.slice(1)}</span>`;
+        }
+        return `<span class="name-main" style="color:${nameColor}">${normalizedName}</span>`;
+      }
+    }
+
+    // 创建角色对话元素（增强版）
+    function createDialogueElement(name, dialogue, skipProcess = false) {
+      const normalizedName = normalizeDisplayName(name);
+
+      // 检查是否为玩家对话 (user 格式)
+      const isUserDialogue = name.toLowerCase() === '#' || normalizedName.toLowerCase() === '#';
+
+      if (isUserDialogue) {
+        // 玩家对话：无头像，无名称，右对齐
+        dialogue = dialogue.replace(/\{[^}]+\}/g, '');
+        const processedDialogue = skipProcess ? dialogue : processDialogueContent(dialogue);
+
+        return `<div class="dialogue-container char-user">
+          <div class="dialogue-bubble">
+            <div class="avatar-side"></div>
+            <div class="content-side">
+              <div class="character-name"></div>
+              <div class="bubble-text">${processedDialogue}</div>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      const config = CHARACTER_CONFIG[normalizedName];
+      const avatarHtml = config && config.avatar
+        ? `<img class="character-avatar" src="${config.avatar}" alt="${normalizedName}">`
+        : `<div class="character-avatar-placeholder">👤</div>`;
+
+      // 强制移除所有花括号内容（角色名标记）
+      dialogue = dialogue.replace(/\{[^}]+\}/g, '');
+
+      const processedDialogue = skipProcess ? dialogue : processDialogueContent(dialogue);
+      const nameHtml = generateStyledNameHtml(config, normalizedName);
+
+      return `<div class="dialogue-container char-${normalizedName}">
+        <div class="dialogue-bubble">
+          <div class="avatar-side">
+            ${avatarHtml}
+          </div>
+          <div class="content-side">
+            <div class="character-name">${nameHtml}</div>
+            <div class="bubble-text">${processedDialogue}</div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // 处理对话内容（支持双语格式 + 论点交互）
+    function processDialogueContent(dialogue) {
+      // 移除对话内容中的角色名标记 {角色名}
+      dialogue = dialogue.replace(/\{[^}]+\}/g, '').trim();
+
+      // 论点解析：**论点** -> 交互式 spans（仅审判/魔女审判阶段显示）
+      dialogue = dialogue.replace(/\*\*(.+?)\*\*/g, function (match, p1) {
+        var phase = (typeof Mvu !== 'undefined' && Mvu.getMvuData) ? (Mvu.getMvuData({ type: 'message', message_id: 'latest' })?.stat_data?.chapter_manager?.stage?.phase || '') : '';
+        if (phase === '审判' || phase === '魔女审判') {
+          return '<span class="arg-point" onclick="showArgMenu(event, this)">' + p1 + '</span>';
+        }
+        return p1;
+      });
+
+      // 支持多种双语格式：
+      // 「日文」（中文）、「日文」(中文)、『日文』（中文）、【日文】（中文）
+      const patterns = [
+        { regex: /「([^」]+)」（([^）]+)）/g, type: 'standard' },
+        { regex: /「([^」]+)」\(([^)]+)\)/g, type: 'halfwidth' },
+        { regex: /『([^』]+)』（([^）]+)）/g, type: 'alternate' },
+        { regex: /【([^】]+)】（([^）]+)）/g, type: 'square' }
+      ];
+
+      let result = dialogue;
+      patterns.forEach(({ regex }) => {
+        result = result.replace(regex, (match, text1, text2) => {
+          return `<div class="bilingual-dialogue">
+        <div class="primary-text">「${text1}」</div>
+        <div class="dialogue-divider"></div>
+        <div class="secondary-text">（${text2}）</div>
+      </div>`;
+        });
+      });
+
+      // 如果没有双语格式，且不包含对话引号，则加上引号
+      if (result === dialogue &&
+        !dialogue.includes('「') && !dialogue.includes('『') &&
+        !dialogue.includes('【')) {
+        result = `「${dialogue}」`;
+      }
+
+      return result;
+    }
+
+
+
+    document.addEventListener('click', function (e) {
+      if (e.target.tagName === 'IMG' && e.target.closest('.reading-content')) {
+        const modal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+
+        // 计算当前视口位置，让弹窗出现在视口中央
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+
+        modal.style.top = scrollTop + 'px';
+        modal.style.left = scrollLeft + 'px';
+        modal.style.width = viewportWidth + 'px';
+        modal.style.height = viewportHeight + 'px';
+
+        modal.classList.add('active');
+        modalImage.src = e.target.src;
+        modalImage.alt = e.target.alt;
+        document.body.style.overflow = 'hidden';
+      }
+    });
+
+    const closeModal = () => {
+      document.getElementById('imageModal').classList.remove('active');
+      document.body.style.overflow = '';
+    };
+    document.getElementById('modalClose')?.addEventListener('click', closeModal);
+    document.getElementById('imageModal')?.addEventListener('click', function (e) {
+      if (e.target === this || e.target.id === 'modalImage') closeModal();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+    function processTextContent() {
+      const contentDiv = document.getElementById('readingContent');
+      let rawText = contentDiv.innerHTML.trim();
+      if (!rawText) return;
+      const tagPatterns = [
+        { regex: /<evidenceLog>([\s\S]*?)<\/evidenceLog>/gi, title: '证物收集', type: 'evidence-log' },
+        { regex: /<Image>([\s\S]*?)<\/Image>/gi, title: '', type: 'image-tag' },
+        { regex: /<pic>([\s\S]*?)<\/pic>/gi, title: '', type: 'image-tag' }
+      ];
+      const matches = [];
+      tagPatterns.forEach(config => {
+        let match;
+        config.regex.lastIndex = 0;
+        while ((match = config.regex.exec(rawText)) !== null) {
+          matches.push({ index: match.index, length: match[0].length, content: match[1].trim(), title: config.title, type: config.type });
+        }
+      });
+      matches.sort((a, b) => a.index - b.index);
+      const htmlParts = [];
+      let lastIndex = 0;
+      matches.forEach(match => {
+        const beforeText = rawText.substring(lastIndex, match.index);
+        if (beforeText.trim()) htmlParts.push(processParagraphs(beforeText));
+        if (match.type === 'image-tag') {
+          htmlParts.push(createImageElement(match.content));
+        } else if (match.type === 'evidence-log') {
+          htmlParts.push(createEvidenceElement(match.content));
+        }
+        lastIndex = match.index + match.length;
+      });
+      const remainingText = rawText.substring(lastIndex);
+      if (remainingText.trim()) htmlParts.push(processParagraphs(remainingText));
+      contentDiv.innerHTML = htmlParts.join('');
+
+      // 过滤全文中的 ** 符号
+      removeAsterisks(contentDiv);
+    }
+
+    // 递归遍历文本节点，移除 ** 符号
+    function removeAsterisks(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        node.textContent = node.textContent.replace(/\*\*/g, '');
+      } else {
+        node.childNodes.forEach(removeAsterisks);
+      }
+    }
+
+    function processParagraphs(text) {
+      let cleanText = text.replace(/<\/?(?:evidenceLog|Image)(?!\s)>/gi, '');
+
+      // 清理每行中重复的角色名标记：保留行首的 {角色名}，移除后续的 {角色名}
+      // 例如 "{艾玛}{艾玛}「对话」" 变成 "{艾玛}「对话」"
+      cleanText = cleanText.split('\n').map(line => {
+        // 匹配行首的角色标记
+        const firstTagMatch = line.match(/^(\s*\{[^}]+\})/);
+        if (firstTagMatch) {
+          const firstTag = firstTagMatch[1];
+          const rest = line.substring(firstTag.length);
+          // 移除剩余部分中的所有角色名标记
+          const cleanRest = rest.replace(/\{[^}]+\}/g, '');
+          return firstTag + cleanRest;
+        }
+        return line;
+      }).join('\n');
+
+      const lines = cleanText.split(/\n+/).filter(p => p.trim().length > 0);
+
+      let resultHtml = '';
+      let pendingDialogue = null;
+
+      const flushPending = () => {
+        if (pendingDialogue) {
+          const mergedText = pendingDialogue.texts.map(t => processDialogueContent(t)).join('<br><br>');
+          resultHtml += createDialogueElement(pendingDialogue.name, mergedText, true);
+          pendingDialogue = null;
+        }
+      };
+
+      // 辅助函数：检查是否可以合并
+      const checkCanMerge = (normalizedName) => {
+        if (!pendingDialogue) return false;
+        if (pendingDialogue.normalizedName === normalizedName) return true;
+        const c1 = CHARACTER_CONFIG[pendingDialogue.normalizedName];
+        const c2 = CHARACTER_CONFIG[normalizedName];
+        if (c1 && c2 && c1.avatar && c2.avatar && c1.avatar === c2.avatar) return true;
+        return false;
+      };
+
+      for (let line of lines) {
+        line = line.trim();
+
+        // 跳过双花括号格式 {{...}}，这是情绪/动作描述，不作为对话处理
+        if (/^\{\{.*\}\}/.test(line)) {
+          flushPending();
+          resultHtml += `<p>${escapeHtml(line)}</p>`;
+          continue;
+        }
+
+        let rawName = null;
+        let content = null;
+        let normalizedName = null;
+
+        // 1. 尝试花括号格式: {角色名}「对话」
+        const braceNamePattern = /^[\s]*\{([^}]+)\}[\s]*(.+)$/;
+        const braceMatch = line.match(braceNamePattern);
+
+        if (braceMatch) {
+          rawName = braceMatch[1].trim();
+          content = braceMatch[2].trim();
+          normalizedName = normalizeDisplayName(rawName);
+
+          // 检查是否是有头像的已知角色
+          const config = CHARACTER_CONFIG[normalizedName];
+          if (!config || !config.avatar) {
+            // 不是已知角色，过滤掉花括号标记，内容作为普通文本显示
+            flushPending();
+            resultHtml += `<p>${escapeHtml(content)}</p>`;
+            continue;
+          }
+        }
+        // 只处理明确的 {角色名} 格式
+
+        if (rawName && content && normalizedName) {
+          // 是对话行
+          if (checkCanMerge(normalizedName)) {
+            pendingDialogue.texts.push(content);
+          } else {
+            flushPending();
+            pendingDialogue = {
+              name: rawName,
+              normalizedName: normalizedName,
+              texts: [content]
+            };
+          }
+        } else {
+          // 非对话行，或无法识别的格式
+          flushPending();
+          resultHtml += processLineWithImages(line);
+        }
+      }
+      flushPending();
+      return resultHtml;
+    }
+
+    function processLineWithImages(line) {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = line;
+      const decodedLine = tempDiv.textContent || tempDiv.innerText || line;
+
+      // 跳过双花括号格式 {{...}}
+      if (/^\{\{.*\}\}/.test(decodedLine.trim())) {
+        return `<p>${escapeHtml(line)}</p>`;
+      }
+
+      // 主要格式: {角色名}「对话」
+      const braceNamePattern = /^[\s]*\{([^}]+)\}[\s]*(.+)$/;
+      const braceMatch = decodedLine.match(braceNamePattern);
+
+      if (braceMatch) {
+        const rawName = braceMatch[1].trim();
+        const normalizedName = normalizeDisplayName(rawName);
+        // 校验是否是有头像的已知角色
+        const config = CHARACTER_CONFIG[normalizedName];
+        if (config && config.avatar) {
+          return createDialogueElement(rawName, braceMatch[2].trim());
+        }
+        // 不是已知角色，过滤掉花括号标记，内容作为普通文本显示
+        return `<p>${escapeHtml(braceMatch[2].trim())}</p>`;
+      }
+
+      // 只处理明确的 {角色名} 格式
+
+      // 图片处理
+      const imgRegex = /<img[^>]*>/i;
+      if (imgRegex.test(decodedLine)) {
+        const div = document.createElement('div');
+        div.innerHTML = decodedLine;
+        return createInteractiveImageContainer(div.innerHTML);
+      } else {
+        return `<p>${escapeHtml(line)}</p>`;
+      }
+    }
+
+    function createImageElement(imageUrl) {
+      let trimmedUrl = imageUrl.trim();
+      if (!trimmedUrl) return '';
+
+      // 处理 <pic> 标签的相对路径格式，如 "SFW/希罗/通常1"
+      // 补全为完整URL
+      if (/^(SFW|NSFW)\//.test(trimmedUrl)) {
+        // 如果没有.webp后缀，添加它
+        if (!trimmedUrl.endsWith('.webp')) {
+          trimmedUrl = trimmedUrl + '.webp';
+        }
+        trimmedUrl = 'https://r2-proxy.saugrodep.workers.dev/b/moshen/' + trimmedUrl;
+      }
+
+      const imgTag = `<img src="${escapeHtml(trimmedUrl)}" alt="图片" loading="lazy">`;
+      return createInteractiveImageContainer(imgTag);
+    }
+
+    // 辅助函数：为缺少编号的图片URL自动添加随机编号
+    function autoAssignImageNumber(imgSrc) {
+      try {
+        const parts = imgSrc.split('/');
+        const nsfwIndex = parts.findIndex(p => p === 'NSFW' || p === 'SFW');
+        if (nsfwIndex === -1 || nsfwIndex + 2 >= parts.length) return imgSrc;
+
+        const category = parts[nsfwIndex];
+        const character = safeDecodeURIComponent(parts[nsfwIndex + 1]);
+        const fileNameWithExt = safeDecodeURIComponent(parts[nsfwIndex + 2]);
+        const fileName = fileNameWithExt.replace(/\.webp$/, '');
+
+        // 检查是否已有编号
+        const fileMatch = fileName.match(/^(.+?)(\d+)$/);
+        if (fileMatch) return imgSrc; // 已有编号，不处理
+
+        // 无编号，尝试从IMAGE_LISTS获取最大编号并随机分配
+        const type = fileName;
+        const categoryData = IMAGE_LISTS[category];
+        if (!categoryData) return imgSrc;
+
+        let characterData = categoryData[character];
+        if (!characterData) {
+          const normalizedChar = character.trim().normalize('NFC');
+          characterData = categoryData[normalizedChar];
+          if (!characterData) {
+            const matched = Object.keys(categoryData).find(c =>
+              c.trim().normalize('NFC') === normalizedChar || c.replace(/\s/g, '') === character.replace(/\s/g, '')
+            );
+            if (matched) characterData = categoryData[matched];
+            else return imgSrc;
+          }
+        }
+
+        let maxNumber = characterData[type];
+        if (!maxNumber) {
+          const normalizedType = type.trim().normalize('NFC');
+          maxNumber = characterData[normalizedType];
+          if (!maxNumber) {
+            const matched = Object.keys(characterData).find(t =>
+              t.trim().normalize('NFC') === normalizedType || t.replace(/\s/g, '') === type.replace(/\s/g, '')
+            );
+            if (matched) maxNumber = characterData[matched];
+            else return imgSrc;
+          }
+        }
+
+        // 随机生成编号
+        const newNumber = Math.floor(Math.random() * maxNumber) + 1;
+        parts[nsfwIndex + 2] = encodeURIComponent(type + newNumber + '.webp');
+        return parts.join('/');
+      } catch (e) {
+        console.error('自动分配图片编号失败:', e);
+        return imgSrc;
+      }
+    }
+
+    // 辅助函数：生成交互式图片容器 HTML
+    function createInteractiveImageContainer(imgContent) {
+      const uniqueId = 'img-' + Math.random().toString(36).substr(2, 9);
+      const autoExpand = localStorage.getItem('image-auto-expand') !== 'false'; // 默认展开
+      const expandedClass = autoExpand ? ' expanded' : '';
+      const buttonClass = autoExpand ? ' expanded' : '';
+      const buttonText = autoExpand ? '收起插画' : '查看插画';
+
+      // 提取img标签中的src，检查并自动分配编号
+      const srcMatch = imgContent.match(/src=["']([^"']+)["']/i);
+      if (srcMatch) {
+        const originalSrc = srcMatch[1];
+        const newSrc = autoAssignImageNumber(originalSrc);
+        if (newSrc !== originalSrc) {
+          imgContent = imgContent.replace(originalSrc, newSrc);
+        }
+        // 为NSFW图片添加onload事件，记录到CG收集缓存
+        if (newSrc.includes('/NSFW/')) {
+          imgContent = imgContent.replace(/<img\s/i, '<img onload="recordCGUnlock(this.src)" ');
+        }
+      }
+
+      return `<div class="image-container">
+        <div style="display:flex;justify-content:center;align-items:center;gap:8px;">
+          <button class="image-toggle-btn${buttonClass}" onclick="toggleImage('${uniqueId}')">
+            <span class="image-toggle-text">${buttonText}</span>
+          </button>
+          <button class="image-refresh-btn" onclick="refreshImage('${uniqueId}', event)" title="随机切换图片">↻</button>
+        </div>
+        <div class="image-content${expandedClass}" id="${uniqueId}" style="text-align:center;">
+          ${imgContent}
+        </div>
+      </div>`;
+    }
+
+
+
+    function createEvidenceElement(contentMatches) {
+      // 简约风格证物列表
+      // 解析格式：证物名: xxx \n 类型: xxx \n 描述: xxx
+      // 多个证物之间用空行分割
+      const rawItems = contentMatches.trim().split(/\n\s*\n/);
+      let itemsHtml = '';
+      let count = 0;
+
+      rawItems.forEach(itemStr => {
+        if (!itemStr.trim()) return;
+
+        const nameMatch = itemStr.match(/证物名[:：]\s*(.+)/);
+        const typeMatch = itemStr.match(/类型[:：]\s*(.+)/);
+        const descMatch = itemStr.match(/描述[:：]\s*(.+)/);
+
+        if (nameMatch) {
+          count++;
+          const name = nameMatch[1].trim();
+          const type = typeMatch ? typeMatch[1].trim() : '未分类';
+          const desc = descMatch ? descMatch[1].trim() : '';
+
+          itemsHtml += `
+            <div class="evidence-item">
+                <div class="evidence-header">
+                    <span class="ev-name">${name}</span>
+                    <span class="ev-type">${type}</span>
+                </div>
+                <div class="evidence-desc">${desc}</div>
+            </div>`;
+        }
+      });
+
+      if (count === 0) return '';
+
+      return `
+      <div class="evidence-container">
+        <details class="evidence-details">
+            <summary class="evidence-summary">
+                <span class="ev-title">获得新证据 (${count})</span>
+                <span class="ev-toggle">▼</span>
+            </summary>
+            <div class="evidence-list">
+                ${itemsHtml}
+            </div>
+        </details>
+      </div>`;
+    }
+
+    function escapeHtml(text) {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = text;
+      const decodedText = tempDiv.textContent || tempDiv.innerText || '';
+      const div = document.createElement('div');
+      div.textContent = decodedText;
+      return div.innerHTML;
+    }
+
+    window.toggleImage = function (imageId) {
+      const imageContent = document.getElementById(imageId);
+      const button = imageContent.previousElementSibling.querySelector('.image-toggle-btn');
+      const textSpan = button.querySelector('.image-toggle-text');
+      const iconSpan = button.querySelector('.image-toggle-icon');
+      if (imageContent.classList.contains('expanded')) {
+        imageContent.classList.remove('expanded');
+        button.classList.remove('expanded');
+        textSpan.textContent = '查看插画';
+        iconSpan.textContent = '🖼️';
+      } else {
+        imageContent.classList.add('expanded');
+        button.classList.add('expanded');
+        textSpan.textContent = '收起插画';
+        iconSpan.textContent = '📷';
+      }
+    };
+
+    let activeArgMenu = null;
+
+    let currentArgPoint = ''; // 当前点击的论点文本
+
+    window.showArgMenu = function (e, element) {
+      e.stopPropagation();
+      removeArgMenu(); // Close existing
+
+      // 获取论点文本（element就是被点击的arg-point元素）
+      currentArgPoint = element.textContent || '';
+
+      // 获取角色名：向上查找dialogue-container，然后找character-name
+      let currentArgCharacter = '';
+      const dialogueContainer = element.closest('.dialogue-container');
+      if (dialogueContainer) {
+        const nameEl = dialogueContainer.querySelector('.character-name');
+        if (nameEl) {
+          // character-name 里面可能是多个 span 组成的名字，直接取 textContent
+          currentArgCharacter = nameEl.textContent.trim() || '';
+        }
+      }
+      // 存储到全局变量
+      window._currentArgCharacter = currentArgCharacter;
+
+      const menu = document.createElement('div');
+      menu.className = 'arg-menu';
+
+      // 4个极简选项
+      const actions = [
+        { label: '反驳', type: 'danger', placeholder: '补充反驳理由...' },
+        { label: '赞同', type: 'normal', placeholder: '补充赞同观点...' },
+        { label: '出示证据', type: 'normal', placeholder: '补充对证据的解释...' },
+        { label: '伪证', type: 'danger', placeholder: '补充伪证说明...' }
+      ];
+
+      actions.forEach(act => {
+        const btn = document.createElement('button');
+        btn.className = `arg-btn ${act.type}`;
+        btn.textContent = act.label;
+        btn.onclick = (ev) => {
+          ev.stopPropagation();
+          showArgInput(menu, act.label, act.placeholder);
+        };
+        menu.appendChild(btn);
+      });
+
+      document.body.appendChild(menu);
+      activeArgMenu = menu;
+      positionMenu(menu, element);
+    };
+
+    function showArgInput(menu, type, placeholder) {
+      menu.classList.add('input-mode');
+
+      // 判断是否是"出示证据"类型，需要显示证据按钮
+      const isEvidenceType = type === '出示证据';
+      const evidenceBtnHtml = isEvidenceType
+        ? `<button type="button" class="arg-evidence-btn" id="evidenceBtn">选择证据</button>`
+        : '';
+
+      menu.innerHTML = `
+            <div class="arg-input-box">
+                <span class="arg-prefix">【${type}】</span>
+                <div class="arg-input-wrapper">
+                    ${evidenceBtnHtml}
+                    <input type="text" class="arg-input" placeholder="${placeholder || '输入内容...'}" data-type="${type}">
+                    <button type="button" class="arg-send" id="argSendBtn">➤</button>
+                </div>
+            </div>
+            ${isEvidenceType ? '<div class="evidence-dropdown" id="evidenceDropdown"></div>' : ''}
+        `;
+
+      // 绑定证据按钮事件
+      if (isEvidenceType) {
+        const evidenceBtn = menu.querySelector('#evidenceBtn');
+        if (evidenceBtn) {
+          evidenceBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            toggleEvidenceDropdown();
+          });
+        }
+      }
+
+      // 绑定发送按钮事件
+      const sendBtn = menu.querySelector('#argSendBtn');
+      if (sendBtn) {
+        sendBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          submitArg(this);
+        });
+      }
+
+      // 重新定位菜单
+      if (activeArgMenu) {
+        const menuRect = menu.getBoundingClientRect();
+        let left = parseFloat(menu.style.left);
+        if (left + menuRect.width > window.innerWidth - 10) {
+          left = window.innerWidth - menuRect.width - 10;
+        }
+        if (left < 10) left = 10;
+        menu.style.left = `${left}px`;
+      }
+
+      const input = menu.querySelector('input');
+      if (input) input.focus();
+
+      // Bind enter key
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submitArg(menu.querySelector('#argSendBtn'));
+      });
+    }
+
+    // 当前选中的证据
+    let selectedEvidence = null;
+
+    // 切换证据下拉列表
+    function toggleEvidenceDropdown() {
+      const dropdown = document.getElementById('evidenceDropdown');
+      if (!dropdown) {
+        console.log('dropdown not found');
+        return;
+      }
+
+      if (dropdown.classList.contains('show')) {
+        dropdown.classList.remove('show');
+        return;
+      }
+
+      // 获取MVU证据数据
+      let evidenceList = {};
+      try {
+        if (typeof Mvu !== 'undefined' && Mvu.getMvuData) {
+          const mvuData = Mvu.getMvuData({ type: 'message', message_id: 'latest' });
+          evidenceList = mvuData?.stat_data?.protagonist?.evidence || {};
+          console.log('获取到证据:', evidenceList);
+        } else {
+          console.log('Mvu不可用，使用测试数据');
+          // 测试数据
+          evidenceList = {
+            '弩箭': { type: '证物', description: '掉落在诺亚尸体附近的弩枪箭矢' },
+            '地板划痕': { type: '证物', description: '白色颜料上的轻微划痕' }
+          };
+        }
+      } catch (e) {
+        console.error('获取证据数据失败:', e);
+      }
+
+      const evidenceKeys = Object.keys(evidenceList);
+
+      if (evidenceKeys.length === 0) {
+        dropdown.innerHTML = '<div class="evidence-empty">暂无可用证据</div>';
+      } else {
+        dropdown.innerHTML = evidenceKeys.map(name => {
+          const ev = evidenceList[name];
+          const desc = (ev.description || '无描述').replace(/"/g, '&quot;');
+          return `
+            <div class="evidence-item" data-name="${name}" data-desc="${desc}">
+              <div class="evidence-item-name">${name}</div>
+              <div class="evidence-item-desc">${ev.description || '无描述'}</div>
+            </div>
+          `;
+        }).join('');
+
+        // 绑定点击事件
+        dropdown.querySelectorAll('.evidence-item').forEach(item => {
+          item.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const name = this.dataset.name;
+            const desc = this.dataset.desc;
+            selectEvidence(name, desc);
+          });
+        });
+      }
+
+      dropdown.classList.add('show');
+    }
+
+    // 选择证据
+    function selectEvidence(name, description) {
+      selectedEvidence = { name, description };
+
+      const input = document.querySelector('.arg-input');
+      const inputWrapper = document.querySelector('.arg-input-wrapper');
+      const dropdown = document.getElementById('evidenceDropdown');
+
+      if (dropdown) dropdown.classList.remove('show');
+
+      // 在输入框前添加证据标签
+      let tagContainer = inputWrapper.querySelector('.evidence-tag');
+      if (!tagContainer) {
+        tagContainer = document.createElement('span');
+        tagContainer.className = 'evidence-tag';
+        // 插入到证据按钮后面
+        const evidenceBtn = inputWrapper.querySelector('.arg-evidence-btn');
+        if (evidenceBtn) {
+          evidenceBtn.after(tagContainer);
+        } else {
+          inputWrapper.prepend(tagContainer);
+        }
+      }
+
+      tagContainer.innerHTML = `${name}<span class="evidence-tag-remove">✕</span>`;
+      tagContainer.querySelector('.evidence-tag-remove').addEventListener('click', function (e) {
+        e.stopPropagation();
+        removeSelectedEvidence();
+      });
+
+      // 聚焦输入框
+      if (input) input.focus();
+    }
+
+    // 移除选中的证据
+    function removeSelectedEvidence() {
+      selectedEvidence = null;
+      const tag = document.querySelector('.evidence-tag');
+      if (tag) tag.remove();
+    }
+
+    // Mount to window for onclick access
+    function submitArg(btn) {
+      const menu = btn.closest('.arg-menu');
+      const container = menu.querySelector('.arg-input-box');
+      if (!container) {
+        console.error('找不到 arg-input-box');
+        return;
+      }
+      const prefix = container.querySelector('.arg-prefix').textContent;
+      const input = container.querySelector('.arg-input');
+      const val = input.value.trim();
+      const type = input.dataset.type;
+      const character = window._currentArgCharacter || '';
+
+      // 构建发送消息：【类型：角色的论点"论点内容"】用户输入
+      let message = '';
+      const charPart = character ? `${character}的论点` : '论点';
+
+      // 如果是出示证据且选中了证据
+      if (type === '出示证据' && selectedEvidence) {
+        message = `【${type}：${charPart}"${currentArgPoint}"】出示【${selectedEvidence.name}】（${selectedEvidence.description}）`;
+        if (val) {
+          message += ` ${val}`;
+        }
+      } else {
+        // 其他类型
+        message = `【${type}：${charPart}"${currentArgPoint}"】`;
+        if (val) {
+          message += val;
+        }
+      }
+
+      const command = `/send ${message} | /trigger await=true`;
+
+      if (typeof triggerSlash === 'function') {
+        try {
+          triggerSlash(command);
+          showSettingsMessage(`✅ 已发送: ${message}`);
+        } catch (e) {
+          console.error('发送失败:', e);
+          showSettingsMessage(`❌ 发送失败，请手动输入`);
+        }
+      } else {
+        console.warn('SillyTavern API 不可用');
+        showSettingsMessage(`⚠️ API不可用，请手动输入: ${message}`);
+      }
+
+      // 清理状态
+      selectedEvidence = null;
+      removeArgMenu();
+    };
+
+    function positionMenu(menu, target) {
+      const rect = target.getBoundingClientRect();
+      const menuRect = menu.getBoundingClientRect();
+
+      let top = rect.bottom + 8;
+      let left = rect.left + (rect.width / 2) - (menuRect.width / 2);
+
+      // Boundary checks
+      if (left < 10) left = 10;
+      if (left + menuRect.width > window.innerWidth - 10) left = window.innerWidth - menuRect.width - 10;
+      if (top + menuRect.height > window.innerHeight - 10) top = rect.top - menuRect.height - 8; // Flip to top if no space
+
+      menu.style.top = `${top}px`;
+      menu.style.left = `${left}px`;
+    }
+
+    function removeArgMenu() {
+      if (activeArgMenu) {
+        activeArgMenu.remove();
+        activeArgMenu = null;
+      }
+    }
+
+    // Global click to close menu
+    document.addEventListener('click', (e) => {
+      if (activeArgMenu && !activeArgMenu.contains(e.target)) {
+        removeArgMenu();
+      }
+    });
+
+    let readingFontSize = 18;
+    let imageSize = 70; // 默认70%
+
+    document.addEventListener('DOMContentLoaded', () => {
+      processTextContent();
+      requestAnimationFrame(() => {
+        initThemeSwitcher();
+        initSettings();
+        const savedReadingFontSize = localStorage.getItem('readingFontSize');
+        readingFontSize = savedReadingFontSize ? parseInt(savedReadingFontSize) : 18;
+        const readingContent = document.querySelector('.reading-content');
+        if (readingContent) readingContent.style.fontSize = readingFontSize + 'px';
+        const savedImageSize = localStorage.getItem('imageSize');
+        imageSize = savedImageSize !== null ? parseInt(savedImageSize) : 70; // 默认70%
+        applyImageSize();
+      });
+    });
+
+    /* Merged into window.setTheme / applyTheme logic above to remove duplication */
+
+    function initSettings() {
+      const settingsBtn = document.getElementById('settingsBtn');
+      const settingsPanel = document.getElementById('settingsPanel');
+      const imageToggle = document.getElementById('imageToggle');
+      const dialogueFontToggle = document.getElementById('dialogueFontToggle');
+      if (!settingsBtn || !settingsPanel || !imageToggle) return;
+      if (localStorage.getItem('image-auto-expand') !== 'false') imageToggle.classList.add('active'); // 默认展开
+
+      // 统一对白字体大小：PC端默认开启，移动端默认关闭
+      const isMobile = window.innerWidth <= 768;
+      const savedDialogueFont = localStorage.getItem('unified-dialogue-font');
+      let dialogueFontEnabled;
+      if (savedDialogueFont !== null) {
+        dialogueFontEnabled = savedDialogueFont === 'true';
+      } else {
+        dialogueFontEnabled = !isMobile; // PC默认开，移动端默认关
+      }
+      if (dialogueFontEnabled) {
+        dialogueFontToggle.classList.add('active');
+        document.body.classList.add('unified-dialogue-font');
+      }
+
+      settingsBtn.addEventListener('click', function (e) { e.stopPropagation(); settingsPanel.classList.toggle('active'); });
+      imageToggle.addEventListener('click', function () {
+        this.classList.toggle('active');
+        const isActive = this.classList.contains('active');
+        localStorage.setItem('image-auto-expand', isActive);
+        showSettingsMessage(isActive ? '已开启默认展开插画' : '已关闭默认展开插画');
+      });
+
+      dialogueFontToggle.addEventListener('click', function () {
+        this.classList.toggle('active');
+        const isActive = this.classList.contains('active');
+        localStorage.setItem('unified-dialogue-font', isActive);
+        document.body.classList.toggle('unified-dialogue-font', isActive);
+        showSettingsMessage(isActive ? '已统一对白与正文字体大小' : '已恢复对白独立字体大小');
+      });
+
+      // 魔女化立绘开关
+      const alterModeToggle = document.getElementById('alterModeToggle');
+      if (alterModeToggle) {
+        if (localStorage.getItem('alter-mode') === 'true') {
+          alterModeToggle.classList.add('active');
+        }
+        alterModeToggle.addEventListener('click', function () {
+          this.classList.toggle('active');
+          const isActive = this.classList.contains('active');
+          localStorage.setItem('alter-mode', isActive);
+          // 即时更新所有图片
+          toggleAlterModeImages(isActive);
+          showSettingsMessage(isActive ? '已开启魔女化立绘' : '已关闭魔女化立绘');
+        });
+      }
+
+      document.addEventListener('click', function (e) {
+        if (!settingsPanel.contains(e.target) && !settingsBtn.contains(e.target)) settingsPanel.classList.remove('active');
+      });
+    }
+
+    // 魔女化立绘：单张图片转换
+    function applyAlterModeToImage(img) {
+      const alterModeEnabled = localStorage.getItem('alter-mode') === 'true';
+      const currentSrc = img.src;
+
+      // 使用正则检查和替换 master/SFW 或 master/ALTER
+      const hasSFW = /SFW/.test(currentSrc);
+      const hasALTER = /ALTER/.test(currentSrc);
+
+      if (!hasSFW && !hasALTER) return;
+
+      let newSrc;
+      if (alterModeEnabled && hasSFW) {
+        newSrc = currentSrc.replace(/\/SFW\//, '/ALTER/');
+      } else if (!alterModeEnabled && hasALTER) {
+        newSrc = currentSrc.replace(/\/ALTER\//, '/SFW/');
+      } else {
+        return;
+      }
+
+      const originalSrc = currentSrc;
+      img.style.opacity = '0.5';
+      img.style.transition = 'opacity 0.3s ease';
+      img.onload = function () {
+        img.style.opacity = '1';
+      };
+      img.onerror = function () {
+        img.src = originalSrc;
+        img.style.opacity = '1';
+      };
+      img.src = newSrc;
+    }
+
+    // 魔女化立绘切换：更新所有已存在的图片
+    function toggleAlterModeImages(enableAlter) {
+      document.querySelectorAll('.image-content img, .reading-content img').forEach(img => {
+        applyAlterModeToImage(img);
+      });
+    }
+
+    // 监听DOM变化，对新加入的图片自动应用ALTER模式
+    const alterModeObserver = new MutationObserver(function (mutations) {
+      const alterModeEnabled = localStorage.getItem('alter-mode') === 'true';
+      if (!alterModeEnabled) return;
+
+      mutations.forEach(function (mutation) {
+        mutation.addedNodes.forEach(function (node) {
+          if (node.nodeType !== 1) return; // 只处理元素节点
+
+          // 如果新增的节点是img
+          if (node.tagName === 'IMG') {
+            applyAlterModeToImage(node);
+          }
+          // 如果新增的节点包含img
+          if (node.querySelectorAll) {
+            node.querySelectorAll('img').forEach(img => {
+              applyAlterModeToImage(img);
+            });
+          }
+        });
+      });
+    });
+
+    // 启动观察器
+    alterModeObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    function showSettingsMessage(message) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'toast-message';
+      messageDiv.textContent = message;
+      document.body.appendChild(messageDiv);
+      setTimeout(() => messageDiv.remove(), 2000);
+    }
+
+    // Theme setter helper
+    const applyTheme = (theme) => {
+      document.body.setAttribute('data-theme', theme);
+      localStorage.setItem('kivotos-theme', theme);
+      localStorage.setItem('theme', theme); // compatible backup
+      document.querySelectorAll('.control-btn[onclick^="setTheme"]').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${theme}'`));
+      });
+    };
+
+    // Expose for HTML onclick
+    window.setTheme = applyTheme;
+
+    function initThemeSwitcher() {
+      const savedTheme = localStorage.getItem('kivotos-theme') || 'warm-white';
+      applyTheme(savedTheme);
+    }
+
+    function adjustReadingFontSize(delta) {
+      readingFontSize = Math.max(12, Math.min(28, readingFontSize + delta));
+      const readingContent = document.querySelector('.reading-content');
+      if (readingContent) readingContent.style.fontSize = readingFontSize + 'px';
+      localStorage.setItem('readingFontSize', readingFontSize);
+    }
+
+    function adjustImageSize(delta) {
+      imageSize = Math.max(30, Math.min(200, imageSize + delta));
+      applyImageSize();
+      localStorage.setItem('imageSize', imageSize);
+      showSettingsMessage(`插画大小: ${imageSize}%`);
+    }
+
+    function applyImageSize() {
+      document.querySelectorAll('.image-content img').forEach(img => {
+        img.style.width = imageSize + '%';
+        img.style.maxWidth = imageSize + '%';
+        img.style.height = 'auto';
+      });
+    }
+  </script>
+</body>
+
+</html>
+```

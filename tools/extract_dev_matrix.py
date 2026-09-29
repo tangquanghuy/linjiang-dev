@@ -1,6 +1,6 @@
 """Parse the authored 身体开发度评语矩阵 files into JSON the UI can index.
 
-The matrices in 变量相关/ are the source of truth for 开发度 评语: four parts x six
+The matrices in 变量相关/ or 草稿/ are the source of truth for 开发度 评语: four parts x six
 tiers per character, each a long paragraph.  The draft says the 评语 is rewritten
 only when that part's 档位 actually goes up, so the text is a pure function of
 (character, part, tier) -- which means the app should store the tier alone and look
@@ -23,18 +23,19 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "变量相关"
+SOURCES = [ROOT / "变量相关", ROOT / "草稿"]
+EXISTING = ROOT / "src" / "dev-matrix.json"
 
 # 变量草稿 fixes these four keys; the matrices spell 胸 as 胸部.
 PARTS = {"口腔": "oral", "胸部": "chest", "胸": "chest", "小穴": "vagina", "肛门": "anus"}
 TIERS = 6
 
 # Matrix files use the character's full name; the roster uses the short one.
-ROSTER = ["东雪莲", "塔菲", "沙花叉", "时雨羽衣", "红蔷薇", "斯黛拉", "璃亚梦", "兔子洞初音", "神乐七奈"]
+ROSTER = ["东雪莲", "塔菲", "沙花叉", "时雨羽衣", "红蔷薇", "斯黛拉", "璃亚梦", "兔子洞初音", "神乐七奈", "鲸鱼娘", "牛肉"]
 
 part_re = re.compile(r"^##\s+(\S+?)\s*$")
 tier_re = re.compile(r"^###\s+(\S+?)\s*·\s*开发度\s*(\d)\s*$")
-title_re = re.compile(r"身体开发度评语矩阵")
+title_re = re.compile(r"身体(?:部位)?开发度评语矩阵")
 
 
 def resolve_name(raw):
@@ -99,17 +100,22 @@ def is_v2(path):
     return bool(re.search(r"\bv2\b", path.stem, re.I))
 
 
-matrix = {}
+matrix = json.loads(EXISTING.read_text(encoding="utf-8")) if EXISTING.exists() else {}
 chosen_from = {}
-files = sorted(p for p in SRC.iterdir() if p.is_file() and title_re.search(p.name))
+files = sorted(
+    p for source in SOURCES if source.exists()
+    for p in source.iterdir()
+    if p.is_file() and (title_re.search(p.name) or title_re.search(p.read_text(encoding="utf-8", errors="ignore")))
+)
 if not files:
-    raise SystemExit(f"no matrix files found in {SRC}")
+    raise SystemExit(f"no matrix files found in: {', '.join(map(str, SOURCES))}")
 
 # Parse everything, then keep v2 when a character has both drafts.
 parsed = []
 for path in files:
     char, parts = parse(path)
     parsed.append((path, char, parts))
+parsed.sort(key=lambda row: ROSTER.index(row[1]) if row[1] in ROSTER else 99)
 
 for path, char, parts in parsed:
     old = chosen_from.get(char)
@@ -131,6 +137,6 @@ missing = [n for n in ROSTER if n not in matrix]
 if missing:
     print(f"no matrix authored yet for: {', '.join(missing)} -- the UI falls back to a placeholder")
 
-(ROOT / "src" / "dev-matrix.json").write_text(
+EXISTING.write_text(
     json.dumps(matrix, ensure_ascii=False, indent=1), encoding="utf-8")
 print("wrote src/dev-matrix.json")
