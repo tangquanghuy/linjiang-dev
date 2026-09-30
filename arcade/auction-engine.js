@@ -1,4 +1,4 @@
-/* 临江落槌 3.0 — deterministic sealed-round auction. No DOM/network dependencies.
+/* 临江拍卖行 3.0 — deterministic sealed-round auction. No DOM/network dependencies.
  * NPC bids are computed from a frozen previous-round snapshot, never player input.
  * v0.2 saves are intentionally not reused. See arcade/AUCTION.md for exact rules. */
 (function(root){

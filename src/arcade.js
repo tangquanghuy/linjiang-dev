@@ -18,7 +18,7 @@ import { acquireOverlayHost } from './overlay-host.js';
 
 export function arcadeSrc() {
   /* 基准是 HUD 自己的来源，不是 document.baseURI（见 src/asset.js 的 hudBase）。 */
-  return hudPage('arcade/index.html?v=20260930-auction-open1');
+  return hudPage('arcade/index.html?v=20260930-auction-rewards2');
 }
 
 let activeArcadeLayer = null;

@@ -33,7 +33,7 @@ try{for(const [name,width,height] of [['desktop',1280,720],['phone',780,360],['s
  await frame.evaluate(()=>{
   const e=AIRPAuctionEngine.createSession({seed:53,budget:40000,host:0,venue:'street',loadout:['identify-0'],stock:{'identify-0':1}});e.beginLot();
   const snapshot=e.export();for(let i=0;i<16;i++)snapshot.current.clues.push({round:1,text:`测试滚动线索 ${i+1}：这是一条用于验证拖动和持续阅读的情报。`});
-  localStorage.setItem('airp_arcade_wallet_v1',JSON.stringify({balance:40000}));localStorage.setItem('airp_auction_state_v3',JSON.stringify({snapshot,host:0,venue:'street',revision:0,sound:false}));
+  localStorage.setItem('airp_arcade_wallet_v1',JSON.stringify({balance:40000}));localStorage.setItem('airp_auction_state_v3',JSON.stringify({snapshot,host:0,venue:'street',revision:0,sound:false,soundPreference:true}));
  });await reload(frame);
  // Every line, at every NPC seat: bubble and tail must stay next to their speaker,
  // with no clipping or overlap with any avatar, name, status or quote history.

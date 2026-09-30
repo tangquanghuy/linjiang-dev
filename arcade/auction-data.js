@@ -1,4 +1,4 @@
-/* 临江落槌 / original gameplay data. Existing project streamer identities only. */
+/* 临江拍卖行 / original gameplay data. Existing project streamer identities only. */
 (function (root) {
 'use strict';
 const hosts = [

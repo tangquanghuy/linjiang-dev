@@ -6,7 +6,7 @@
  window.auctionLandscapeHost=true;
  document.addEventListener('DOMContentLoaded',()=>{
   const frame=document.createElement('iframe');
-  frame.id='auctionLandscapeFrame';frame.title='临江落槌';
+  frame.id='auctionLandscapeFrame';frame.title='临江拍卖行';
   frame.src=location.href;frame.allow='fullscreen';
   document.body.replaceChildren(frame);
   Object.assign(document.body.style,{margin:'0',overflow:'hidden',background:'#171b1c'});

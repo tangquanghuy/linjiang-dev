@@ -24,7 +24,7 @@ try{
  for(const [name,width,height] of [['desktop',1280,720],['portrait-phone',390,844]]){
   const context=await browser.newContext({viewport:{width,height},hasTouch:name!=='desktop'});
   await context.addInitScript(()=>{
-   window.__music=[];window.__rejectMusic=false;
+   window.__music=[];window.__rejectMusic=true;
    const NativeAudio=window.Audio;
    window.Audio=class extends NativeAudio{
     constructor(...args){super(...args);window.__music.push(this);}
@@ -37,9 +37,9 @@ try{
   if(name!=='desktop')await page.waitForSelector('iframe');
   const frame=page.frames().find(f=>f.parentFrame())||page.mainFrame();
   await frame.waitForFunction(()=>window.AIRPAuction);
-  assert.equal(await frame.evaluate(()=>__music.length),0,'silent by default');
-  // A blocked first play must be retryable without creating another player.
-  await frame.evaluate(()=>{__rejectMusic=true;});await frame.locator('#btnSound').click();
+  assert.equal(await frame.locator('#btnSound').getAttribute('aria-pressed'),'true','music enabled by default');
+  // Initial autoplay is deliberately blocked: any later gesture must retry.
+  assert.equal(await frame.evaluate(()=>__music.length),1);
   await frame.waitForTimeout(100);
   assert.equal(await frame.evaluate(()=>__music.length),1);
   await frame.evaluate(()=>{__rejectMusic=false;});
@@ -73,7 +73,18 @@ try{
   assert.equal(await frame.evaluate(()=>__music.length),1);
   if(name!=='desktop')assert.equal(await page.evaluate(()=>__music.length),0,'mobile shell must remain silent');
   assert.deepEqual(await frame.evaluate(()=>__audioErrors),[]);assert.deepEqual(errors,[]);
-  console.log(`${name}: real MP3 01 → 02 → 01; autoplay retry, mute, resume, single player passed`);
+  // An explicit mute survives reload, unlike the legacy default false.
+  await frame.locator('#btnSound').click();
+  await frame.waitForFunction(()=>JSON.parse(localStorage.getItem('airp_auction_state_v3')).soundPreference===true&&JSON.parse(localStorage.getItem('airp_auction_state_v3')).sound===false);
+  await Promise.all([frame.waitForNavigation(),frame.evaluate(()=>location.reload())]);
+  await frame.waitForFunction(()=>window.AIRPAuction);
+  assert.equal(await frame.locator('#btnSound').getAttribute('aria-pressed'),'false');
+  assert.equal(await frame.evaluate(()=>__music.length),0);
+  await frame.evaluate(()=>localStorage.setItem('airp_auction_state_v3',JSON.stringify({sound:false,collected:[]})));
+  await Promise.all([frame.waitForNavigation(),frame.evaluate(()=>location.reload())]);
+  await frame.waitForFunction(()=>window.AIRPAuction);
+  assert.equal(await frame.locator('#btnSound').getAttribute('aria-pressed'),'true','legacy default mute migrates to on');
+  console.log(`${name}: default on, saved mute, legacy migration, real MP3 01 → 02 → 01; autoplay retry, mute, resume, single player passed`);
   await context.close();
  }
 }finally{await browser.close();await new Promise(r=>server.close(r));}

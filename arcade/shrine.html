@@ -306,7 +306,7 @@ function weekdayIndex(){return(new Date().getDay()+6)%7}
 function readBalance(){const w=readJSON(WALLET_KEY);if(w&&Number.isFinite(+w.balance))return money(w.balance);for(const key of GAME_KEYS){const x=readJSON(key);if(x&&Number.isFinite(+x.balance))return money(x.balance)}return 1000}
 function writeBalance(value){value=money(value);writeJSON(WALLET_KEY,{balance:value,updatedAt:Date.now(),source:'shrine'});for(const key of GAME_KEYS){const x=readJSON(key);if(x&&typeof x==='object'){x.balance=value;writeJSON(key,x)}}return value}
 function readTokens(){const value=readJSON(TOKEN_KEY);return{balance:Math.max(0,Math.floor(Number(value?.balance)||0)),totalEarned:Math.max(0,Math.floor(Number(value?.totalEarned)||0))}}
-function writeTokenReward(amount){amount=Math.max(0,Math.floor(Number(amount)||0));const before=readTokens(),next={balance:before.balance+amount,totalEarned:before.totalEarned+amount,updatedAt:Date.now(),source:'shrine'};writeJSON(TOKEN_KEY,next);try{dispatchEvent(new CustomEvent('airp-token:update',{detail:next}))}catch(_){}return next}
+function writeTokenReward(amount){amount=Math.max(0,Math.floor(Number(amount)||0));const before=readTokens(),next={...readJSON(TOKEN_KEY),balance:before.balance+amount,totalEarned:before.totalEarned+amount,updatedAt:Date.now(),source:'shrine'};writeJSON(TOKEN_KEY,next);try{dispatchEvent(new CustomEvent('airp-token:update',{detail:next}))}catch(_){}return next}
 function weightedTier(){let n=Math.random()*TIERS.reduce((s,x)=>s+x.weight,0);for(const tier of TIERS){n-=tier.weight;if(n<=0)return tier}return TIERS.at(-1)}
 function pick(list){return list[Math.floor(Math.random()*list.length)]}
 function randomInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}

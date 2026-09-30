@@ -35,6 +35,7 @@
     "auction:release": "node scripts/check-auction-release.mjs",
     "auction:recommendation": "node scripts/check-auction-recommendation.mjs",
     "auction:feel": "node scripts/check-auction-feel.mjs",
+    "auction:rewards": "node scripts/check-auction-rewards.mjs",
     "auction:music": "node scripts/check-auction-music.mjs",
     "auction:engine": "node scripts/check-auction-engine.mjs",
     "auction:npc": "node scripts/check-auction-npc.mjs",
