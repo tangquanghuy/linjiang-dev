@@ -44,7 +44,7 @@ try{
   await frame.locator('#bidConfirm').click();await frame.waitForFunction(()=>document.body.dataset.roundStage==='waiting');
   assert.equal(await frame.locator('.bid-submitted').count(),1);assert.equal(await frame.locator('.bidder').nth(1).locator('.bid-history>span').first().textContent(),'1—');assert.ok(await frame.locator('#btnBid').isDisabled());assert.ok(await frame.locator('#btnTool').isDisabled());
   const saved=await frame.evaluate(()=>JSON.parse(localStorage.getItem('airp_auction_state_v3')));
-  const ready=saved.roundPresentation.readyAt.filter(n=>n!==null).sort((a,b)=>a-b);assert.equal(new Set(ready).size,4);assert.ok(ready[1]-ready[0]>=1800);
+  const ready=saved.roundPresentation.readyAt.filter(n=>n!==null).sort((a,b)=>a-b);assert.equal(new Set(ready).size,4);assert.ok(ready[1]-ready[0]>=1120);
   // Direct events and a page reload may not submit a duplicate or skip the presentation.
   await frame.evaluate(()=>{document.querySelector('#btnPass').click();document.querySelector('#btnTool').click();});
   if(name==='desktop'){

@@ -21,14 +21,14 @@ function create(before,random=Math.random,now=Date.now()){
  for(let i=order.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
  const readyAt=[before.active[0]?now:null,null,null,null],bubbles=[];let elapsed=0;
  for(const [index,seat] of order.entries()){
-  elapsed+=index===0?1400+Math.floor(random()*2201):1100+Math.floor(random()*2801);
+  elapsed+=index===0?1120+Math.floor(random()*1761):880+Math.floor(random()*2241);
   readyAt[seat]=now+elapsed;
-  // One thinking bubble, then one reply from a different seat: no wall of chatter.
-  if(index===0)bubbles.push({seat,at:now+400,until:readyAt[seat],text:pick(bank[before.opponents?.[seat-1]?.tendency]||bank.thinking,random)});
-  if(index===1)bubbles.push({seat,at:readyAt[seat],until:readyAt[seat]+2200,text:pick(bank.submitted,random)});
+  // Each speech opportunity rolls once at creation; saves/repaints never reroll.
+  if(index===0&&random()<.25)bubbles.push({seat,at:now+400,until:readyAt[seat],text:pick(bank[before.opponents?.[seat-1]?.tendency]||bank.thinking,random)});
+  if(index===1&&random()<.25)bubbles.push({seat,at:readyAt[seat],until:readyAt[seat]+2200,text:pick(bank.submitted,random)});
  }
  const revealAt=now+elapsed+850;
- const reactionSeat=order.length?pick(order,random):null;
+ const reactionSeat=order.length&&random()<.25?pick(order,random):null;
  // Preselect alternatives without access to this round's sealed prices.
  const replies=Object.fromEntries(['high','lead','pass','tie'].map(k=>[k,pick(bank[k],random)]));
  return {id:before.id,round:before.round,before,startedAt:now,readyAt,revealAt,endAt:revealAt+3300,bubbles,reactionSeat,replies};

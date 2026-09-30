@@ -7,16 +7,33 @@ import '../arcade/auction-presentation.js';
 const P=globalThis.AuctionPresentation,OUT='artifacts/auction-v32/feel';mkdirSync(OUT,{recursive:true});
 let seed=1;const random=()=>((seed=Math.imul(seed,1664525)+1013904223>>>0)/4294967296);
 const sample={id:'fixture',round:1,active:[true,true,true,true],opponents:[{tendency:'收藏补全'},{tendency:'稳健估值'},{tendency:'保守捡漏'}]};
-const durations=[],firsts=[];
+const durations=[],firsts=[],speechCounts={thinking:0,submitted:0,reaction:0};let silentRounds=0;
 for(let n=0;n<1200;n++){
  const p=P.create(sample,random,10000),times=p.readyAt.slice(1).sort((a,b)=>a-b);durations.push(p.revealAt-10000);firsts.push(times[0]-10000);
- assert.ok(times[0]>=11400&&times[0]<=13600);assert.ok(times[1]-times[0]>=1100&&times[2]-times[1]>=1100);
+ assert.ok(times[0]>=11120&&times[0]<=12880);assert.ok(times[1]-times[0]>=880&&times[1]-times[0]<=3120&&times[2]-times[1]>=880&&times[2]-times[1]<=3120);
  assert.equal(p.endAt-p.revealAt,3300);assert.equal(JSON.stringify(p).includes('bids'),false);
  for(let t=10000;t<p.revealAt;t+=300){const b=P.speech(p,null,t);if(b)assert.ok(!P.bank.high.includes(b.text));}
- const row={bids:[9999,100,200,300]};assert.ok(P.bank.high.includes(P.speech(p,row,p.revealAt).text));
+ const row={bids:[9999,100,200,300]},reaction=P.speech(p,row,p.revealAt);
+ if(p.reactionSeat){assert.ok(P.bank.high.includes(reaction.text));speechCounts.reaction++;}else assert.equal(reaction,null);
+ speechCounts.thinking+=p.bubbles.filter(b=>b.at===10400).length;
+ speechCounts.submitted+=p.bubbles.filter(b=>b.at!==10400).length;
+ if(!p.bubbles.length&&!p.reactionSeat)silentRounds++;
+ assert.equal(p.revealAt-times[2],850);
  const copy=JSON.parse(JSON.stringify(p));assert.deepEqual(P.speech(copy,row,p.revealAt),P.speech(p,row,p.revealAt));
 }
-assert.ok(Math.max(...durations)-Math.min(...durations)>6000);assert.ok(Math.max(...firsts)-Math.min(...firsts)>2100);
+assert.ok(Math.max(...durations)-Math.min(...durations)>4800);assert.ok(Math.max(...firsts)-Math.min(...firsts)>1680);
+// Fixed seeded sample checks all three 25% opportunities, including fully quiet rounds.
+for(const [kind,count] of Object.entries(speechCounts))assert.ok(count/1200>.21&&count/1200<.29,`${kind}: ${count}/1200`);
+assert.ok(silentRounds>400&&silentRounds<620,`silent rounds: ${silentRounds}`);
+for(const [roll,talking] of [[0,true],[.249999,true],[.25,false],[.999999,false]]){
+ const p=P.create(sample,()=>roll,10000);
+ assert.equal(p.bubbles.length,talking?2:0);assert.equal(p.reactionSeat!==null,talking);
+}
+for(const active of [[true,false,false,false],[true,false,true,false]]){
+ const p=P.create({...sample,active},()=>.1,10000);
+ assert.ok(p.bubbles.every(b=>active[b.seat]));assert.ok(p.reactionSeat===null||active[p.reactionSeat]);
+}
+console.log('Presentation sampling:',speechCounts,'silent rounds:',silentRounds);
 const legacy=P.create(sample,random,10000);delete legacy.bubbles;delete legacy.replies;delete legacy.reactionSeat;assert.equal(P.speech(legacy,null,11000),null);assert.equal(P.speech(legacy,{bids:[100,200,null,300]},legacy.revealAt),null);
 const lines=new Set(Object.values(P.bank).flat());assert.ok(lines.size>=80);
 const ROOT=resolve('.');const server=createServer((req,res)=>{try{const p=resolve(ROOT,'.'+decodeURIComponent(new URL(req.url,'http://local').pathname));if(!p.startsWith(ROOT+sep)||!statSync(p).isFile())throw Error();res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.webp':'image/webp'})[extname(p)]||'application/octet-stream');res.end(readFileSync(p));}catch{res.writeHead(404);res.end();}});
@@ -69,6 +86,8 @@ try{for(const [name,width,height] of [['desktop',1280,720],['phone',780,360],['s
  await frame.locator('#vault .vault-item').first().click();assert.equal(await frame.locator('#clues').evaluate(e=>e.firstElementChild===window.__clueNode&&Math.abs(e.scrollTop-120)<1),true);
  await frame.locator('#btnBid').click();await frame.locator('[data-digit="5"]').click();assert.equal(await frame.evaluate(()=>window.__audioStarts),0);await frame.locator('#bidDialog [data-close]').click();
  await frame.locator('#btnSound').click();await page.waitForTimeout(150);await frame.locator('#btnBid').click();const soundBefore=await frame.evaluate(()=>window.__audioStarts);await frame.locator('[data-edit="clear"]').click();await frame.locator('[data-digit="5"]').click();assert.ok(await frame.evaluate(()=>window.__audioStarts)>soundBefore);
+ // Only presentation randomness is fixed; engine/economy RNG is untouched.
+ await frame.evaluate(()=>{const original=AuctionPresentation;window.AuctionPresentation={...original,create:(before,random,now)=>original.create(before,()=>.1,now)};});
  await frame.locator('[data-digit="8"]').click();await frame.locator('[data-digit="5"]').click();await frame.locator('#bidConfirm').click();
  await frame.waitForFunction(()=>document.querySelector('.npc-bubble.speaking'));
  assert.equal(await frame.locator('.npc-bubble.speaking').count(),1);await page.waitForTimeout(240);const bubbleFit=await frame.locator('.npc-bubble.speaking').evaluate(e=>{const bubble=e.getBoundingClientRect(),card=e.parentElement,avatar=card.querySelector('.bidder-avatar').getBoundingClientRect(),prev=card.previousElementSibling.getBoundingClientRect(),tail=getComputedStyle(e,'::after');return {top:bubble.top,bottom:bubble.bottom,avatarTop:avatar.top,previousBottom:prev.bottom,scroll:e.scrollWidth,client:e.clientWidth,tail:tail.content,tailSize:parseFloat(tail.width)};});assert.ok(bubbleFit.bottom<=bubbleFit.avatarTop,JSON.stringify(bubbleFit));assert.ok(bubbleFit.top>=bubbleFit.previousBottom-1,JSON.stringify(bubbleFit));assert.ok(bubbleFit.scroll<=bubbleFit.client+1);assert.ok(bubbleFit.tailSize>0&&bubbleFit.tail!=='none');assert.ok(await frame.locator('#btnBid').isDisabled());

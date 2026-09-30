@@ -5,7 +5,7 @@ import { resolve, extname, sep } from 'node:path';
 import { chromium } from 'playwright';
 
 // Run after npm run build: exercise the shipped lobby rather than the source tree.
-const version = '20260930-auction-portrait1';
+const version = '20260930-auction-pace1';
 const root = resolve('dist');
 const read = file => readFileSync(file, 'utf8');
 assert.ok(read('外部部署/V20260930/状态栏.html').includes(`/?v=${version}`));
