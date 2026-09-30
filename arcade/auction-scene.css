@@ -169,3 +169,6 @@ body .arena>.intel-panel{gap:11rem}
 .bid-dialog #bidAdvice{font-size:var(--type-meta);line-height:1.5;color:var(--ink-secondary);margin:8rem 0 0;min-height:21rem}
 .bid-dialog #bidError{font-size:var(--type-detail)!important;min-height:23rem;margin:4rem 0}
 .bid-dialog #bidConfirm{font-size:20rem}
+
+/* Selected venue uses a light card; keep its price context legible. */
+.admission .venue.active p{color:#43504b}

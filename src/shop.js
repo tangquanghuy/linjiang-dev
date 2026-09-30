@@ -8,7 +8,7 @@ import { acquireOverlayHost } from './overlay-host.js';
 export function shopSrc() {
   /* 基准必须是 HUD 自己的来源，不能是 document.baseURI —— 原生流下后者是酒馆的地址，
      会把这个 iframe 指到一个不存在的路径上，屏幕整片黑。理由详见 src/asset.js 的 hudBase。 */
-  return hudPage('shop/index.html?v=20260930-auction-pace1');
+  return hudPage('shop/index.html?v=20260930-auction-pricing1');
 }
 let activeShopLayer = null;
 export function isShopOpen() { return !!activeShopLayer?.isConnected || !!document.querySelector('.shop-layer'); }

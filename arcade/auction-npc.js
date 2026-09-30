@@ -29,7 +29,7 @@ function poolFor(slot,venue){
 function create(host,venue,rng,type){
  type=type||pick(Object.keys(TYPES),rng);const t=TYPES[type],series=pick(D.series,rng);
  const inventory=D.catalog.filter(c=>rng()<(c.series===series.id?(type==='collector'?.58:.32):.12)).map(c=>c.id);
- return {host,type,series:series.id,category:series.category,inventory,bank:Math.round(Math.max(1000,venue.min)*(.9+rng()*.5)),
+ return {host,type,series:series.id,category:series.category,inventory,bank:Math.round(Math.max(1000,venue.npcBudget||venue.min)*(.9+rng()*.5)),
   traits:{patience:.2+rng()*.7,confidence:.55+rng()*.4,accuracy:.62+rng()*.32,
    reserve:.08+rng()*.14,lossTolerance:.045+rng()*.065,margin:t.margin+(rng()-.5)*.055,
    premium:t.premium*(.8+rng()*.4),exposure:t.exposure+(rng()-.5)*.10,bluff:.12+rng()*.35},
@@ -49,7 +49,7 @@ function assess(bot,ctx){
  const owned=new Set(bot.inventory);let mean=0,variance=0,floor=0,ceiling=0,desired=0,special=0,known=0;
  const slots=ctx.items.map(slot=>{
   const pool=poolFor(slot,ctx.venue);let m=0,v2=0,missing=0,familiar=0,min=Infinity,max=0;
-  for(const {item,p}of pool){const value=Math.round(item.base*ctx.venue.scale);m+=p*value;v2+=p*value*value;min=Math.min(min,value);max=Math.max(max,value);
+  for(const {item,p}of pool){const value=D.catalogPrice(item,ctx.venue.scale,ctx.venue.pricingVersion);m+=p*value;v2+=p*value*value;min=Math.min(min,value);max=Math.max(max,value);
    if(!owned.has(item.id)&&item.series===bot.series)missing+=p*value;
    if(item.category===bot.category)familiar+=p*value;
   }
@@ -62,12 +62,12 @@ function assess(bot,ctx){
  for(const f of groups.values()){
   if(f.mean!=null&&!Object.keys(f.filter).length){mean=(f.mean+.5)*ctx.items.length;variance=Math.min(variance,ctx.items.length**2/12);continue;}
   let expectedCount=0,groupValue=0,otherValue=0,otherCount=0;
-  for(const slot of ctx.items)for(const {item,p} of poolFor(slot,ctx.venue)){if(I.match(item,f.filter)){expectedCount+=p;groupValue+=p*Math.round(item.base*ctx.venue.scale);}else{otherCount+=p;otherValue+=p*Math.round(item.base*ctx.venue.scale);}}
+  for(const slot of ctx.items)for(const {item,p} of poolFor(slot,ctx.venue)){if(I.match(item,f.filter)){expectedCount+=p;groupValue+=p*D.catalogPrice(item,ctx.venue.scale,ctx.venue.pricingVersion);}else{otherCount+=p;otherValue+=p*D.catalogPrice(item,ctx.venue.scale,ctx.venue.pricingVersion);}}
   const count=f.count??expectedCount,unit=f.mean!=null?f.mean+.5:expectedCount?groupValue/expectedCount:0;
   mean+=(f.total??(count*unit))-groupValue;
   if(f.count!=null&&otherCount)mean+=(expectedCount-count)*otherValue/otherCount;
  }
- const bounds=I.bounds(ctx.items,ctx.facts||[],ctx.venue.scale);floor=bounds.low;ceiling=bounds.high;mean=clamp(mean,floor,ceiling);
+ const bounds=I.bounds(ctx.items,ctx.facts||[],ctx.venue.scale,ctx.venue.pricingVersion);floor=bounds.low;ceiling=bounds.high;mean=clamp(mean,floor,ceiling);
  const sd=Math.min(Math.sqrt(variance),(ceiling-floor)/2),uncertainty=mean?sd/mean:0;
  const bias=1+(bot.lot.error*bot.memory.calibration-1)*clamp(uncertainty*2.5,0,1);
  return {mean:clamp(mean*bias,floor,ceiling),objectiveMean:mean,sd,floor,ceiling,desired,special,known,slots,uncertainty};

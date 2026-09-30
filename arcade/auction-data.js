@@ -1266,11 +1266,20 @@ const catalog=[
   "image": "assets/auction/items/anomaly-12.webp"
  }
 ];
+// Public catalog v2. Keep the old unit prices for unfinished v1 auctions only.
+const pricingVersion=2,qualityPriceFactors=[1,1.5,2.5,5,10];
+for(const item of catalog){item.legacyBase=item.base;item.base=Math.round(item.base*qualityPriceFactors[item.quality]);}
+const catalogPrice=(item,scale=1,version=pricingVersion)=>Math.round((version===1?(item.legacyBase??item.base):item.base)*scale);
 const venues=[
  {id:'street',name:'旧街寻宝',subtitle:'OLD TOWN / 01',desc:'以寻常、精良藏品为主。',scale:1,min:100,entryFee:150,rarity:[.58,.29,.105,.021,.004],tag:'入门会场',lots:1},
- {id:'dock',name:'夜港秘藏',subtitle:'NIGHT HARBOR / 02',desc:'以精良、稀有藏品为主。',scale:1,min:2500,entryFee:300,rarity:[.25,.36,.27,.10,.02],tag:'进阶会场',lots:1},
- {id:'sky',name:'云端珍品',subtitle:'SKYLINE / 03',desc:'以稀有、史诗藏品为主。',scale:1,min:12000,entryFee:600,rarity:[.08,.22,.37,.24,.09],tag:'高阶会场',lots:1}
+ {id:'dock',name:'夜港秘藏',subtitle:'NIGHT HARBOR / 02',desc:'以精良、稀有藏品为主。',scale:10,min:30000,entryFee:3000,rarity:[.25,.36,.27,.10,.02],tag:'进阶会场',lots:1},
+ {id:'sky',name:'云端珍品',subtitle:'SKYLINE / 03',desc:'以稀有、史诗藏品为主。',scale:100,min:600000,entryFee:60000,rarity:[.08,.22,.37,.24,.09],tag:'高阶会场',lots:1}
 ];
+// NPC liquidity follows public venue prices, never the player's wallet or hidden lot.
+for(const venue of venues){
+ const mean=qualities.reduce((sum,_,q)=>{const pool=catalog.filter(c=>c.quality===q);return sum+venue.rarity[q]*pool.reduce((n,c)=>n+c.base,0)/pool.length;},0);
+ venue.npcBudget=Math.round(mean*7*1.8*venue.scale);
+}
 // Local prices, not NTE currency conversion. Counts scaled for our 6–8 item boxes.
 const tools=[];
 function instrument(id,name,tier,cost,effect,desc,symbol='⌖'){tools.push({id,name,tier,cost,effect,desc,symbol});}
@@ -1294,7 +1303,7 @@ instrument('largest-quality','特殊品鉴仪',3,120,{kind:'quality',count:1,sel
 instrument('largest-value','特殊估值仪',4,300,{kind:'stat',stat:'largestValue'},'得知1件占格最多藏品的价值，不揭示身份或位置。','▤');
 const toolTiers=['入门','进阶','专业','高级','超级','至尊'];
 const economy=Object.freeze({compensationRate:.10,compensationPerLot:40,compensationDaily:60});
-root.AuctionData=Object.freeze({hosts,catalog,qualities,series,venues,tools,toolTiers,economy});
+root.AuctionData=Object.freeze({hosts,catalog,qualities,series,venues,tools,toolTiers,economy,pricingVersion,catalogPrice});
 })(globalThis);
 /* Private-information operations shared by player and NPC. Never export raw hidden items. */
 (function(root){
@@ -1362,7 +1371,8 @@ function skill(effect,round,raw,intel,facts,memory,rng,scale){
  }
  return specs.filter(Boolean).map(sp=>apply(raw,intel,facts,sp,rng,scale)).filter(Boolean);
 }
-function bounds(items,facts,scale=1){
+function bounds(items,facts,scale=1,pricingVersion=D.pricingVersion){
+ const value=(item,scale)=>D.catalogPrice(item,scale,pricingVersion);
  const pools=items.map(candidates),n=items.length;let low=pools.reduce((s,p)=>s+Math.min(...p.map(i=>value(i,scale))),0),high=pools.reduce((s,p)=>s+Math.max(...p.map(i=>value(i,scale))),0);
  for(const f of facts){
   if(f.stat==='mean'&&!Object.keys(f.filter).length){low=Math.max(low,f.value*n);high=Math.min(high,(f.value+1)*n-1);}

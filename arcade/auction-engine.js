@@ -23,7 +23,10 @@ function createSession(options={}, saved=null){
  s.entryFee??=saved?0:Math.max(0,Math.floor(options.entryFee||0));
  s.stock??=clone(options.stock||{});s.loadout??=(options.loadout||[]).filter(id=>D.tools.some(t=>t.id===id)).slice(0,3);s.publicRng??=(s.rng^0xc2b2ae35)>>>0;s.intelRng??=(s.rng^0x85ebca6b)>>>0;
  s.version=VERSION;if(s.npcRng==null)s.npcRng=(s.rng^0x9e3779b9)>>>0;
- const venue=D.venues.find(v=>v.id===s.venue)||D.venues[0];
+ s.pricingVersion??=saved?1:D.pricingVersion;
+ const configuredVenue=D.venues.find(v=>v.id===s.venue)||D.venues[0];
+ // An in-progress lot keeps its original unit prices, multiplier and admission fee.
+ const venue={...configuredVenue,scale:s.current?.scale??(s.pricingVersion===1?1:configuredVenue.scale),pricingVersion:s.pricingVersion};
  function rand(){s.rng=(s.rng+0x6d2b79f5)>>>0;let t=s.rng;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;}
  function npcRand(){s.npcRng=(s.npcRng+0x6d2b79f5)>>>0;let t=s.npcRng;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;}
  function publicRand(){s.publicRng=(Math.imul(s.publicRng,1664525)+1013904223)>>>0;return s.publicRng/4294967296;}
@@ -39,7 +42,7 @@ function createSession(options={}, saved=null){
    const roll=rand();let sum=0,q=0;for(;q<D.qualities.length-1;q++){sum+=venue.rarity[q];if(roll<sum)break;}
    const d=choose(D.catalog.filter(c=>c.quality===q)), x=Math.floor(rand()*(7-d.w)),y=Math.floor(rand()*(7-d.h));
    const cells=[];for(let xx=x;xx<x+d.w;xx++)for(let yy=y;yy<y+d.h;yy++)cells.push(xx+yy*6);
-   if(cells.some(c=>used.has(c)))continue;cells.forEach(c=>used.add(c));items.push({...d,x,y,slot:items.length,known:false,qualityKnown:false,categoryKnown:false});
+   if(cells.some(c=>used.has(c)))continue;cells.forEach(c=>used.add(c));items.push({...d,base:D.catalogPrice(d,1,s.pricingVersion),x,y,slot:items.length,known:false,qualityKnown:false,categoryKnown:false});
   }
   if(!s.bots){const rivals=D.hosts.filter(h=>h.id!==s.host);for(let i=rivals.length-1;i>0;i--){let j=Math.floor(npcRand()*(i+1));[rivals[i],rivals[j]]=[rivals[j],rivals[i]];}s.bots=rivals.slice(0,3).map(h=>B.create(h.id,venue,npcRand));}
   s.lotIndex++;
@@ -136,8 +139,8 @@ function createSession(options={}, saved=null){
   const c=s.current;if(!c)return {version:VERSION,lotIndex:s.lotIndex,bank:s.bank,phase:'setup',ledger:clone(s.ledger)};
   const revealed=c.phase==='result'||c.phase==='closed';
   const items=c.playerIntel.map(o=>{const i=c.items.find(i=>i.slot===o.slot);return {...o,...(revealed||o.identified!=null?{x:i.x,y:i.y,w:i.w,h:i.h,identified:i.id,name:i.name,quality:i.quality,category:i.category,image:i.image,value:price(i,c.scale)}:{})};});
-  const {low:estimate,high:ceiling}=I.bounds(items,c.playerFacts,c.scale);
-  return {version:VERSION,id:c.id,phase:c.phase,lotIndex:s.lotIndex,lots:s.lots,round:c.round,bank:s.bank,venue:s.venue,host:s.host,tool:s.loadout[0]||null,loadout:[...s.loadout],stock:clone(s.stock),usedTools:[...c.usedTools],toolRound:c.toolRound,instrumentCost:c.instrumentCost,entryFee:s.entryFee,purchaseCost:s.purchaseCost||0,toolUsed:c.toolRound===c.round,facts:clone(c.playerFacts),scale:c.scale,items,estimate,ceiling,clues:clone(c.clues),history:clone(c.history),active:[...c.active],rivals:[...c.rivals],opponents:s.bots.map(B.publicProfile),npcEvents:clone(c.npcEvents),result:clone(c.result),ledger:clone(s.ledger),deadline:c.deadline};
+  const {low:estimate,high:ceiling}=I.bounds(items,c.playerFacts,c.scale,s.pricingVersion);
+  return {version:VERSION,id:c.id,phase:c.phase,lotIndex:s.lotIndex,lots:s.lots,round:c.round,bank:s.bank,venue:s.venue,host:s.host,tool:s.loadout[0]||null,loadout:[...s.loadout],stock:clone(s.stock),usedTools:[...c.usedTools],toolRound:c.toolRound,instrumentCost:c.instrumentCost,entryFee:s.entryFee,purchaseCost:s.purchaseCost||0,toolUsed:c.toolRound===c.round,facts:clone(c.playerFacts),scale:c.scale,pricingVersion:s.pricingVersion,items,estimate,ceiling,clues:clone(c.clues),history:clone(c.history),active:[...c.active],rivals:[...c.rivals],opponents:s.bots.map(B.publicProfile),npcEvents:clone(c.npcEvents),result:clone(c.result),ledger:clone(s.ledger),deadline:c.deadline};
  }
  function setBudget(value){if(!Number.isFinite(value)||value<0)throw Error('预算数据异常');s.bank=Math.floor(value);}
  return {beginLot,bid,useTool,addStock,closeLot,view,setBudget,export:()=>clone(s)};

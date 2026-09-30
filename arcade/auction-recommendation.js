@@ -13,14 +13,14 @@ function recommend(view,balance){
  let mean=0,variance=0;
  for(const item of items){
   const pool=I.candidates(item);if(!pool.length)return none;
-  const weighted=pool.map(c=>({price:Math.round(c.base*scale),weight:venue.rarity[c.quality]/qualityCounts[c.quality]}));
+  const weighted=pool.map(c=>({price:D.catalogPrice(c,scale,view.pricingVersion),weight:venue.rarity[c.quality]/qualityCounts[c.quality]}));
   const total=weighted.reduce((n,c)=>n+c.weight,0);if(!(total>0))return none;
   const expected=weighted.reduce((n,c)=>n+c.price*c.weight,0)/total;
   mean+=expected;variance+=weighted.reduce((n,c)=>n+c.weight*(c.price-expected)**2,0)/total;
  }
  // Aggregate facts constrain the range, not the unseen inventory. This is an
  // approximation, not a posterior conditioned on grid packing or all statistics.
- const {low,high}=I.bounds(items,view.facts||[],scale);
+ const {low,high}=I.bounds(items,view.facts||[],scale,view.pricingVersion);
  if(!Number.isFinite(low)||!Number.isFinite(high)||low>high)return none;
  mean=Math.max(low,Math.min(high,mean));
  const riskReserve=Math.min(.35*Math.sqrt(variance),Math.max(0,mean-low));

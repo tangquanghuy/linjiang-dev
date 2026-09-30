@@ -1,0 +1,803 @@
+{
+  "source": "3780ce7 / generated fixture, not player data",
+  "snapshot": {
+    "version": "3.2.0",
+    "id": "legacy-pricing-fixture",
+    "rng": 1575801078,
+    "venue": "dock",
+    "host": 9,
+    "tool": "scanner",
+    "bank": 40000,
+    "lotIndex": 1,
+    "lots": 1,
+    "ledger": [],
+    "current": {
+      "id": "legacy-pricing-fixture-1",
+      "phase": "bidding",
+      "round": 1,
+      "items": [
+        {
+          "id": 7,
+          "key": "signal-08",
+          "name": "小电视",
+          "series": "signal",
+          "seriesName": "失物电波",
+          "category": "电子",
+          "w": 2,
+          "h": 2,
+          "quality": 2,
+          "base": 326,
+          "image": "assets/auction/items/signal-08.webp",
+          "x": 4,
+          "y": 0,
+          "slot": 0,
+          "known": false,
+          "qualityKnown": false,
+          "categoryKnown": false
+        },
+        {
+          "id": 4,
+          "key": "signal-05",
+          "name": "薄荷游戏机",
+          "series": "signal",
+          "seriesName": "失物电波",
+          "category": "电子",
+          "w": 1,
+          "h": 2,
+          "quality": 1,
+          "base": 141,
+          "image": "assets/auction/items/signal-05.webp",
+          "x": 4,
+          "y": 2,
+          "slot": 1,
+          "known": false,
+          "qualityKnown": false,
+          "categoryKnown": false
+        },
+        {
+          "id": 69,
+          "key": "pantry-10",
+          "name": "水晶蜜罐",
+          "series": "pantry",
+          "seriesName": "甜蜜补给站",
+          "category": "食玩",
+          "w": 1,
+          "h": 2,
+          "quality": 3,
+          "base": 610,
+          "image": "assets/auction/items/pantry-10.webp",
+          "x": 5,
+          "y": 3,
+          "slot": 2,
+          "known": false,
+          "qualityKnown": false,
+          "categoryKnown": false
+        },
+        {
+          "id": 92,
+          "key": "anomaly-09",
+          "name": "口袋黑洞",
+          "series": "anomaly",
+          "seriesName": "异常观察局",
+          "category": "奇物",
+          "w": 2,
+          "h": 2,
+          "quality": 2,
+          "base": 353,
+          "image": "assets/auction/items/anomaly-09.webp",
+          "x": 2,
+          "y": 0,
+          "slot": 3,
+          "known": false,
+          "qualityKnown": false,
+          "categoryKnown": false
+        },
+        {
+          "id": 8,
+          "key": "signal-09",
+          "name": "打字机",
+          "series": "signal",
+          "seriesName": "失物电波",
+          "category": "电子",
+          "w": 2,
+          "h": 2,
+          "quality": 2,
+          "base": 353,
+          "image": "assets/auction/items/signal-09.webp",
+          "x": 2,
+          "y": 2,
+          "slot": 4,
+          "known": false,
+          "qualityKnown": false,
+          "categoryKnown": false
+        },
+        {
+          "id": 43,
+          "key": "atelier-08",
+          "name": "狐面",
+          "series": "atelier",
+          "seriesName": "手作小宇宙",
+          "category": "工艺",
+          "w": 1,
+          "h": 2,
+          "quality": 2,
+          "base": 326,
+          "image": "assets/auction/items/atelier-08.webp",
+          "x": 0,
+          "y": 0,
+          "slot": 5,
+          "known": false,
+          "qualityKnown": false,
+          "categoryKnown": false
+        }
+      ],
+      "scale": 1,
+      "history": [],
+      "active": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "rivals": [
+        3,
+        0,
+        2
+      ],
+      "clues": [
+        {
+          "round": 1,
+          "text": "鲸鱼娘 · 均值回声：精良藏品平均价值（向下取整）：141",
+          "private": true
+        },
+        {
+          "round": 1,
+          "text": "公开 1 件轮廓。",
+          "private": false
+        }
+      ],
+      "toolUsed": false,
+      "result": null,
+      "deadline": null,
+      "playerIntel": [
+        {
+          "slot": 0,
+          "x": null,
+          "y": null,
+          "w": null,
+          "h": null,
+          "quality": null,
+          "category": null,
+          "identified": null
+        },
+        {
+          "slot": 1,
+          "x": null,
+          "y": null,
+          "w": null,
+          "h": null,
+          "quality": null,
+          "category": null,
+          "identified": null
+        },
+        {
+          "slot": 2,
+          "x": null,
+          "y": null,
+          "w": null,
+          "h": null,
+          "quality": null,
+          "category": null,
+          "identified": null
+        },
+        {
+          "slot": 3,
+          "x": null,
+          "y": null,
+          "w": null,
+          "h": null,
+          "quality": null,
+          "category": null,
+          "identified": null
+        },
+        {
+          "slot": 4,
+          "x": 2,
+          "y": 2,
+          "w": 2,
+          "h": 2,
+          "quality": null,
+          "category": null,
+          "identified": null
+        },
+        {
+          "slot": 5,
+          "x": null,
+          "y": null,
+          "w": null,
+          "h": null,
+          "quality": null,
+          "category": null,
+          "identified": null
+        }
+      ],
+      "playerFacts": [
+        {
+          "key": "[\"mean\",{\"quality\":1}]",
+          "stat": "mean",
+          "filter": {
+            "quality": 1
+          },
+          "value": 141
+        }
+      ],
+      "playerMemory": {},
+      "usedTools": [],
+      "toolRound": 0,
+      "instrumentCost": 0,
+      "playerTools": [],
+      "npcEvents": [
+        {
+          "round": 1,
+          "host": 3,
+          "kind": "skill",
+          "label": "分类寻宝"
+        },
+        {
+          "round": 1,
+          "host": 0,
+          "kind": "skill",
+          "label": "层层拆谜"
+        },
+        {
+          "round": 1,
+          "host": 2,
+          "kind": "skill",
+          "label": "寻常见真"
+        }
+      ],
+      "npcIntel": [
+        [
+          {
+            "slot": 0,
+            "x": 4,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "quality": null,
+            "category": "电子",
+            "identified": null
+          },
+          {
+            "slot": 1,
+            "x": 4,
+            "y": 2,
+            "w": 1,
+            "h": 2,
+            "quality": null,
+            "category": "电子",
+            "identified": null
+          },
+          {
+            "slot": 2,
+            "x": null,
+            "y": null,
+            "w": null,
+            "h": null,
+            "quality": null,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 3,
+            "x": null,
+            "y": null,
+            "w": null,
+            "h": null,
+            "quality": null,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 4,
+            "x": 2,
+            "y": 2,
+            "w": 2,
+            "h": 2,
+            "quality": null,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 5,
+            "x": null,
+            "y": null,
+            "w": null,
+            "h": null,
+            "quality": null,
+            "category": null,
+            "identified": null
+          }
+        ],
+        [
+          {
+            "slot": 0,
+            "x": null,
+            "y": null,
+            "w": null,
+            "h": null,
+            "quality": null,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 1,
+            "x": null,
+            "y": null,
+            "w": null,
+            "h": null,
+            "quality": null,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 2,
+            "x": null,
+            "y": null,
+            "w": null,
+            "h": null,
+            "quality": null,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 3,
+            "x": null,
+            "y": null,
+            "w": null,
+            "h": null,
+            "quality": null,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 4,
+            "x": 2,
+            "y": 2,
+            "w": 2,
+            "h": 2,
+            "quality": null,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 5,
+            "x": null,
+            "y": null,
+            "w": null,
+            "h": null,
+            "quality": null,
+            "category": null,
+            "identified": null
+          }
+        ],
+        [
+          {
+            "slot": 0,
+            "x": 4,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "quality": 2,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 1,
+            "x": 4,
+            "y": 2,
+            "w": 1,
+            "h": 2,
+            "quality": 1,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 2,
+            "x": null,
+            "y": null,
+            "w": null,
+            "h": null,
+            "quality": null,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 3,
+            "x": 2,
+            "y": 0,
+            "w": 2,
+            "h": 2,
+            "quality": 2,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 4,
+            "x": 2,
+            "y": 2,
+            "w": 2,
+            "h": 2,
+            "quality": 2,
+            "category": null,
+            "identified": null
+          },
+          {
+            "slot": 5,
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 2,
+            "quality": 2,
+            "category": null,
+            "identified": null
+          }
+        ]
+      ],
+      "npcFacts": [
+        [],
+        [
+          {
+            "key": "[\"count\",{\"quality\":0}]",
+            "stat": "count",
+            "filter": {
+              "quality": 0
+            },
+            "value": 0
+          }
+        ],
+        [
+          {
+            "key": "[\"count\",{\"quality\":0}]",
+            "stat": "count",
+            "filter": {
+              "quality": 0
+            },
+            "value": 0
+          }
+        ]
+      ],
+      "npcMemory": [
+        {
+          "categories": [
+            "电子"
+          ]
+        },
+        {},
+        {}
+      ],
+      "publicIntel": [
+        {
+          "slot": 0,
+          "x": null,
+          "y": null,
+          "w": null,
+          "h": null,
+          "quality": null,
+          "category": null,
+          "identified": null
+        },
+        {
+          "slot": 1,
+          "x": null,
+          "y": null,
+          "w": null,
+          "h": null,
+          "quality": null,
+          "category": null,
+          "identified": null
+        },
+        {
+          "slot": 2,
+          "x": null,
+          "y": null,
+          "w": null,
+          "h": null,
+          "quality": null,
+          "category": null,
+          "identified": null
+        },
+        {
+          "slot": 3,
+          "x": null,
+          "y": null,
+          "w": null,
+          "h": null,
+          "quality": null,
+          "category": null,
+          "identified": null
+        },
+        {
+          "slot": 4,
+          "x": 2,
+          "y": 2,
+          "w": 2,
+          "h": 2,
+          "quality": null,
+          "category": null,
+          "identified": null
+        },
+        {
+          "slot": 5,
+          "x": null,
+          "y": null,
+          "w": null,
+          "h": null,
+          "quality": null,
+          "category": null,
+          "identified": null
+        }
+      ]
+    },
+    "entryFee": 300,
+    "stock": {
+      "identify-0": 1
+    },
+    "loadout": [
+      "identify-0"
+    ],
+    "publicRng": 3215727363,
+    "intelRng": 2246822494,
+    "npcRng": 2552613027,
+    "bots": [
+      {
+        "host": 3,
+        "type": "tactician",
+        "series": "roadtrip",
+        "category": "模型",
+        "inventory": [
+          9,
+          16,
+          23,
+          28,
+          32,
+          42,
+          45,
+          50,
+          51,
+          52,
+          53,
+          57,
+          59,
+          63,
+          73,
+          74,
+          77,
+          80,
+          87,
+          90,
+          93,
+          95
+        ],
+        "bank": 2948,
+        "traits": {
+          "patience": 0.28847999589052054,
+          "confidence": 0.720966905169189,
+          "accuracy": 0.6400393055379391,
+          "reserve": 0.12177656352054328,
+          "lossTolerance": 0.08913732107030228,
+          "margin": 0.04383528050617315,
+          "premium": 0,
+          "exposure": 0.7237518567033112,
+          "bluff": 0.4008360324357636
+        },
+        "tool": "shape-2",
+        "stock": {
+          "shape-2": 1,
+          "quality-2": 1,
+          "identify-2": 1
+        },
+        "loadout": [
+          "shape-2",
+          "quality-2",
+          "identify-2"
+        ],
+        "memory": {
+          "boxes": 0,
+          "cashDelta": 0,
+          "valueProfit": 0,
+          "calibration": 1,
+          "heat": 0.85,
+          "lossStreak": 0,
+          "compensationClaimed": 0,
+          "toolPurchases": 290
+        },
+        "lot": {
+          "usedTools": [],
+          "failedTools": [],
+          "toolRound": 0,
+          "instrumentCost": 0,
+          "toolUsed": false,
+          "skillUsed": true,
+          "usedRound": null,
+          "error": 1.0379673315502127,
+          "urgency": 0.9527428485453129,
+          "opportunity": 0.790186757221818,
+          "lastDecision": null,
+          "lastAction": "正在观察仓库",
+          "previousEstimate": null,
+          "decisions": []
+        }
+      },
+      {
+        "host": 0,
+        "type": "dealer",
+        "series": "anomaly",
+        "category": "奇物",
+        "inventory": [
+          24,
+          31,
+          61,
+          65,
+          66,
+          74,
+          89,
+          91
+        ],
+        "bank": 2634,
+        "traits": {
+          "patience": 0.6080342306988313,
+          "confidence": 0.6148960335180164,
+          "accuracy": 0.8900801166892052,
+          "reserve": 0.1565730132162571,
+          "lossTolerance": 0.05317458380013704,
+          "margin": 0.17053246551542542,
+          "premium": 0,
+          "exposure": 0.6485081346705556,
+          "bluff": 0.1686573823960498
+        },
+        "tool": "quality-0",
+        "stock": {
+          "quality-0": 1,
+          "count-2": 1,
+          "shape-0": 1
+        },
+        "loadout": [
+          "quality-0",
+          "count-2",
+          "shape-0"
+        ],
+        "memory": {
+          "boxes": 0,
+          "cashDelta": 0,
+          "valueProfit": 0,
+          "calibration": 1,
+          "heat": 0.85,
+          "lossStreak": 0,
+          "compensationClaimed": 0,
+          "toolPurchases": 50
+        },
+        "lot": {
+          "usedTools": [],
+          "failedTools": [],
+          "toolRound": 0,
+          "instrumentCost": 0,
+          "toolUsed": false,
+          "skillUsed": true,
+          "usedRound": null,
+          "error": 0.95343374602543,
+          "urgency": 0.7914575031027198,
+          "opportunity": 0.3837542899418622,
+          "lastDecision": null,
+          "lastAction": "正在观察仓库",
+          "previousEstimate": null,
+          "decisions": []
+        }
+      },
+      {
+        "host": 2,
+        "type": "specialist",
+        "series": "roadtrip",
+        "category": "模型",
+        "inventory": [
+          4,
+          15,
+          25,
+          31,
+          37,
+          38,
+          41,
+          50,
+          53,
+          54,
+          55,
+          57,
+          79,
+          83,
+          89
+        ],
+        "bank": 2432,
+        "traits": {
+          "patience": 0.6976551686180755,
+          "confidence": 0.7016510618850589,
+          "accuracy": 0.657187744602561,
+          "reserve": 0.09377694288268686,
+          "lossTolerance": 0.06586390667478553,
+          "margin": 0.07297684414428658,
+          "premium": 0.15977233259379867,
+          "exposure": 0.7858850117586553,
+          "bluff": 0.30819292426342143
+        },
+        "tool": "category-roadtrip",
+        "stock": {
+          "category-roadtrip": 1,
+          "count-3": 1,
+          "shape-2": 1
+        },
+        "loadout": [
+          "category-roadtrip",
+          "count-3",
+          "shape-2"
+        ],
+        "memory": {
+          "boxes": 0,
+          "cashDelta": 0,
+          "valueProfit": 0,
+          "calibration": 1,
+          "heat": 0.85,
+          "lossStreak": 0,
+          "compensationClaimed": 0,
+          "toolPurchases": 145
+        },
+        "lot": {
+          "usedTools": [],
+          "failedTools": [],
+          "toolRound": 0,
+          "instrumentCost": 0,
+          "toolUsed": false,
+          "skillUsed": true,
+          "usedRound": null,
+          "error": 0.9244395231044702,
+          "urgency": 0.7088834044989198,
+          "opportunity": 0.4547653179615736,
+          "lastDecision": null,
+          "lastAction": "正在观察仓库",
+          "previousEstimate": null,
+          "decisions": []
+        }
+      }
+    ]
+  },
+  "expected": {
+    "estimate": 300,
+    "ceiling": 7416,
+    "facts": [
+      {
+        "key": "[\"mean\",{\"quality\":1}]",
+        "stat": "mean",
+        "filter": {
+          "quality": 1
+        },
+        "value": 141
+      }
+    ],
+    "advice": {
+      "amount": 860,
+      "estimate": 1517,
+      "riskReserve": 195,
+      "costs": 300
+    },
+    "nextHistory": [
+      {
+        "round": 1,
+        "bids": [
+          800,
+          1260,
+          855,
+          1030
+        ]
+      }
+    ],
+    "truth": 2109
+  }
+}
