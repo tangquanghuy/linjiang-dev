@@ -1302,7 +1302,7 @@ for(const [q,label,cost] of [[1,'精良',12],[3,'史诗',65],[4,'传说',140]])i
 instrument('largest-quality','特殊品鉴仪',3,120,{kind:'quality',count:1,select:'largest'},'揭示1件占格最多藏品的品质，不揭示轮廓。','◈');
 instrument('largest-value','特殊估值仪',4,300,{kind:'stat',stat:'largestValue'},'得知1件占格最多藏品的价值，不揭示身份或位置。','▤');
 const toolTiers=['入门','进阶','专业','高级','超级','至尊'];
-const economy=Object.freeze({compensationRate:.10,compensationPerLot:40,compensationDaily:60});
+const economy=Object.freeze({compensationRate:.10,compensationPerLot:40,compensationDaily:60,poolRate:.30,stakeRate:.10,participationFeeFactor:2,participationHistoryRatio:.60});
 root.AuctionData=Object.freeze({hosts,catalog,qualities,series,venues,tools,toolTiers,economy,pricingVersion,catalogPrice});
 })(globalThis);
 /* Private-information operations shared by player and NPC. Never export raw hidden items. */

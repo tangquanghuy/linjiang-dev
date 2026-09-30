@@ -17,12 +17,12 @@ for(const venue of D.venues)for(const [policy,loadout] of Object.entries(policie
  let boxes=0,wins=0,lossWins=0,netLossBoxes=0,spent=0,admissionPaid=0,consumed=0,purchases=0,comp=0,auctionProfit=0,halted=0,down20=0,npcPurchases=0,npcConsumed=0;const netDeltas=[],cashEnds=[],wealthEnds=[],toolDecisions={used:0,skipped:0};
  const initial=Math.max(1000,venue.min*2);
  for(let account=1;account<=N;account++){
-  let bank=initial,stock={},game=null,claimed=0;
+  let bank=initial,stock={},game=null,claimed=0,npcProfiles={};
   for(let box=0;box<H;box++){
    if(bank<venue.min+venue.entryFee){halted++;break;}
    const fee=venue.entryFee;bank-=fee;admissionPaid+=fee;
    const seed=(account*1000003+box*104729+17)>>>0;
-   game=E.createSession({seed,id:`audit-${account}-${box}`,budget:bank,entryFee:fee,venue:venue.id,host:account%11,stock,loadout});
+   game=E.createSession({seed,id:`audit-${account}-${box}`,budget:bank,entryFee:fee,venue:venue.id,host:account%11,stock,loadout,npcProfiles});
    const procurementBefore=game.export().bots?.reduce((s,b)=>s+(b.memory.toolPurchases||0),0)||0;
    game.setBudget(bank);game.beginLot();npcPurchases+=game.export().bots.reduce((s,b)=>s+(b.memory.toolPurchases||0),0)-procurementBefore;
    let bought=0,procurement=bank*(policy==='premium'||policy==='reckless'?.35:.12);
@@ -39,11 +39,11 @@ for(const venue of D.venues)for(const [policy,loadout] of Object.entries(policie
     const amount=bank<1||!v.active[0]||policy==='idle'?null:policy==='reckless'?bank:policy==='floor'?Math.floor(v.estimate*.96):Math.floor(a.mean*.93-a.sd*.1);
     game.bid(amount===null?null:Math.max(1,Math.min(bank,amount)));
    }
-   const v=game.view(),r=v.result,rebate=r.won?0:Math.min(r.compensation,Math.max(0,D.economy.compensationDaily-claimed)),raw=r.won?r.trueValue-r.price:rebate,net=raw-v.instrumentCost-fee;
+   const v=game.view(),r=v.result,rebate=r.won?0:(v.policyVersion>=2?r.compensation:Math.min(r.compensation,Math.max(0,D.economy.compensationDaily-claimed))),raw=r.won?r.trueValue-r.price:rebate,net=raw-v.instrumentCost-fee;
    claimed+=rebate;bank+=raw;auctionProfit+=raw;comp+=rebate;purchases+=bought;consumed+=v.instrumentCost;boxes++;netDeltas.push(net);if(net<0)netLossBoxes++;
    if(r.won){wins++;spent+=r.price;if(r.price>r.trueValue)lossWins++;}
    npcConsumed+=game.export().bots.reduce((s,b)=>s+b.lot.instrumentCost,0);
-   assert.ok(bank>=0&&Number.isSafeInteger(bank));game.closeLot(r.won?'sell':'none',bank,{compensationLimit:rebate});stock={...game.view().stock};
+   assert.ok(bank>=0&&Number.isSafeInteger(bank));game.closeLot(r.won?'sell':'none',bank,{compensationLimit:rebate});stock={...game.view().stock};npcProfiles=game.export().npcProfiles;
   }
   const inventoryValue=Object.entries(stock).reduce((n,[id,count])=>n+D.tools.find(t=>t.id===id).cost*count,0);
   cashEnds.push(bank);wealthEnds.push(bank+inventoryValue);if(bank+inventoryValue<initial*.8)down20++;
@@ -52,5 +52,5 @@ for(const venue of D.venues)for(const [policy,loadout] of Object.entries(policie
  cashEnds.sort((a,b)=>a-b);wealthEnds.sort((a,b)=>a-b);const mean=netDeltas.reduce((a,b)=>a+b,0)/boxes,variance=netDeltas.reduce((s,x)=>s+(x-mean)**2,0)/Math.max(1,boxes-1);
  const row={venue:venue.id,policy,accounts:N,boxes,horizon:H,initial,winPct:pct(wins,boxes),valueLossAmongWinsPct:pct(lossWins,wins),netLossBoxPct:pct(netLossBoxes,boxes),netPerBox:round(mean),boxMean95CI:[round(mean-1.96*Math.sqrt(variance/boxes)),round(mean+1.96*Math.sqrt(variance/boxes))],netROI:spent+consumed+admissionPaid?pct(auctionProfit-consumed-admissionPaid,spent+consumed+admissionPaid):null,admissionPaid,admissionPerBox:round(admissionPaid/boxes),instrumentPurchasePerBox:round(purchases/boxes),instrumentConsumedPerBox:round(consumed/boxes),unusedInstrumentBookValue: purchases-consumed,rewardPerBox:round(comp/boxes),meanEndCash:round(cashEnds.reduce((a,b)=>a+b,0)/N),meanEndWealth:round(wealthEnds.reduce((a,b)=>a+b,0)/N),p05Wealth:quantile(wealthEnds,.05),medianWealth:quantile(wealthEnds,.5),p95Wealth:quantile(wealthEnds,.95),haltedPct:pct(halted,N),lost20Pct:pct(down20,N),npcPurchasePerBox:round(npcPurchases/boxes),npcConsumedPerBox:round(npcConsumed/boxes),toolDecisions};results.push(row);console.log(JSON.stringify(row));
 }
-const report={engine:E.VERSION,sourceHashes,parameters:{accounts:N,horizon:H,strength},definitions:{netROI:'(auction sale gain + compensation - consumed tool cost - admission fees)/(winning bids + consumed tool cost + admission fees)',cash:'Admission prepaid separately for every one-box auction. Purchases immediately debited, no second debit on consumption; unused stock retained at purchase book value, not redeemable cash.',limits:'Local simulation policies, not human playtest. Box CI ignores within-account correlation; use tail wealth and halted rate as diagnostics, not promises. Compensation one simulated UTC+8 day per account.'},results};
+const report={engine:E.VERSION,sourceHashes,parameters:{accounts:N,horizon:H,strength},definitions:{netROI:'(auction sale gain + compensation - consumed tool cost - admission fees)/(winning bids + consumed tool cost + admission fees)',cash:'Admission prepaid separately for every one-box auction. Purchases immediately debited, no second debit on consumption; unused stock retained at purchase book value, not redeemable cash.',limits:'Local simulation policies, not human playtest. Box CI ignores within-account correlation; use tail wealth and halted rate as diagnostics, not promises. Modern shared-pool compensation and host memory persist across auctions.'},results};
 mkdirSync('artifacts/auction-v32',{recursive:true});writeFileSync(`artifacts/auction-v32/economy-${label}.json`,JSON.stringify(report,null,2));

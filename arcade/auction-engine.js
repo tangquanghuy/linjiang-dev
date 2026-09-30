@@ -16,6 +16,21 @@ function resolveRound(bids,round){
  if(round===6)return {done:true,winner:null,price:0,reason:'加赛最高价仍相同，本箱流拍'};
  return {done:false,ties:round===5?ties:null};
 }
+// One shared pool; unused shares are not redistributed. Bids qualify before their round is revealed.
+function compensationPool(history,winner,overpayment,entryFee){
+ const stakes=[0,0,0,0];
+ history.forEach((row,index)=>{for(let seat=0;seat<4;seat++){
+  const previous=history[index-1]?.bids||[];
+  const high=Math.max(0,...previous.filter((x,i)=>i!==seat&&x!=null));
+  const threshold=Math.max(1,Math.ceil(entryFee*D.economy.participationFeeFactor),Math.ceil(high*D.economy.participationHistoryRatio));
+  const bid=row.bids[seat];if(Number.isSafeInteger(bid)&&bid>=threshold)stakes[seat]=Math.max(stakes[seat],bid);
+ }});
+ const eligible=stakes.map((stake,seat)=>seat!==winner&&stake>0),count=eligible.filter(Boolean).length;
+ const pool=winner==null?0:Math.floor(Math.max(0,overpayment)*D.economy.poolRate);
+ const share=count?Math.floor(pool/count):0;
+ const payouts=stakes.map((stake,seat)=>eligible[seat]?Math.min(share,Math.floor(stake*D.economy.stakeRate)):0);
+ return {pool,stakes,eligible,payouts};
+}
 function createSession(options={}, saved=null){
  let s=saved?clone(saved):{version:VERSION,id:options.id||`auction-${Date.now()}-${globalThis.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)}`,rng:(options.seed>>>0)||Math.floor(Math.random()*4294967295),venue:options.venue||'street',host:options.host??0,tool:options.tool||'scanner',bank:Math.max(0,Math.floor(options.budget??1000)),lotIndex:0,lots:1,ledger:[],current:null};
  // Admission is prepaid by the wallet transaction; old saves carry no retroactive fee.
@@ -24,6 +39,7 @@ function createSession(options={}, saved=null){
  s.stock??=clone(options.stock||{});s.loadout??=(options.loadout||[]).filter(id=>D.tools.some(t=>t.id===id)).slice(0,3);s.publicRng??=(s.rng^0xc2b2ae35)>>>0;s.intelRng??=(s.rng^0x85ebca6b)>>>0;
  s.version=VERSION;if(s.npcRng==null)s.npcRng=(s.rng^0x9e3779b9)>>>0;
  s.pricingVersion??=saved?1:D.pricingVersion;
+ s.policyVersion??=saved?1:2;s.npcProfiles??=clone(options.npcProfiles||{});
  const configuredVenue=D.venues.find(v=>v.id===s.venue)||D.venues[0];
  // An in-progress lot keeps its original unit prices, multiplier and admission fee.
  const venue={...configuredVenue,scale:s.current?.scale??(s.pricingVersion===1?1:configuredVenue.scale),pricingVersion:s.pricingVersion};
@@ -44,7 +60,12 @@ function createSession(options={}, saved=null){
    const cells=[];for(let xx=x;xx<x+d.w;xx++)for(let yy=y;yy<y+d.h;yy++)cells.push(xx+yy*6);
    if(cells.some(c=>used.has(c)))continue;cells.forEach(c=>used.add(c));items.push({...d,base:D.catalogPrice(d,1,s.pricingVersion),x,y,slot:items.length,known:false,qualityKnown:false,categoryKnown:false});
   }
-  if(!s.bots){const rivals=D.hosts.filter(h=>h.id!==s.host);for(let i=rivals.length-1;i>0;i--){let j=Math.floor(npcRand()*(i+1));[rivals[i],rivals[j]]=[rivals[j],rivals[i]];}s.bots=rivals.slice(0,3).map(h=>B.create(h.id,venue,npcRand));}
+  if(!s.bots){const rivals=D.hosts.filter(h=>h.id!==s.host);for(let i=rivals.length-1;i>0;i--){let j=Math.floor(npcRand()*(i+1));[rivals[i],rivals[j]]=[rivals[j],rivals[i]];}s.bots=rivals.slice(0,3).map(h=>{
+   const bot=B.create(h.id,venue,npcRand),profile=s.policyVersion>=2?s.npcProfiles[h.id]:null;
+   if(profile){for(const key of ['type','series','category','inventory','traits'])if(profile[key]!=null)bot[key]=clone(profile[key]);bot.memory={...bot.memory,...clone(profile.memory)};}
+   if(s.policyVersion>=2)bot.bank=Math.max(0,bot.bank-s.entryFee);
+   return bot;
+  });}
   s.lotIndex++;
   s.current={id:`${s.id}-${s.lotIndex}`,phase:'bidding',round:1,items,scale:venue.scale,history:[],active:[true,true,true,true],rivals:s.bots.map(b=>b.host),clues:[],toolUsed:false,result:null,deadline:null};
   const c=s.current;c.playerIntel=items.map(I.empty);c.playerFacts=[];c.playerMemory={};c.usedTools=[];c.toolRound=0;c.instrumentCost=0;c.playerTools=[];
@@ -52,7 +73,7 @@ function createSession(options={}, saved=null){
   initNPCs();roundInfo();
   return view();
  }
- function npcContext(index){const c=s.current;return {items:clone(c.npcIntel[index]),facts:clone(c.npcFacts[index]),venue,seat:index+1,active:[...c.active],history:clone(c.history),round:c.round,lotIndex:s.lotIndex,lots:s.lots};}
+ function npcContext(index){const c=s.current;return {items:clone(c.npcIntel[index]),facts:clone(c.npcFacts[index]),venue,policyVersion:s.policyVersion,entryFee:s.entryFee,seat:index+1,active:[...c.active],history:clone(c.history),round:c.round,lotIndex:s.lotIndex,lots:s.lots};}
  function initNPCs(){
   const c=s.current;c.npcEvents=[];c.npcIntel=s.bots.map(()=>c.items.map(I.empty));c.npcFacts=s.bots.map(()=>[]);c.npcMemory=s.bots.map(()=>({}));
   s.bots.forEach(bot=>B.beginLot(bot,npcRand));
@@ -104,6 +125,7 @@ function createSession(options={}, saved=null){
    c.result.overpayment=Math.max(0,c.result.price-c.result.trueValue);
    c.result.rawCompensation=Math.floor(c.result.overpayment*D.economy.compensationRate);
    c.result.compensation=c.result.won?0:Math.min(D.economy.compensationPerLot,c.result.rawCompensation);
+   if(s.policyVersion>=2){c.result.compensationDetails=compensationPool(c.history,c.result.winner,c.result.overpayment,s.entryFee);c.result.compensation=c.result.compensationDetails.payouts[0];}
    c.result.auctionProfit=c.result.won?c.result.trueValue-c.result.price:c.result.compensation;c.result.instrumentCost=c.instrumentCost;c.result.profit=c.result.auctionProfit-c.instrumentCost;
   }else{
    if(resolution.ties)c.active=c.active.map((active,i)=>active&&resolution.ties.includes(i));
@@ -130,9 +152,10 @@ function createSession(options={}, saved=null){
  function closeLot(choice,balance,options={}){
   const c=s.current;if(!c||c.phase!=='result')throw Error('本箱尚未落槌');
   const r=c.result;if(r.won&&!['sell','keep'].includes(choice))throw Error('请选择出售或留藏');
-  const compensation=r.won?0:Math.min(r.compensation||0,Math.max(0,Math.floor(options.compensationLimit??D.economy.compensationDaily)));
+  const compensation=r.won?0:Math.min(r.compensation||0,Math.max(0,Math.floor(s.policyVersion>=2?Number.MAX_SAFE_INTEGER:(options.compensationLimit??D.economy.compensationDaily))));
   const entry={id:c.id,lot:s.lotIndex,...r,compensation,profit:(r.won?r.trueValue-r.price:compensation)-c.instrumentCost,instrumentCost:c.instrumentCost,choice:r.won?choice:'none',cashDelta:r.won?(choice==='sell'?r.trueValue-r.price:-r.price):compensation};
-  s.bots.forEach((bot,index)=>B.settle(bot,{seat:index+1,winner:r.winner,price:r.price,trueValue:r.trueValue,items:c.items.map(i=>({...i,value:price(i,c.scale)})),compensation:Math.min(D.economy.compensationPerLot,r.rawCompensation||0),history:c.history}));
+  s.bots.forEach((bot,index)=>B.settle(bot,{seat:index+1,winner:r.winner,price:r.price,trueValue:r.trueValue,items:c.items.map(i=>({...i,value:price(i,c.scale)})),compensation:s.policyVersion>=2?(r.compensationDetails?.payouts[index+1]||0):Math.min(D.economy.compensationPerLot,r.rawCompensation||0),policyVersion:s.policyVersion,entryFee:s.entryFee,history:c.history}));
+  if(s.policyVersion>=2)for(const bot of s.bots){const profile={};for(const key of ['type','series','category','inventory','traits','memory'])profile[key]=clone(bot[key]);s.npcProfiles[bot.host]=profile;}
   s.ledger.push(entry);s.bank=Math.max(0,Math.floor(balance??(s.bank+entry.cashDelta)));c.phase='closed';return clone(entry);
  }
  function view(){
@@ -140,10 +163,10 @@ function createSession(options={}, saved=null){
   const revealed=c.phase==='result'||c.phase==='closed';
   const items=c.playerIntel.map(o=>{const i=c.items.find(i=>i.slot===o.slot);return {...o,...(revealed||o.identified!=null?{x:i.x,y:i.y,w:i.w,h:i.h,identified:i.id,name:i.name,quality:i.quality,category:i.category,image:i.image,value:price(i,c.scale)}:{})};});
   const {low:estimate,high:ceiling}=I.bounds(items,c.playerFacts,c.scale,s.pricingVersion);
-  return {version:VERSION,id:c.id,phase:c.phase,lotIndex:s.lotIndex,lots:s.lots,round:c.round,bank:s.bank,venue:s.venue,host:s.host,tool:s.loadout[0]||null,loadout:[...s.loadout],stock:clone(s.stock),usedTools:[...c.usedTools],toolRound:c.toolRound,instrumentCost:c.instrumentCost,entryFee:s.entryFee,purchaseCost:s.purchaseCost||0,toolUsed:c.toolRound===c.round,facts:clone(c.playerFacts),scale:c.scale,pricingVersion:s.pricingVersion,items,estimate,ceiling,clues:clone(c.clues),history:clone(c.history),active:[...c.active],rivals:[...c.rivals],opponents:s.bots.map(B.publicProfile),npcEvents:clone(c.npcEvents),result:clone(c.result),ledger:clone(s.ledger),deadline:c.deadline};
+  return {version:VERSION,policyVersion:s.policyVersion,id:c.id,phase:c.phase,lotIndex:s.lotIndex,lots:s.lots,round:c.round,bank:s.bank,venue:s.venue,host:s.host,tool:s.loadout[0]||null,loadout:[...s.loadout],stock:clone(s.stock),usedTools:[...c.usedTools],toolRound:c.toolRound,instrumentCost:c.instrumentCost,entryFee:s.entryFee,purchaseCost:s.purchaseCost||0,toolUsed:c.toolRound===c.round,facts:clone(c.playerFacts),scale:c.scale,pricingVersion:s.pricingVersion,items,estimate,ceiling,clues:clone(c.clues),history:clone(c.history),active:[...c.active],rivals:[...c.rivals],opponents:s.bots.map(B.publicProfile),npcEvents:clone(c.npcEvents),result:clone(c.result),ledger:clone(s.ledger),deadline:c.deadline};
  }
  function setBudget(value){if(!Number.isFinite(value)||value<0)throw Error('预算数据异常');s.bank=Math.floor(value);}
  return {beginLot,bid,useTool,addStock,closeLot,view,setBudget,export:()=>clone(s)};
 }
-root.AIRPAuctionEngine=Object.freeze({VERSION,THRESHOLDS,createSession,restore:s=>{if(![VERSION,'3.1.0','3.0.0'].includes(s?.version))throw Error('存档版本不同');return createSession({},s);},resolveRound,candidates,price});
+root.AIRPAuctionEngine=Object.freeze({VERSION,THRESHOLDS,createSession,restore:s=>{if(![VERSION,'3.1.0','3.0.0'].includes(s?.version))throw Error('存档版本不同');return createSession({},s);},resolveRound,compensationPool,candidates,price});
 })(globalThis);

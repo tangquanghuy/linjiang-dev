@@ -40,7 +40,7 @@ for(let seed=1;seed<=500;seed++){
     for(let j=0;j<before.current.items.length;j++)assert.equal(after.current.items[j].known,before.current.items[j].known);
    }
   }
-  assert.equal(game.view().phase,'result');const ledger=game.closeLot('none',undefined,{compensationLimit:7});assert.ok(ledger.compensation<=7);for(const bot of game.export().bots){assert.ok(bot.bank>=0);assert.equal(bot.memory.boxes,lot);assert.ok(bot.memory.compensationClaimed<=60);}
+  assert.equal(game.view().phase,'result');const ledger=game.closeLot('none',undefined,{compensationLimit:7});assert.equal(ledger.compensation,game.view().result.compensation);for(const bot of game.export().bots){assert.ok(bot.bank>=0);assert.equal(bot.memory.boxes,lot);assert.ok(bot.memory.compensationClaimed<=game.view().result.compensationDetails.pool);}
   assert.equal(game.beginLot(),null,'single admission must not start another warehouse');
  }
 }
@@ -82,7 +82,7 @@ const migrated=E.restore(legacy);same(migrated.export().current.items,legacy.cur
 checks.push('3.0 unfinished-save migration');
 // Forced resolution isolates the payout formula from quote strategy.
 for(const [price,trueValue,expected]of [[1500,1000,40],[1009,1000,0],[1010,1000,1],[900,1000,0]]){
- const s=json(wa);s.current.phase='result';s.current.result={won:false,winner:1,price,trueValue,rawCompensation:Math.floor(Math.max(0,price-trueValue)*.1),compensation:Math.min(40,Math.floor(Math.max(0,price-trueValue)*.1)),profit:0};s.bots[0].bank=10000;
+ const s=json(wa);s.policyVersion=1;s.current.phase='result';s.current.result={won:false,winner:1,price,trueValue,rawCompensation:Math.floor(Math.max(0,price-trueValue)*.1),compensation:Math.min(40,Math.floor(Math.max(0,price-trueValue)*.1)),profit:0};s.bots[0].bank=10000;
  const e=E.restore(s),r=e.closeLot('none');assert.equal(r.compensation,expected);assert.equal(r.cashDelta,expected);assert.equal(e.view().bank,wa.bank+expected);assert.throws(()=>e.closeLot('none'));
  const limited=E.restore(s).closeLot('none',undefined,{compensationLimit:3});assert.equal(limited.compensation,Math.min(expected,3));
 }

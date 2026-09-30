@@ -50,8 +50,8 @@ function assess(bot,ctx){
  const slots=ctx.items.map(slot=>{
   const pool=poolFor(slot,ctx.venue);let m=0,v2=0,missing=0,familiar=0,min=Infinity,max=0;
   for(const {item,p}of pool){const value=D.catalogPrice(item,ctx.venue.scale,ctx.venue.pricingVersion);m+=p*value;v2+=p*value*value;min=Math.min(min,value);max=Math.max(max,value);
-   if(!owned.has(item.id)&&item.series===bot.series)missing+=p*value;
-   if(item.category===bot.category)familiar+=p*value;
+   if(!owned.has(item.id)&&item.series===bot.series&&(ctx.policyVersion<2||ctx.policyVersion==null||slot.identified!=null))missing+=p*value;
+   if(item.category===bot.category&&(ctx.policyVersion<2||ctx.policyVersion==null||slot.identified!=null))familiar+=p*value;
   }
   mean+=m;variance+=Math.max(0,v2-m*m);floor+=min;ceiling+=max;desired+=missing;special+=familiar;if(slot.identified!=null)known++;
   return {slot:slot.slot,mean:m,sd:Math.sqrt(Math.max(0,v2-m*m)),missing,familiar,identified:slot.identified!=null,qualityKnown:slot.quality!=null,categoryKnown:!!slot.category};
@@ -99,14 +99,18 @@ function decide(bot,ctx,rng){
  const familiarRatio=a.special/Math.max(1,a.objectiveMean);
  const premium=bot.type==='collector'?a.desired*bot.traits.premium:bot.type==='specialist'?a.special*bot.traits.premium:0;
  const margin=bot.traits.margin+(bot.type==='specialist'?(1-familiarRatio)*.075:0);
- const lossCooling=1-Math.min(.12,bot.memory.lossStreak*.035);
+ const modern=ctx.policyVersion>=2;
+ const lossCooling=1-Math.min(modern?.30:.12,bot.memory.lossStreak*(modern?.06:.035));
  let willingness=(a.mean*(1-margin)+premium-a.sd*t.risk*(1.5-bot.traits.confidence))*lossCooling;
  // Three independent hard stops: own valuation, cash reserve, maximum plausible overpayment.
  const lossBudget=bot.bank*bot.traits.lossTolerance;
  const valueCap=Math.min(a.ceiling*1.22,a.mean+Math.min(premium+a.mean*.10,lossBudget));
  const reserve=ctx.lotIndex<ctx.lots?bot.bank*bot.traits.reserve:0;
  const cashCap=Math.floor(Math.min(bot.bank-reserve,bot.bank*clamp(bot.traits.exposure,0.4,.95)));
- const cap=Math.max(0,Math.floor(Math.min(willingness,valueCap,cashCap)));
+ // Modern policy never adds a positive uncertainty bonus, even for gamblers.
+ if(modern)willingness=Math.min(willingness,(a.mean*(1-Math.max(.04,margin))+premium-a.sd*Math.max(.12,t.risk)-ctx.entryFee-bot.lot.instrumentCost)*lossCooling);
+ const prudentCap=modern?Math.min(a.ceiling+premium,a.mean+Math.min(premium,lossBudget)):valueCap;
+ const cap=Math.max(0,Math.floor(Math.min(willingness,valueCap,prudentCap,cashCap)));
  bot.lot.previousEstimate=a.objectiveMean;
  path.push(contextTrace('risk-gates','估值上限、收藏溢价、留存现金与连续亏损降温'));
  const details={estimate:Math.round(a.mean),uncertainty:a.uncertainty,premium:Math.round(premium),cap,cashCap};
@@ -116,7 +120,9 @@ function decide(bot,ctx,rng){
  const high=others.length?Math.max(...others):0;
  const competition=ctx.active.filter((active,i)=>active&&i!==ctx.seat).length;
  const tooHot=high>cap*(1.03+(1-bot.traits.patience)*.08);
- if(ctx.round>1&&tooHot&&(bot.type==='dealer'||bot.type==='specialist'||ctx.round>=4||rng()>bot.traits.patience*.65))return finish(null,'walk-away','历史价格已超过自身承受区间；不追逐沉没成本',details);
+ // A sealed historical offer is not a standing ask: hold our limit instead of handing the lot to a token bid.
+ if(modern&&ctx.round>1&&high>cap)return finish(Math.max(1,Math.floor(cap*.95)),'hold-cap','不跟随历史高价；仅提交自身止损价以内的报价',details);
+ if(!modern&&ctx.round>1&&tooHot&&(bot.type==='dealer'||bot.type==='specialist'||ctx.round>=4||rng()>bot.traits.patience*.65))return finish(null,'walk-away','历史价格已超过自身承受区间；不追逐沉没成本',details);
  const fractions=[0,.69,.79,.89,.96,1,1];
  let fraction=fractions[ctx.round]+(bot.lot.urgency-.5)*.10;
  if(bot.type==='collector'&&premium>a.mean*.04)fraction+=.07;
@@ -144,10 +150,12 @@ function settle(bot,ctx){
   for(const item of items){const keep=(bot.type==='collector'||bot.type==='specialist')&&!owned.has(item.id)&&item.series===bot.series;
    if(keep){retained+=item.value;owned.add(item.id);}else bot.bank+=item.value;
   }
-  bot.inventory=[...owned];const gain=trueValue-price-(bot.lot.instrumentCost||0);bot.memory.valueProfit+=gain;bot.memory.lossStreak=gain<0?bot.memory.lossStreak+1:0;
- }else{const rebate=Math.min(compensation,Math.max(0,D.economy.compensationDaily-bot.memory.compensationClaimed));bot.bank+=rebate;bot.memory.compensationClaimed+=rebate;}
+  bot.inventory=[...owned];const gain=trueValue-price-(bot.lot.instrumentCost||0)-(ctx.policyVersion>=2?ctx.entryFee||0:0);bot.memory.valueProfit+=gain;bot.memory.lossStreak=gain<0?bot.memory.lossStreak+1:0;
+ }else{const rebate=ctx.policyVersion>=2?compensation:Math.min(compensation,Math.max(0,D.economy.compensationDaily-bot.memory.compensationClaimed));bot.bank+=rebate;bot.memory.compensationClaimed+=rebate;
+  if(ctx.policyVersion>=2){const gain=rebate-(ctx.entryFee||0)-(bot.lot.instrumentCost||0);bot.memory.valueProfit+=gain;bot.memory.lossStreak=gain<0?bot.memory.lossStreak+1:0;}
+ }
  // Revealed result calibrates future lots, never retroactively changes an earlier sealed bid.
- if(bot.lot.previousEstimate){const ratio=clamp(trueValue/bot.lot.previousEstimate,.75,1.25);bot.memory.calibration=clamp(bot.memory.calibration*.80+ratio*.20,.90,1.10);}
+ if(bot.lot.previousEstimate){const ratio=clamp(trueValue/bot.lot.previousEstimate,ctx.policyVersion>=2?.5:.75,1.25);bot.memory.calibration=clamp(bot.memory.calibration*.80+ratio*.20,ctx.policyVersion>=2?.80:.90,1.10);}
  const histories=ctx.history.flatMap(h=>h.bids.filter(x=>x!=null));if(histories.length){bot.memory.heat=clamp(histories.reduce((a,b)=>a+b,0)/histories.length/Math.max(1,trueValue),.5,1.2);}
  bot.memory.boxes++;bot.memory.cashDelta+=bot.bank-before;bot.memory.lastRetained=retained;
  if(!Number.isSafeInteger(bot.bank)||bot.bank<0)throw Error('NPC settlement violated budget');

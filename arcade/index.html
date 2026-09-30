@@ -418,7 +418,7 @@ html.is-force-landscape[data-game=fishing] .stage{height:100%}
   <iframe class="frame" id="frame" title="游戏画面" allow="autoplay"></iframe>
 </main>
 
-<script src="token-system.js?v=20260930-auction-pricing1"></script>
+<script src="token-system.js?v=20260930-auction-rebate2"></script>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
 
@@ -444,7 +444,7 @@ const THEME_LABEL = {dark:'暗夜', 'warm-white':'暖白', green:'青竹', 'clas
 const DEFAULT_BALANCE = 1000;
 
 const GAMES = [
-  {id:'shrine',  file:'shrine.html?v=20260930-auction-pricing1',  ns:'airp-shrine',  ico:'⛩️', label:'每日一签',
+  {id:'shrine',  file:'shrine.html?v=20260930-auction-rebate2',  ns:'airp-shrine',  ico:'⛩️', label:'每日一签',
    title:'每日一签',       state:null, fit:'viewport', themed:false, landscape:true},
   {id:'scratch', file:'scratch.html', ns:'airp-scratch', ico:'🐾', label:'刮刮乐',
    title:'猫爪梦境刮刮乐', state:'airp_scratch_card_state_v2', fit:'content', themed:true, landscape:true},
@@ -453,7 +453,7 @@ const GAMES = [
    title:'直播幸运机',     state:'airp_physical_slot_state_v2', fit:'content', themed:true},
   {id:'fishing', file:'fishing.html', ns:'airp-fishing', ico:'🐟', label:'深海寻宝',
    title:'深海寻宝',       state:'airp_fishing_state_v1', fit:'content', themed:true, landscape:true},
-  {id:'auction', file:'auction.html?v=20260930-auction-pricing1', ns:'airp-auction', ico:'🔨', label:'临江拍卖行',
+  {id:'auction', file:'auction.html?v=20260930-auction-rebate2', ns:'airp-auction', ico:'🔨', label:'临江拍卖行',
    title:'临江拍卖行', state:'airp_auction_state_v3', fit:'viewport', themed:false, landscape:true},
 ];
 const GAME_STATE_KEYS = GAMES.map(g => g.state).filter(Boolean);

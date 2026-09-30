@@ -40,6 +40,8 @@
     "auction:engine": "node scripts/check-auction-engine.mjs",
     "auction:npc": "node scripts/check-auction-npc.mjs",
     "auction:settlement": "node scripts/check-auction-settlement.mjs",
+    "auction:compensation": "node scripts/check-auction-compensation.mjs",
+    "auction:compensation-sim": "node scripts/sim-auction-compensation.mjs",
     "auction:pricing": "node scripts/check-auction-pricing.mjs",
     "auction:pricing-sim": "node scripts/sim-auction-pricing.mjs",
     "auction:sim": "node scripts/sim-auction.mjs",
