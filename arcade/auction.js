@@ -31,9 +31,36 @@ function sound(type='submit',quality=0){AuctionAudio.setEnabled(state.sound);Auc
 function showDialog(id){const d=$(id);if(!d.open)d.showModal();}
 function closeDialogs(){stopReveal();document.querySelectorAll('dialog[open]').forEach(d=>d.close());}
 function screen(name){for(const id of ['prepare','admission','play'])$(id).hidden=id!==name;document.body.dataset.screen=name;}
+let portraitRequest=0,portraitSource='';
+function renderPortrait(host,force=false){
+ const frame=$('heroPortraitFrame'),src=new URL(host.portrait,document.baseURI).href;
+ if(!force&&portraitSource===src)return;
+ portraitSource=src;
+ const request=++portraitRequest,image=new Image();
+ $('heroPortrait').hidden=true;
+ frame.dataset.state='loading';frame.setAttribute('aria-busy','true');
+ $('heroPortraitLoading').hidden=false;$('heroPortraitRetry').hidden=true;
+ image.id='heroPortrait';image.alt=host.name;image.hidden=true;image.decoding='async';
+ const fail=()=>{
+  if(request!==portraitRequest)return;
+  frame.dataset.state='error';frame.setAttribute('aria-busy','false');
+  $('heroPortraitLoading').hidden=true;$('heroPortraitRetry').hidden=false;
+ };
+ image.onerror=fail;
+ image.onload=async()=>{
+  try{await image.decode();}catch{fail();return;}
+  if(request!==portraitRequest)return;
+  image.onload=null;image.onerror=null;
+  $('heroPortrait').replaceWith(image);image.hidden=false;
+  frame.dataset.state='ready';frame.setAttribute('aria-busy','false');
+  $('heroPortraitLoading').hidden=true;
+ };
+ image.src=src;
+}
+$('heroPortraitRetry').onclick=()=>renderPortrait(D.hosts[state.host]||D.hosts[0],true);
 function renderPrepare(){balanceUI();
  $('hosts').innerHTML=D.hosts.map(h=>`<button class="host-button ${state.host===h.id?'active':''}" data-host="${h.id}" aria-label="邀请${h.name} · ${h.skill}" aria-pressed="${state.host===h.id}" title="${h.name} · ${h.skill}"><img src="${h.avatar}" alt="${h.name}" width="64" height="64"></button>`).join('');
- const h=D.hosts[state.host]||D.hosts[0];$('heroPortrait').src=h.portrait;$('heroPortrait').alt=h.name;$('heroName').textContent=h.name;$('hostDescription').innerHTML=`<h3>${h.skill}</h3><p>${h.desc}</p>`;
+ const h=D.hosts[state.host]||D.hosts[0];renderPortrait(h);$('heroName').textContent=h.name;$('hostDescription').innerHTML=`<h3>${h.skill}</h3><p>${h.desc}</p>`;
  $('tools').innerHTML=`<div class="loadout-heading"><span>已装备 ${state.loadout.length} / 3</span><button class="text-button" data-open-shop>采购 / 配装 ↗</button></div>`+state.loadout.map(id=>{const t=D.tools.find(t=>t.id===id);return `<article class="tool-card"><span>${t.symbol}</span><div><div class="tool-title"><strong>${t.name}</strong><em>库存 ${state.instrumentStock[id]||0}</em></div><p>${t.desc}</p></div></article>`;}).join('');
  $('btnStart').disabled=false;$('btnStart').innerHTML='选择会场 <span>↗</span>';renderAdmission();
 }
