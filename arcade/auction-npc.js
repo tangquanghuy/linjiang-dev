@@ -1,4 +1,4 @@
-﻿/* Observation-only NPC behaviour tree. Never accepts a hidden warehouse or player current bid. */
+/* Observation-only NPC behaviour tree. Never accepts a hidden warehouse or player current bid. */
 (function(root){
 'use strict';
 const D=root.AuctionData,I=root.AuctionIntel;
@@ -58,11 +58,12 @@ function assess(bot,ctx){
  });
  // Aggregates change valuation using only the observer's own facts; never the hidden contents.
  const groups=new Map();
- for(const f of ctx.facts||[]){if(!['count','total','mean'].includes(f.stat))continue;const key=JSON.stringify(f.filter);if(!groups.has(key))groups.set(key,{filter:f.filter});groups.get(key)[f.stat]=f.value;}
+ for(const f of ctx.facts||[]){if(!['count','total','mean'].includes(f.stat))continue;const key=JSON.stringify([f.filter,f.scope||null]);if(!groups.has(key))groups.set(key,{filter:f.filter,scope:f.scope});groups.get(key)[f.stat]=f.value;}
  for(const f of groups.values()){
-  if(f.mean!=null&&!Object.keys(f.filter).length){mean=(f.mean+.5)*ctx.items.length;variance=Math.min(variance,ctx.items.length**2/12);continue;}
+  const observed=f.scope?ctx.items.filter(i=>f.scope.includes(i.slot)):ctx.items;
+  if(f.mean!=null&&!Object.keys(f.filter).length){mean+=(f.mean+.5)*observed.length-slots.filter(i=>!f.scope||f.scope.includes(i.slot)).reduce((n,i)=>n+i.mean,0);if(!f.scope)variance=Math.min(variance,ctx.items.length**2/12);continue;}
   let expectedCount=0,groupValue=0,otherValue=0,otherCount=0;
-  for(const slot of ctx.items)for(const {item,p} of poolFor(slot,ctx.venue)){if(I.match(item,f.filter)){expectedCount+=p;groupValue+=p*D.catalogPrice(item,ctx.venue.scale,ctx.venue.pricingVersion);}else{otherCount+=p;otherValue+=p*D.catalogPrice(item,ctx.venue.scale,ctx.venue.pricingVersion);}}
+  for(const slot of observed)for(const {item,p} of poolFor(slot,ctx.venue)){if(I.match(item,f.filter)){expectedCount+=p;groupValue+=p*D.catalogPrice(item,ctx.venue.scale,ctx.venue.pricingVersion);}else{otherCount+=p;otherValue+=p*D.catalogPrice(item,ctx.venue.scale,ctx.venue.pricingVersion);}}
   const count=f.count??expectedCount,unit=f.mean!=null?f.mean+.5:expectedCount?groupValue/expectedCount:0;
   mean+=(f.total??(count*unit))-groupValue;
   if(f.count!=null&&otherCount)mean+=(expectedCount-count)*otherValue/otherCount;
@@ -82,6 +83,7 @@ function planTool(bot,ctx){
  const a=assess(bot,ctx),heat=Math.max(0,...(ctx.history.at(-1)?.bids||[]).filter(x=>x!=null));
  if(heat>a.mean*(1+bot.traits.premium)||bot.bank<a.floor*.35||a.uncertainty<.015)return null;
  const ranked=(bot.loadout||[]).filter(id=>bot.stock[id]>0&&!bot.lot.usedTools.includes(id)&&!bot.lot.failedTools.includes(id)).map(id=>D.tools.find(t=>t.id===id)).filter(t=>{
+  if(ctx.round<(t.minRound||1))return false;
   if(t.effect.kind==='stat')return !(ctx.facts||[]).some(f=>f.key===JSON.stringify([t.effect.stat,t.effect.filter||{}]));
   return ctx.items.some(i=>t.effect.kind==='identify'?i.identified==null:t.effect.kind==='shape'?i.w==null:i.quality==null);
  }).map(t=>{const count=t.effect.count||2,benefit=a.sd*Math.min(.65,count/Math.max(1,ctx.items.length))*(bot.type==='collector'?1.25:1);return {tool:t.id,benefit,net:benefit-t.cost};}).filter(t=>t.net>0).sort((a,b)=>b.net-a.net);
@@ -144,14 +146,14 @@ function decide(bot,ctx,rng){
  return finish(quote,node,reason,details);
 }
 function settle(bot,ctx){
- const {winner,seat,price,items,trueValue,compensation}=ctx;const before=bot.bank;let retained=0;
+ const {winner,seat,price,items,trueValue,compensation}=ctx;const before=bot.bank;let retained=0,received=0;
  if(winner===seat){
   bot.bank-=price;const owned=new Set(bot.inventory);
   for(const item of items){const keep=(bot.type==='collector'||bot.type==='specialist')&&!owned.has(item.id)&&item.series===bot.series;
    if(keep){retained+=item.value;owned.add(item.id);}else bot.bank+=item.value;
   }
   bot.inventory=[...owned];const gain=trueValue-price-(bot.lot.instrumentCost||0)-(ctx.policyVersion>=2?ctx.entryFee||0:0);bot.memory.valueProfit+=gain;bot.memory.lossStreak=gain<0?bot.memory.lossStreak+1:0;
- }else{const rebate=ctx.policyVersion>=2?compensation:Math.min(compensation,Math.max(0,D.economy.compensationDaily-bot.memory.compensationClaimed));bot.bank+=rebate;bot.memory.compensationClaimed+=rebate;
+ }else{const rebate=ctx.policyVersion>=2?compensation:Math.min(compensation,Math.max(0,D.economy.compensationDaily-bot.memory.compensationClaimed));received=rebate;bot.bank+=rebate;bot.memory.compensationClaimed+=rebate;
   if(ctx.policyVersion>=2){const gain=rebate-(ctx.entryFee||0)-(bot.lot.instrumentCost||0);bot.memory.valueProfit+=gain;bot.memory.lossStreak=gain<0?bot.memory.lossStreak+1:0;}
  }
  // Revealed result calibrates future lots, never retroactively changes an earlier sealed bid.
@@ -159,6 +161,8 @@ function settle(bot,ctx){
  const histories=ctx.history.flatMap(h=>h.bids.filter(x=>x!=null));if(histories.length){bot.memory.heat=clamp(histories.reduce((a,b)=>a+b,0)/histories.length/Math.max(1,trueValue),.5,1.2);}
  bot.memory.boxes++;bot.memory.cashDelta+=bot.bank-before;bot.memory.lastRetained=retained;
  if(!Number.isSafeInteger(bot.bank)||bot.bank<0)throw Error('NPC settlement violated budget');
+ const entryFee=ctx.policyVersion>=2?(ctx.entryFee||0):0,instrumentCost=bot.lot.instrumentCost||0;
+ return {host:bot.host,role:'npc',net:(winner===seat?trueValue-price:received)-entryFee-instrumentCost,entryFee,instrumentCost,compensation:received};
 }
 function publicProfile(bot){const series=D.series.find(s=>s.id===bot.series),tool=D.tools.find(t=>t.id===bot.tool);return {host:bot.host,tendency:TYPES[bot.type].name,hint:TYPES[bot.type].hint,interest:series.name,tool:tool?.name||'未配仪器',toolUsed:!!bot.lot?.toolUsed,skillUsed:!!bot.lot?.skillUsed,action:bot.lot?.lastAction||'等待入场'};}
 root.AuctionNPC=Object.freeze({TYPES,create,beginLot,assess,chooseSkillSlots,planTool,decide,settle,publicProfile});

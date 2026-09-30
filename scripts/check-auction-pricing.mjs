@@ -20,7 +20,14 @@ assert.equal(oldView.pricingVersion,1);assert.equal(oldView.scale,1);assert.equa
 assert.equal(oldView.estimate,fixture.expected.estimate);assert.equal(oldView.ceiling,fixture.expected.ceiling);
 assert.deepEqual(oldView.facts,fixture.expected.facts);assert.deepEqual(R(oldView,40000),fixture.expected.advice);
 assert.equal(legacy.export().current.items.reduce((n,i)=>n+E.price(i,oldView.scale),0),fixture.expected.truth);
-legacy.bid(800);assert.deepEqual(legacy.view().history,fixture.expected.nextHistory);
+// Rebalanced skills and instruments change future NPC bids, not legacy prices,
+// already-published history, or deterministic continuation of the same save.
+const legacyTwin=E.restore(fixture.snapshot),past=oldView.history;
+legacy.bid(800);legacyTwin.bid(800);assert.deepEqual(legacy.view(),legacyTwin.view());
+assert.deepEqual(legacy.view().history.slice(0,past.length),past);
+assert.equal(legacy.view().history.at(-1).bids[0],800);
+assert.equal(legacy.view().scale,1);assert.equal(legacy.view().entryFee,300);
+assert.equal(legacy.export().current.items.reduce((n,i)=>n+E.price(i,1),0),fixture.expected.truth);
 assert.equal(E.restore(legacy.export()).view().pricingVersion,1);
 for(const venue of D.venues)for(let seed=1;seed<=100;seed++){
  const g=E.createSession({seed,venue:venue.id,budget:1e8,entryFee:venue.entryFee,host:seed%11});g.beginLot();

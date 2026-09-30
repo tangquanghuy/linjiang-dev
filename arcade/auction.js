@@ -7,10 +7,10 @@ const KEY='airp_auction_state_v3',WALLET='airp_arcade_wallet_v1',NS='airp-auctio
 const peers=['airp_scratch_card_state_v2','airp_physical_slot_state_v2','airp_fishing_state_v1'];
 const fmt=n=>Math.round(n||0).toLocaleString('zh-CN'),signed=n=>(n>=0?'+':'−')+fmt(Math.abs(n));
 const read=(k,f=null)=>{try{return JSON.parse(localStorage.getItem(k))??f;}catch{return f;}};
-const blank=()=>({version:3,host:0,venue:'street',tool:null,instrumentStock:{},loadout:['quality-0','shape-0','identify-0'],revision:0,npcProfiles:{},snapshot:null,inventory:[],collected:[],discovered:[],pins:[],receipts:[],compensation:{day:'',used:0},sound:true,soundPreference:false});
+const blank=()=>({version:3,host:0,venue:'street',tool:null,instrumentStock:{},loadout:['quality-0','shape-0','identify-0'],revision:0,npcProfiles:{},hostDaily:null,snapshot:null,inventory:[],collected:[],discovered:[],pins:[],receipts:[],compensation:{day:'',used:0},sound:true,soundPreference:false});
 const hydrate=saved=>({...blank(),...saved,sound:saved?.soundPreference===true?saved.sound!==false:true});
 let state=hydrate(read(KEY,{})),session=null,view=null,selected=null,candidateSlot=null,cabinetSeries='',busy=false;
-let storageWarning=false,toastTimer=0,activeTool=null,shopPage=0;
+let storageWarning=false,toastTimer=0,activeTool=null,shopPage=0,dailyTimer=0;
 let revealState=null,roundTimer=0,bidDraft="",bidDraftKey="";
 const escapeHTML=text=>String(text).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 document.body.dataset.prepareTab='partner';document.body.dataset.playTab='warehouse';
@@ -58,9 +58,20 @@ function renderPortrait(host,force=false){
  image.src=src;
 }
 $('heroPortraitRetry').onclick=()=>renderPortrait(D.hosts[state.host]||D.hosts[0],true);
+function renderHostDaily(){
+ clearTimeout(dailyTimer);state.hostDaily=AuctionDaily.read(state.hostDaily);
+ const total=state.hostDaily.totals[state.host],net=total?.net||0,amount=$('hostDailyProfit'),last=$('hostDailyLast');
+ const sign=value=>value>0?'positive':value<0?'negative':'zero';
+ amount.textContent=net<0?'−'+fmt(-net):fmt(net);amount.dataset.sign=sign(net);
+ last.hidden=!Number.isSafeInteger(total?.lastNet);last.textContent=last.hidden?'':signed(total.lastNet);last.dataset.sign=sign(total?.lastNet||0);
+ $('hostDailyAccount').dataset.long=String(amount.textContent.length+last.textContent.length>18);
+ $('hostDailyAccount').setAttribute('aria-label',`${D.hosts[state.host]?.name||''}今日总账 ${amount.textContent}${last.hidden?'':`，最近一场 ${last.textContent}`}`);
+ $('hosts').querySelectorAll('[data-host]').forEach(button=>{const h=D.hosts[+button.dataset.host],value=state.hostDaily.totals[h.id]?.net||0,label=`${h.name} · ${h.skill} · 今日总账 ${value===0?'0':signed(value)}`;button.title=label;button.setAttribute('aria-label',label);});
+ dailyTimer=setTimeout(renderHostDaily,AuctionDaily.untilReset()+20);
+}
 function renderPrepare(){balanceUI();
  $('hosts').innerHTML=D.hosts.map(h=>`<button class="host-button ${state.host===h.id?'active':''}" data-host="${h.id}" aria-label="邀请${h.name} · ${h.skill}" aria-pressed="${state.host===h.id}" title="${h.name} · ${h.skill}"><img src="${h.avatar}" alt="${h.name}" width="64" height="64"></button>`).join('');
- const h=D.hosts[state.host]||D.hosts[0];renderPortrait(h);$('heroName').textContent=h.name;$('hostDescription').innerHTML=`<h3>${h.skill}</h3><p>${h.desc}</p>`;
+ renderHostDaily();const h=D.hosts[state.host]||D.hosts[0];renderPortrait(h);$('heroName').textContent=h.name;$('hostDescription').innerHTML=`<h3>${h.skill}</h3><p>${h.desc}</p>`;
  $('tools').innerHTML=`<div class="loadout-heading"><span>已装备 ${state.loadout.length} / 3</span><button class="text-button" data-open-shop>采购 / 配装 ↗</button></div>`+state.loadout.map(id=>{const t=D.tools.find(t=>t.id===id);return `<article class="tool-card"><span>${t.symbol}</span><div><div class="tool-title"><strong>${t.name}</strong><em>库存 ${state.instrumentStock[id]||0}</em></div><p>${t.desc}</p></div></article>`;}).join('');
  $('btnStart').disabled=false;$('btnStart').innerHTML='选择会场 <span>↗</span>';renderAdmission();
 }
@@ -143,7 +154,7 @@ function renderPlay(){clearTimeout(roundTimer);if(!session)return;const actual=s
  if(!v.loadout.includes(activeTool))activeTool=v.loadout[0]||null;
  $('activeInstrument').innerHTML=v.loadout.map(id=>{const t=D.tools.find(t=>t.id===id);return `<option value="${id}" ${id===activeTool?'selected':''}>${t.name} · ${v.stock[id]||0}件${v.usedTools.includes(id)?' · 已用':''}</option>`;}).join('')||'<option value="">未装备仪器</option>';
  const tool=D.tools.find(t=>t.id===activeTool);$('instrumentDescription').textContent=tool?tool.desc:'';
- $('btnTool').textContent=v.toolUsed?'本轮已用':v.usedTools.includes(tool?.id)?'本场已用':!(v.stock[tool?.id]>0)?'库存不足':'使用仪器';$('btnTool').disabled=!tool||v.toolUsed||v.usedTools.includes(tool?.id)||!(v.stock[tool?.id]>0)||v.phase!=='bidding'||!v.active[0];
+ $('btnTool').textContent=v.round<(tool?.minRound||1)?`第${tool.minRound}轮可用`:v.toolUsed?'本轮已用':v.usedTools.includes(tool?.id)?'本场已用':!(v.stock[tool?.id]>0)?'库存不足':'使用仪器';$('btnTool').disabled=!tool||v.round<(tool?.minRound||1)||v.toolUsed||v.usedTools.includes(tool?.id)||!(v.stock[tool?.id]>0)||v.phase!=='bidding'||!v.active[0];
  const high=v.history.at(-1)?.bids.filter(x=>x!=null);$('lastHigh').textContent=high?.length?fmt(Math.max(...high)):'—';$('btnBid').disabled=v.phase!=='bidding'||!v.active[0]||wallet().balance<1;$('btnPass').disabled=v.phase!=='bidding'||!v.active[0];
  if($('bidHistoryDialog').open)renderBidHistory();
  if(presentation)paintRoundPresentation(presentation,actual);else if(v.phase==='bidding'&&!v.active[0])roundTimer=setTimeout(autoFinish,450);
@@ -201,7 +212,7 @@ function renderResult(){const v=view,r=v.result;if(revealState?.id===v.id&&$('re
  revealState={id:v.id,items:[...v.items],index:0,total:0,done:false,timer:0,frame:0};showDialog('resultDialog');revealState.timer=setTimeout(revealNext,650);
 }
 async function settle(choice){if(busy||view?.phase!=='result'||!revealState?.done)return;busy=true;const v=view;
- try{await transaction(v.id,(disk,bal)=>{if(v.result.won&&bal<v.result.price)throw Error('当前余额低于成交价，请先在藏室出售藏品或同步钱包。');if(disk.snapshot?.current?.id!==v.id||disk.snapshot.current.phase!=='result')throw Error('竞拍进度已在其他窗口更新，请刷新查看。');const engine=E.restore(disk.snapshot),quota=rewardQuota(disk),reward=Math.min(v.result.compensation||0,quota.remaining);const entry=engine.closeLot(choice,bal+(v.result.won?(choice==='sell'?v.result.trueValue-v.result.price:-v.result.price):reward),{compensationLimit:quota.remaining});const inventory=[...disk.inventory],collected=[...disk.collected];if(v.result.won&&choice==='keep')v.items.forEach((i,n)=>{inventory.push({uid:v.id+'-'+n,id:i.identified,value:i.value,venue:v.venue,scale:v.scale,pricingVersion:v.pricingVersion});collected.push(i.identified);});const next={...disk,compensation:{day:quota.day,used:quota.used+(v.policyVersion>=2?0:entry.compensation)},npcProfiles:{...disk.npcProfiles,...engine.export().npcProfiles},snapshot:null,lastAuction:{...entry,entryFee:v.entryFee||0,net:entry.profit-(v.entryFee||0)},inventory,collected:[...new Set(collected)],discovered:[...new Set([...disk.discovered,...v.items.map(i=>i.identified)])]};return {next,delta:entry.cashDelta};});returnToPrepare();await syncCollectionRewards();}catch(e){$('resultError').textContent=e.message;}finally{busy=false;}}
+ try{await transaction(v.id,(disk,bal)=>{if(v.result.won&&bal<v.result.price)throw Error('当前余额低于成交价，请先在藏室出售藏品或同步钱包。');if(disk.snapshot?.current?.id!==v.id||disk.snapshot.current.phase!=='result')throw Error('竞拍进度已在其他窗口更新，请刷新查看。');const engine=E.restore(disk.snapshot),quota=rewardQuota(disk),reward=Math.min(v.result.compensation||0,quota.remaining);const entry=engine.closeLot(choice,bal+(v.result.won?(choice==='sell'?v.result.trueValue-v.result.price:-v.result.price):reward),{compensationLimit:quota.remaining});entry.settledAt=Date.now();const inventory=[...disk.inventory],collected=[...disk.collected];if(v.result.won&&choice==='keep')v.items.forEach((i,n)=>{inventory.push({uid:v.id+'-'+n,id:i.identified,value:i.value,venue:v.venue,scale:v.scale,pricingVersion:v.pricingVersion});collected.push(i.identified);});const next={...disk,compensation:{day:quota.day,used:quota.used+(v.policyVersion>=2?0:entry.compensation)},npcProfiles:{...disk.npcProfiles,...engine.export().npcProfiles},hostDaily:AuctionDaily.record(disk.hostDaily,entry.hostResults,entry.settledAt),snapshot:null,lastAuction:{...entry,entryFee:v.entryFee||0,net:entry.profit-(v.entryFee||0)},inventory,collected:[...new Set(collected)],discovered:[...new Set([...disk.discovered,...v.items.map(i=>i.identified)])]};return {next,delta:entry.cashDelta};});returnToPrepare();await syncCollectionRewards();}catch(e){$('resultError').textContent=e.message;}finally{busy=false;}}
 function returnToPrepare(){clearTimeout(roundTimer);closeDialogs();session=null;view=null;selected=null;screen('prepare');renderPrepare();scrollTo({top:0,behavior:'instant'});}
 async function finishLegacy(){if(!session)return;const id=session.view().id;try{await transaction('finish-'+id,(disk)=>{if(disk.snapshot?.current?.id!==id||disk.snapshot.current.phase!=='closed')throw Error('进度已更新');return {next:{...disk,snapshot:null},delta:0};});returnToPrepare();}catch(e){toast(e.message);}}
 function renderCabinet(){balanceUI();const rewards=AuctionRewards.progress();$('collectionRewards').textContent=`首藏代币 ${rewards.earned} / ${rewards.total}`;const collected=new Set(state.collected),owned=new Map();for(const i of state.inventory)owned.set(i.id,(owned.get(i.id)||0)+1);
@@ -268,7 +279,8 @@ for(const b of document.querySelectorAll('[data-play-tab]'))b.onclick=()=>{docum
 for(const b of document.querySelectorAll('[data-prepare-tab]'))b.onclick=()=>{document.body.dataset.prepareTab=b.dataset.prepareTab;document.querySelectorAll('[data-prepare-tab]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));};
 for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>b.closest('dialog').close();
 addEventListener('message',async e=>{if(e.source!==parent||parent===window)return;const d=e.data||{};if(d.type===NS+':set-balance'&&Number.isFinite(d.balance)){putWallet(d.balance);balanceUI();if(!session)renderPrepare();}if(d.type===NS+':reset-command'){closeDialogs();session=null;view=null;state.snapshot=null;if(d.keepBalance!==true)putWallet(1000);await save();screen('prepare');renderPrepare();}});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&session&&state.roundPresentation)renderPlay();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){renderHostDaily();if(session&&state.roundPresentation)renderPlay();}});
+addEventListener('focus',renderHostDaily);
 addEventListener('storage',e=>{if(e.key===WALLET){balanceUI();if($('bidDialog').open)updateBidDisplay();if(!session)renderPrepare();}if(e.key===KEY&&!busy){const disk=read(KEY);if(disk&&!disk.pending){state=hydrate(disk);AuctionAudio.setEnabled(state.sound);$('btnSound').setAttribute('aria-pressed',String(state.sound));$('btnSound').setAttribute('aria-label',state.sound?'关闭音乐与音效':'开启音乐与音效');session=disk.snapshot?E.restore(disk.snapshot):null;if(session){view=session.view();if(view.phase==='closed')finishLegacy();else renderPlay();}else{if(view)closeDialogs();view=null;if(document.body.dataset.screen!=='admission')screen('prepare');renderPrepare();}if($('collectionDialog').open)renderCabinet();if($('instrumentDialog').open)renderShop();}}});
 try{state=hydrate(recover());if(state.snapshot)session=E.restore(state.snapshot);}catch(e){toast(e.message);session=null;}
 $('btnSound').setAttribute('aria-pressed',String(state.sound));

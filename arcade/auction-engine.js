@@ -140,6 +140,7 @@ function createSession(options={}, saved=null){
   const c=s.current,tool=D.tools.find(t=>t.id===id);
   if(!c||c.phase!=='bidding'||!c.active[0])throw Error('当前阶段未开放仪器');
   if(!tool||!s.loadout.includes(id))throw Error('仪器未装入本场的三个槽位');
+  if(c.round<(tool.minRound||1))throw Error(`该仪器第${tool.minRound}轮起可用`);
   if(c.toolRound===c.round)throw Error('每轮至多消耗一件仪器');
   if(c.usedTools.includes(id))throw Error('同款仪器每箱至多使用一次');
   if(!(s.stock[id]>0))throw Error('库存不足，请先购买');
@@ -154,7 +155,7 @@ function createSession(options={}, saved=null){
   const r=c.result;if(r.won&&!['sell','keep'].includes(choice))throw Error('请选择出售或留藏');
   const compensation=r.won?0:Math.min(r.compensation||0,Math.max(0,Math.floor(s.policyVersion>=2?Number.MAX_SAFE_INTEGER:(options.compensationLimit??D.economy.compensationDaily))));
   const entry={id:c.id,lot:s.lotIndex,...r,compensation,profit:(r.won?r.trueValue-r.price:compensation)-c.instrumentCost,instrumentCost:c.instrumentCost,choice:r.won?choice:'none',cashDelta:r.won?(choice==='sell'?r.trueValue-r.price:-r.price):compensation};
-  s.bots.forEach((bot,index)=>B.settle(bot,{seat:index+1,winner:r.winner,price:r.price,trueValue:r.trueValue,items:c.items.map(i=>({...i,value:price(i,c.scale)})),compensation:s.policyVersion>=2?(r.compensationDetails?.payouts[index+1]||0):Math.min(D.economy.compensationPerLot,r.rawCompensation||0),policyVersion:s.policyVersion,entryFee:s.entryFee,history:c.history}));
+  entry.hostResults=[{host:s.host,role:'partner',net:entry.profit-(s.entryFee||0),entryFee:s.entryFee||0,instrumentCost:c.instrumentCost,compensation},...s.bots.map((bot,index)=>B.settle(bot,{seat:index+1,winner:r.winner,price:r.price,trueValue:r.trueValue,items:c.items.map(i=>({...i,value:price(i,c.scale)})),compensation:s.policyVersion>=2?(r.compensationDetails?.payouts[index+1]||0):Math.min(D.economy.compensationPerLot,r.rawCompensation||0),policyVersion:s.policyVersion,entryFee:s.entryFee,history:c.history}))];
   if(s.policyVersion>=2)for(const bot of s.bots){const profile={};for(const key of ['type','series','category','inventory','traits','memory'])profile[key]=clone(bot[key]);s.npcProfiles[bot.host]=profile;}
   s.ledger.push(entry);s.bank=Math.max(0,Math.floor(balance??(s.bank+entry.cashDelta)));c.phase='closed';return clone(entry);
  }

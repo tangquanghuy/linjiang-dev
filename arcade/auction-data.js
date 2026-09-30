@@ -2,17 +2,17 @@
 (function (root) {
 'use strict';
 const hosts = [
- ['塔菲','层层拆谜','第1–4轮，依次揭示寻常、精良、稀有、史诗藏品的轮廓和品质。','ladder','#e5b8be','阿德勒'],
- ['红蔷薇','聚光追踪','第1轮随机揭示3件藏品的轮廓；第3轮完整鉴定这3件藏品。','track','#d4787d','小吱（数量缩放）'],
- ['东雪莲','寻常见真','第1轮揭示全部寻常、精良、稀有藏品的轮廓和品质。','common','#a6bdd6','埃德嘉'],
- ['沙花叉','分类寻宝','第1–3轮各随机选取一种未检索类别，揭示该类全部藏品的轮廓和类别；第5轮补全已知品质藏品的轮廓。','category-wave','#afafb8','浔'],
- ['时雨羽衣','色彩铺陈','第1轮随机揭示至多2件藏品的轮廓和品质；之后每轮随机揭示1件未知品质。','colour-wave','#bfd2ac','哈尼娅（数量缩放）'],
- ['斯黛拉','压轴星光','第5轮揭示全部藏品的品质。','finale','#c3b3d6','哈索尔'],
- ['璃亚梦','命运切片','第1、3、5轮各随机触发一项：史诗与传说总件数、1件最高品质藏品的轮廓或价值、随机鉴定1件、揭示2件品质或3件轮廓。','fortune','#eba8c6','渡鸦（社区1.4预览，改编）'],
- ['兔子洞初音','焦点巡回','第1轮揭示1件最高品质藏品的轮廓；每轮（含第1轮）另随机揭示至多1件藏品的轮廓和品质。','apex','#95ccc8','九原'],
- ['神乐七奈','珍品点名','第1轮得知史诗与传说藏品的合计件数，不揭示位置。','rare-count','#a3bce6','达芙蒂尔（本项目五档品质）'],
- ['鲸鱼娘','均值回声','第1轮得知精良藏品的平均价值（向下取整）；第3轮得知传说藏品的总价值。','analyst','#8eadd5','项目原创：均价与总额机制组合'],
- ['牛肉','大件优先','第1轮揭示1件占格最多藏品的轮廓；第2轮揭示该件品质；第4轮完整鉴定该件。','large-track','#b4cabe','项目原创：特殊尺寸/品鉴/鉴定组合'],
+ ['塔菲','层层拆谜','第1、2、3轮各随机揭示1件未知品质。','ladder','#e5b8be','项目平衡版'],
+ ['红蔷薇','聚光追踪','第1轮随机揭示2件轮廓，第2、4轮依次完整鉴定这2件。','track','#d4787d','项目平衡版'],
+ ['东雪莲','细节辨色','第1轮随机揭示2件类别及其中1件轮廓；第2轮揭示该件品质，第3轮完整鉴定另一件。','common','#a6bdd6','项目平衡版'],
+ ['沙花叉','分类寻宝','第1轮随机揭示2件的轮廓与类别；第3、4轮依次揭示这2件的品质。','category-wave','#afafb8','项目平衡版'],
+ ['时雨羽衣','色彩铺陈','第1轮随机揭示1件的轮廓与品质；第3、5轮各随机揭示1件未知品质。','colour-wave','#bfd2ac','项目平衡版'],
+ ['斯黛拉','压轴星光','第1轮随机揭示2件未知轮廓，第3轮随机揭示1件未知品质，第5轮再揭示至多3件未知品质。','finale','#c3b3d6','项目平衡版'],
+ ['璃亚梦','命运切片','第1、3、5轮各随机触发一项：鉴定1件、揭示1件品质、揭示1件轮廓与品质，或揭示2件轮廓与类别。','fortune','#eba8c6','项目平衡版'],
+ ['兔子洞初音','焦点巡回','第1轮随机揭示1件的轮廓与类别，第2轮揭示该件品质；第4轮另随机揭示至多2件的轮廓与品质。','apex','#95ccc8','项目平衡版'],
+ ['神乐七奈','珍品抽检','第1轮随机抽取2件，仅得知其中史诗与传说的合计件数；第3轮揭示这2件的品质。','rare-count','#a3bce6','项目平衡版'],
+ ['鲸鱼娘','估价回声','第1轮随机选定2件，仅揭示其中1件轮廓；第2轮得知这2件的合计价值。','analyst','#8eadd5','项目平衡版'],
+ ['牛肉','大件优先','第1轮揭示最大占格藏品的轮廓，第2轮揭示该件品质，第4轮完整鉴定；第3轮另随机揭示1件未知品质。','large-track','#b4cabe','项目平衡版'],
 ].map(([name,skill,desc,effect,color,reference],id)=>({id,name,skill,desc,effect,color,reference,portrait:`assets/auction/hosts/${name}.webp`,avatar:`assets/auction/hosts/${name}-avatar.webp`}));
 const qualities=[{"name": "寻常", "color": "#adb7bf", "label": "C"}, {"name": "精良", "color": "#8ccb9a", "label": "B"}, {"name": "稀有", "color": "#80bce8", "label": "A"}, {"name": "史诗", "color": "#bb9bec", "label": "S"}, {"name": "传说", "color": "#ffbc61", "label": "SS"}];
 const series=[{"id": "signal", "name": "失物电波", "category": "电子"}, {"id": "playroom", "name": "童年放映室", "category": "玩具"}, {"id": "encore", "name": "午夜安可", "category": "音乐"}, {"id": "atelier", "name": "手作小宇宙", "category": "工艺"}, {"id": "roadtrip", "name": "城市漫游", "category": "模型"}, {"id": "pantry", "name": "甜蜜补给站", "category": "食玩"}, {"id": "archive", "name": "旧城记忆", "category": "古物"}, {"id": "anomaly", "name": "异常观察局", "category": "奇物"}];
@@ -1282,25 +1282,25 @@ for(const venue of venues){
 }
 // Local prices, not NTE currency conversion. Counts scaled for our 6–8 item boxes.
 const tools=[];
-function instrument(id,name,tier,cost,effect,desc,symbol='⌖'){tools.push({id,name,tier,cost,effect,desc,symbol});}
+function instrument(id,name,tier,cost,effect,desc,symbol='⌖',minRound=1){tools.push({id,name,tier,cost,effect,desc:(minRound>1?`第${minRound}轮起可用。`:'')+desc,symbol,minRound});}
 for(const [tier,label,quality,shape,identify,costs] of [
  [0,'微型',1,2,1,[12,10,30]], [1,'小型',2,3,2,[28,22,80]],
  [2,'中型',3,4,3,[65,45,180]], [3,'高级',4,5,4,[140,100,360]], [4,'超级',5,6,5,[250,180,650]]]){
- instrument('quality-'+tier,label+'品鉴仪',tier,costs[0],{kind:'quality',count:quality},`随机揭示至多${quality}件藏品的未知品质，不揭示轮廓。`,'◈');
- instrument('shape-'+tier,label+'尺寸仪',tier,costs[1],{kind:'shape',count:shape},`随机揭示至多${shape}件藏品的未知轮廓。`,'▧');
- instrument('identify-'+tier,label+'鉴定仪',tier,costs[2],{kind:'identify',count:identify},`随机完整鉴定至多${identify}件未鉴定藏品。`,'⌖');
+ instrument('quality-'+tier,label+'品鉴仪',tier,costs[0],{kind:'quality',count:quality},`随机揭示至多${quality}件藏品的未知品质，不揭示轮廓。`,'◈',tier+1);
+ instrument('shape-'+tier,label+'尺寸仪',tier,costs[1],{kind:'shape',count:shape},`随机揭示至多${shape}件藏品的未知轮廓。`,'▧',tier+1);
+ instrument('identify-'+tier,label+'鉴定仪',tier,costs[2],{kind:'identify',count:identify},`随机完整鉴定至多${identify}件未鉴定藏品。`,'⌖',tier+1);
 }
 for(const [q,label,tier,cost] of [[1,'精良',0,12],[2,'稀有',1,28],[3,'史诗',2,65],[4,'传说',3,140]]){
- for(const [stat,title,ratio] of [['count','计数',1],['mean','均价',1.2],['total','估值',1.8]])
- instrument(`${stat}-${q}`,label+title+'仪',tier,Math.round(cost*ratio),{kind:'stat',stat,filter:{quality:q}},`读取全箱${label}藏品的${stat==='total'?'总价值':stat==='mean'?'平均价值（向下取整）':'件数'}，不揭示位置。`,'▤');
+ for(const [stat,title,ratio] of [['count','计数',1],['mean','均价',.6],['total','估值',q===4?1:1.4]])
+ instrument(`${stat}-${q}`,label+title+'仪',tier,Math.round(cost*ratio),{kind:'stat',stat,filter:{quality:q},sampleSize:3},`固定抽样3件，读取其中${label}藏品的${stat==='total'?'总价值':stat==='mean'?'平均价值（向下取整）':'件数'}；各抽样仪器共用同组样本。`,'▤',q);
 }
-for(const c of series)instrument('category-'+c.id,c.category+'品鉴仪',1,35,{kind:'quality',count:2,filter:{category:c.category},category:true},`随机揭示至多2件${c.category}藏品的类别和品质，不揭示轮廓；无待揭示目标时，得知该类件数。`,'◇');
-instrument('largest-shape','特殊尺寸仪',2,55,{kind:'shape',count:1,select:'largest'},'揭示1件占格最多藏品的轮廓。','▧');
-instrument('largest-identify','特殊鉴定仪',3,260,{kind:'identify',count:1,select:'largest'},'完整鉴定1件占格最多的藏品。');
-instrument('supreme','至尊鉴定仪',5,480,{kind:'identify',count:1,select:'pristine-top'},'完整鉴定尚无任何情报的藏品中品质最高的一件。');
-for(const [q,label,cost] of [[1,'精良',12],[3,'史诗',65],[4,'传说',140]])instrument('area-'+q,label+'占格仪',q===1?0:q===3?2:3,cost,{kind:'stat',stat:'area',filter:{quality:q}},`读取全箱${label}藏品占格总数，不揭示位置。`,'▧');
-instrument('largest-quality','特殊品鉴仪',3,120,{kind:'quality',count:1,select:'largest'},'揭示1件占格最多藏品的品质，不揭示轮廓。','◈');
-instrument('largest-value','特殊估值仪',4,300,{kind:'stat',stat:'largestValue'},'得知1件占格最多藏品的价值，不揭示身份或位置。','▤');
+for(const c of series)instrument('category-'+c.id,c.category+'品鉴仪',1,35,{kind:'quality',count:2,filter:{category:c.category},category:true,noCountFallback:true},`随机揭示至多2件${c.category}藏品的类别和品质，不揭示轮廓。`,'◇');
+instrument('largest-shape','特殊尺寸仪',2,8,{kind:'shape',count:1,select:'largest'},'揭示1件占格最多藏品的轮廓。','▧');
+instrument('largest-identify','特殊鉴定仪',3,60,{kind:'identify',count:1,select:'largest'},'完整鉴定1件占格最多的藏品。','⌖',2);
+instrument('supreme','至尊鉴定仪',5,240,{kind:'identify',count:3,select:'ungraded'},'随机完整鉴定至多3件品质未知的藏品。','⌖',3);
+for(const [q,label,cost] of [[1,'精良',12],[3,'史诗',65],[4,'传说',140]])instrument('area-'+q,label+'占格仪',q===1?0:q===3?2:3,cost,{kind:'stat',stat:'area',filter:{quality:q},sampleSize:3},`固定抽样3件，读取其中${label}藏品的占格总数；各抽样仪器共用同组样本。`,'▧',q);
+instrument('largest-quality','特殊品鉴仪',3,20,{kind:'quality',count:1,select:'largest'},'揭示1件占格最多藏品的品质，不揭示轮廓。','◈',2);
+instrument('largest-value','特殊估值仪',4,32,{kind:'stat',stat:'largestValue'},'得知1件占格最多藏品的价值，不揭示身份或位置。','▤',2);
 const toolTiers=['入门','进阶','专业','高级','超级','至尊'];
 const economy=Object.freeze({compensationRate:.10,compensationPerLot:40,compensationDaily:60,poolRate:.30,stakeRate:.10,participationFeeFactor:2,participationHistoryRatio:.60});
 root.AuctionData=Object.freeze({hosts,catalog,qualities,series,venues,tools,toolTiers,economy,pricingVersion,catalogPrice});
@@ -1317,64 +1317,87 @@ function reveal(raw,seen,kind,category=false){
  const before=JSON.stringify(seen);
  if(kind==='shape'||kind==='shape-quality'||kind==='identify'){for(const k of ['x','y','w','h'])seen[k]=raw[k];}
  if(kind==='quality'||kind==='shape-quality'||kind==='identify')seen.quality=raw.quality;
- if(category||kind==='identify')seen.category=raw.category;
+ if(category||kind==='category'||kind==='identify')seen.category=raw.category;
  if(kind==='identify')seen.identified=raw.id;
  return before!==JSON.stringify(seen);
 }
-function useful(i,spec){if(spec.kind==='identify')return i.identified==null;if(spec.kind==='quality')return i.quality==null||(spec.category&&!i.category);if(spec.kind==='shape')return i.w==null;return i.w==null||i.quality==null;}
+function useful(i,spec){if(spec.kind==='category')return !i.category;if(spec.kind==='identify')return i.identified==null;if(spec.kind==='quality')return i.quality==null||(spec.category&&!i.category);if(spec.kind==='shape')return i.w==null;return i.w==null||i.quality==null;}
 function apply(raw,intel,facts,spec,rng,scale=1){
- let pool=raw.filter(i=>match(i,spec.filter)),chosen=[];
+ if(spec.sampleSize){
+  const cohort=facts.find(f=>f.scopeGroup==='instruments')?.scope||sampleSlots(raw,spec.sampleSize,rng);
+  spec={...spec,sampleSize:0,scope:cohort,scopeGroup:'instruments'};
+ }
+ let pool=raw.filter(i=>(!spec.scope||spec.scope.includes(i.slot))&&match(i,spec.filter)),chosen=[];
  if(spec.kind==='stat'){
-  const key=JSON.stringify([spec.stat,spec.filter||{}]);if(facts.some(f=>f.key===key))return null;
+  const key=JSON.stringify(spec.scope?[spec.stat,spec.filter||{},spec.scope]:[spec.stat,spec.filter||{}]);if(facts.some(f=>f.key===key))return null;
   const sum=pool.reduce((n,i)=>n+value(i,scale),0),largest=pool.slice().sort((a,b)=>b.w*b.h-a.w*a.h||a.slot-b.slot)[0],v=spec.stat==='count'?pool.length:spec.stat==='mean'?(pool.length?Math.floor(sum/pool.length):0):spec.stat==='area'?pool.reduce((n,i)=>n+i.w*i.h,0):spec.stat==='largestValue'?value(largest,scale):sum;
   const subject=spec.filter?.quality!=null?D.qualities[spec.filter.quality].name+'藏品':spec.filter?.minQuality!=null?D.qualities.slice(spec.filter.minQuality).map(q=>q.name).join('与')+'藏品':spec.filter?.category?spec.filter.category+'藏品':'';
-  const fact={key,stat:spec.stat,filter:copy(spec.filter||{}),value:v};facts.push(fact);return {fact,text:`${subject}${spec.stat==='count'?'件数':spec.stat==='mean'?'平均价值（向下取整）':spec.stat==='area'?'占格总数':spec.stat==='largestValue'?'最大占格藏品价值（位置未知）':'总价值'}：${v}`,slots:[]};
+  const fact={key,stat:spec.stat,filter:copy(spec.filter||{}),value:v,...(spec.scope?{scope:[...spec.scope],scopeGroup:spec.scopeGroup||'skill'}:{})};facts.push(fact);return {fact,text:`${spec.scope?'样本 '+spec.scope.map(n=>'#'+(n+1)).join('、')+' · ':''}${subject}${spec.stat==='count'?'件数':spec.stat==='mean'?'平均价值（向下取整）':spec.stat==='area'?'占格总数':spec.stat==='largestValue'?'最大占格藏品价值（位置未知）':'总价值'}：${v}`,slots:[]};
  }
  if(spec.slots)pool=pool.filter(i=>spec.slots.includes(i.slot));
- if(spec.select==='pristine-top')pool=pool.filter(i=>{const o=intel.find(x=>x.slot===i.slot);return o.w==null&&o.quality==null&&!o.category&&o.identified==null;});
+ if(spec.select==='ungraded')pool=pool.filter(i=>intel.find(x=>x.slot===i.slot).quality==null);
+ if(['pristine-top','pristine'].includes(spec.select))pool=pool.filter(i=>{const o=intel.find(x=>x.slot===i.slot);return o.w==null&&o.quality==null&&!o.category&&o.identified==null;});
  // Largest and top-quality selection happens before usefulness filtering; no silently switching targets.
  if(spec.select==='largest')pool=pool.sort((a,b)=>b.w*b.h-a.w*a.h||a.slot-b.slot).slice(0,1);
  if(['top-quality','pristine-top'].includes(spec.select))pool=pool.sort((a,b)=>b.quality-a.quality||a.slot-b.slot).slice(0,1);
  pool=pool.filter(i=>useful(intel.find(x=>x.slot===i.slot),spec));
- if(!spec.select&&!spec.slots)for(let i=pool.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+ if((!spec.select||['pristine','ungraded'].includes(spec.select))&&!spec.slots)for(let i=pool.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
  chosen=pool.slice(0,spec.count??pool.length);
- if(!chosen.length){if(spec.filter)return apply(raw,intel,facts,{kind:'stat',stat:'count',filter:spec.filter},rng,scale);return null;}
+ if(!chosen.length){if(spec.filter&&!spec.noCountFallback)return apply(raw,intel,facts,{kind:'stat',stat:'count',filter:spec.filter},rng,scale);return null;}
  for(const i of chosen)reveal(i,intel.find(x=>x.slot===i.slot),spec.kind,spec.category);
- return {slots:chosen.map(i=>i.slot),text:`新增 ${chosen.length} 件${spec.kind==='identify'?'完整鉴定':spec.kind==='shape'?(spec.category?'轮廓与类别':'轮廓'):spec.kind==='quality'?(spec.category?'类别与品质':'品质'):'轮廓与品质'}情报`};
+ return {slots:chosen.map(i=>i.slot),text:`新增 ${chosen.length} 件${spec.kind==='category'?'类别':spec.kind==='identify'?'完整鉴定':spec.kind==='shape'?(spec.category?'轮廓与类别':'轮廓'):spec.kind==='quality'?(spec.category?'类别与品质':'品质'):'轮廓与品质'}情报`};
 }
+function sampleSlots(raw,count,rng){const slots=raw.map(i=>i.slot);for(let i=slots.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[slots[i],slots[j]]=[slots[j],slots[i]];}return slots.slice(0,count);}
 function skill(effect,round,raw,intel,facts,memory,rng,scale){
- const specs=[];
- if(effect==='ladder'&&round<=4)specs.push({kind:'shape-quality',filter:{quality:round-1}});
+ const specs=[],mark=(key,count)=>memory[key]??=sampleSlots(raw,count,rng);
+ if(effect==='ladder'&&[1,2,3].includes(round))specs.push({kind:'quality',count:1});
  if(effect==='track'){
-  if(round===1){let xs=raw.map(i=>i.slot);for(let i=xs.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[xs[i],xs[j]]=[xs[j],xs[i]];}memory.tracked=xs.slice(0,3);specs.push({kind:'shape',slots:memory.tracked});}
-  if(round===3)specs.push({kind:'identify',slots:memory.tracked||[]});
+  if(round===1)specs.push({kind:'shape',slots:mark('tracked',2)});
+  if([2,4].includes(round))specs.push({kind:'identify',slots:(memory.tracked||[]).slice(round===2?0:1,round===2?1:2)});
  }
- if(effect==='common'&&round===1)for(let q=0;q<=2;q++)specs.push({kind:'shape-quality',filter:{quality:q}});
+ if(effect==='common'){
+  if(round===1){specs.push({kind:'category',slots:mark('detailSample',2)});specs.push({kind:'shape',slots:memory.detailSample.slice(0,1)});}
+  if(round===2)specs.push({kind:'shape-quality',slots:(memory.detailSample||[]).slice(0,1)});
+  if(round===3)specs.push({kind:'identify',slots:(memory.detailSample||[]).slice(1,2)});
+ }
  if(effect==='category-wave'){
-  memory.categories??=[];
-  if(round<=3){const cats=[...new Set(raw.map(i=>i.category))].filter(c=>!memory.categories.includes(c));if(cats.length){const category=cats[Math.floor(rng()*cats.length)];memory.categories.push(category);specs.push({kind:'shape',category:true,filter:{category}});}}
-  if(round===5)specs.push({kind:'shape',slots:intel.filter(i=>i.quality!=null).map(i=>i.slot)});
+  if(round===1)specs.push({kind:'shape',category:true,slots:mark('categorySample',2)});
+  if([3,4].includes(round))specs.push({kind:'quality',slots:(memory.categorySample||[]).slice(round-3,round-2)});
  }
- if(effect==='colour-wave')specs.push({kind:round===1?'shape-quality':'quality',count:round===1?2:1});
- if(effect==='finale'&&round===5)specs.push({kind:'quality'});
- if(effect==='apex'){if(round===1)specs.push({kind:'shape',select:'top-quality',count:1});specs.push({kind:'shape-quality',count:1});}
- if(effect==='rare-count'&&round===1)specs.push({kind:'stat',stat:'count',filter:{minQuality:3}});
- if(effect==='analyst'){if(round===1)specs.push({kind:'stat',stat:'mean',filter:{quality:1}});if(round===3)specs.push({kind:'stat',stat:'total',filter:{quality:4}});}
+ if(effect==='colour-wave'&&[1,3,5].includes(round))specs.push({kind:round===1?'shape-quality':'quality',count:1});
+ if(effect==='finale'){
+  if(round===1)specs.push({kind:'shape',count:2});
+  if([3,5].includes(round))specs.push({kind:'quality',count:round===3?1:3});
+ }
+ if(effect==='apex'){
+  if(round===1)specs.push({kind:'shape',category:true,slots:mark('focusSample',1)});
+  if(round===2)specs.push({kind:'quality',slots:memory.focusSample||[]});
+  if(round===4)specs.push({kind:'shape-quality',slots:sampleSlots(raw.filter(i=>!(memory.focusSample||[]).includes(i.slot)),2,rng)});
+ }
+ if(effect==='rare-count'){
+  if(round===1)specs.push({kind:'stat',stat:'count',filter:{minQuality:3},scope:mark('rareSample',2)});
+  if(round===3)specs.push({kind:'quality',slots:memory.rareSample||[]});
+ }
+ if(effect==='analyst'){
+  if(round===1)specs.push({kind:'shape',slots:mark('valueSample',2).slice(0,1)});
+  if(round===2&&memory.valueSample?.length)specs.push({kind:'stat',stat:'total',scope:memory.valueSample});
+ }
  if(effect==='large-track'){
   if(round===1)memory.large=raw.slice().sort((a,b)=>b.w*b.h-a.w*a.h||a.slot-b.slot)[0]?.slot;
   if([1,2,4].includes(round))specs.push({kind:round===1?'shape':round===2?'quality':'identify',slots:[memory.large]});
+  if(round===3)specs.push({kind:'quality',count:1});
  }
  if(effect==='fortune'&&[1,3,5].includes(round)){
-  const n=Math.floor(rng()*6);memory.fortune=n;
-  specs.push([{kind:'stat',stat:'count',filter:{minQuality:3}},{kind:'shape',select:'top-quality',count:1},{kind:'identify',count:1},{kind:'quality',count:2},{kind:'shape',count:3},null][n]);
-  if(n===5){const top=raw.slice().sort((a,b)=>b.quality-a.quality||a.slot-b.slot)[0];const key='top-quality-value';if(!facts.some(f=>f.key===key)){const f={key,stat:'topValue',filter:{},value:value(top,scale)};facts.push(f);return [{text:`最高品质藏品价值：${f.value}（位置未知）`,fact:f,slots:[]}];}}
+  const n=Math.floor(rng()*4);memory.fortune=n;
+  specs.push([{kind:'identify',count:1},{kind:'quality',count:1},{kind:'shape-quality',count:1},{kind:'shape',category:true,count:2}][n]);
  }
- return specs.filter(Boolean).map(sp=>apply(raw,intel,facts,sp,rng,scale)).filter(Boolean);
+ return specs.map(sp=>apply(raw,intel,facts,sp,rng,scale)).filter(Boolean);
 }
 function bounds(items,facts,scale=1,pricingVersion=D.pricingVersion){
  const value=(item,scale)=>D.catalogPrice(item,scale,pricingVersion);
  const pools=items.map(candidates),n=items.length;let low=pools.reduce((s,p)=>s+Math.min(...p.map(i=>value(i,scale))),0),high=pools.reduce((s,p)=>s+Math.max(...p.map(i=>value(i,scale))),0);
  for(const f of facts){
+  if(f.scope)continue;
   if(f.stat==='mean'&&!Object.keys(f.filter).length){low=Math.max(low,f.value*n);high=Math.min(high,(f.value+1)*n-1);}
   if(f.stat==='total'){
    low=Math.max(low,f.value+pools.reduce((s,p)=>s+(p.every(i=>!match(i,f.filter))?Math.min(...p.map(i=>value(i,scale))):0),0));
@@ -1389,6 +1412,13 @@ function bounds(items,facts,scale=1,pricingVersion=D.pricingVersion){
    }
    if(Number.isFinite(lo[f.value])){low=Math.max(low,lo[f.value]);high=Math.min(high,hi[f.value]);}
   }
+ }
+ // Scoped statistics constrain only the sampled slots, never the whole warehouse.
+ const groups=new Map();for(const f of facts.filter(f=>f.scope)){const key=JSON.stringify([...f.scope].sort((a,b)=>a-b));if(!groups.has(key))groups.set(key,[]);groups.get(key).push(f);}
+ for(const group of groups.values()){
+  const scope=group[0].scope,inside=items.filter(i=>scope.includes(i.slot)),outside=items.filter(i=>!scope.includes(i.slot));
+  const local=group.map(({scope,scopeGroup,...f})=>f),a=bounds(inside,local,scale,pricingVersion),b=bounds(outside,[],scale,pricingVersion);
+  low=Math.max(low,a.low+b.low);high=Math.min(high,a.high+b.high);
  }
  return {low,high};
 }

@@ -33,7 +33,7 @@ for(let seed=1;seed<=120;seed++)for(const venue of D.venues){
 }
 assert.equal(D.hosts.length,11);assert.equal(D.tools.length,43);
 for(const entry of [...D.hosts,...D.tools,...D.venues])assert.ok(!/前期保留悬念|后期集中判断|大件不一定昂贵|每一次判断都/.test(entry.desc));
-assert.equal(D.hosts.find(h=>h.effect==='finale').desc,'第5轮揭示全部藏品的品质。');
+assert.equal(D.hosts.find(h=>h.effect==='finale').desc,'第1轮随机揭示2件未知轮廓，第3轮随机揭示1件未知品质，第5轮再揭示至多3件未知品质。');
 for(const t of D.tools.filter(t=>t.effect.stat==='mean'))assert.ok(t.desc.includes('向下取整'));
 {
  const raw=[{...D.catalog.find(c=>c.quality===1),slot:0,x:0,y:0}],seen=raw.map(AuctionIntel.empty),facts=[];

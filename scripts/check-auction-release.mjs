@@ -5,7 +5,7 @@ import { resolve, extname, sep } from 'node:path';
 import { chromium } from 'playwright';
 
 // Run after npm run build: exercise the shipped lobby rather than the source tree.
-const version = '20260930-auction-rebate2';
+const version = '20260930-auction-daily1';
 const root = resolve('dist');
 const read = file => readFileSync(file, 'utf8');
 assert.ok(read('外部部署/V20260930/状态栏.html').includes(`/?v=${version}`));
@@ -15,7 +15,7 @@ assert.ok(read('src/arcade.js').includes(`arcade/index.html?v=${version}`));
 assert.ok(read(resolve(root, 'arcade/index.html')).includes(`auction.html?v=${version}`));
 const html = read(resolve(root, 'arcade/auction.html'));
 const refs = [...html.matchAll(/(?:src|href)="(auction[^"?]*\.(?:js|css))\?v=([^"]+)"/g)];
-assert.ok(refs.length === 12);
+assert.ok(refs.length === 13);
 for (const [, file, revision] of refs) {
   assert.equal(revision, version, file);
   assert.ok(statSync(resolve(root, 'arcade', file)).isFile(), file);
