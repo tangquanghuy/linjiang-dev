@@ -1,0 +1,164 @@
+/* One game scene on every screen. 1rem is one logical pixel of a 1100x600
+   landscape scene; aspect-ratio surplus widens the columns, never switches UI.
+   No phone-specific composition, typography, or hidden bidding history. */
+/* Type roles: focal 30, page 22, heading 18, body 17, detail 16, metadata 14.
+   Keep input targets and the numeric keypad large; only reading hierarchy changes. */
+:root{font-size:min(.0909091vw,.1666667dvh);--font:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;--orange:#efbd7a;--paper:#f5f1e8;--type-display:30rem;--type-title:22rem;--type-heading:18rem;--type-body:17rem;--type-detail:16rem;--type-meta:14rem;--ink-secondary:#c5ceca;--ink-muted:#a6b5b1;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{height:100%;overflow:hidden}body{font-size:var(--type-heading);line-height:1.45}button,select{min-height:44rem}button{touch-action:manipulation}h1,h2,h3{letter-spacing:0}small{font-size:18rem}
+.app{max-width:none;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:0 max(18rem,env(safe-area-inset-right)) 0 max(18rem,env(safe-area-inset-left))}
+.app:before{inset:0;height:100%;background:linear-gradient(90deg,#0e1214c9,#11161665 48%,#0b1013a8),linear-gradient(0deg,#0b1114b3,transparent 65%),url('assets/auction/hall.webp') center/cover}
+.topbar{height:58rem;min-height:58rem;padding:0;gap:30rem;border:0;background:transparent}
+.brand{font-size:20rem;gap:9rem;font-weight:600;letter-spacing:0}.brand small{display:none}.brand-mark{width:32rem;height:34rem;font-size:21rem}
+.topbar nav{display:flex;gap:24rem;margin:0}.topbar nav button{font-size:var(--type-body);padding:0;border-width:2rem;font-weight:500}.topbar nav span{font-size:var(--type-meta);margin-left:6rem}
+.top-actions{gap:10rem}.top-actions .wallet{display:flex;align-items:center;gap:12rem;margin:0 8rem 0 0;padding:4rem 15rem;border:1rem solid #c8c7bf50;border-radius:24rem;background:#080d10a8}
+.wallet small{font-size:var(--type-meta);color:var(--ink-muted)}.wallet strong{font-size:24rem;font-weight:600;font-variant-numeric:tabular-nums}.wallet>span{font-size:17rem;order:-1}
+.icon-button{width:40rem;min-height:40rem;font-size:22rem;border-radius:50%;border:1rem solid #c3ccc45c}.mobile-only{display:none}
+main{flex:1;min-height:0;display:flex;flex-direction:column}body[data-screen=play] .topbar nav{display:none}
+.prepare,.admission,.play{flex:1;min-height:0;width:100%;overflow:hidden;margin:0;max-width:none}
+.prepare-tabs,.play-tabs{display:none!important}
+/* Preparation: portrait/skill above two rows of partners; three tools beside it. */
+.prepare{display:flex;flex-direction:column;padding:10rem 0 14rem;gap:14rem}
+.prepare-topline{display:flex;align-items:center;min-height:32rem}.prepare-topline h1{font-size:var(--type-title);font-weight:600}
+.prepare-layout{display:grid;grid-template-rows:minmax(0,1fr);grid-template-columns:minmax(0,1.48fr) minmax(0,1fr);gap:24rem;flex:1;min-height:0}
+.setup-panel{padding:20rem;min-height:0;min-width:0;background:#182023dc;border:1rem solid #b4b8a934;overflow:hidden}
+body .partner-panel{grid-column:1;grid-row:1;display:flex;flex-direction:column;gap:16rem;justify-content:space-between}
+.partner-focus{display:grid;grid-template-columns:minmax(0,.68fr) minmax(0,1fr);gap:20rem;flex:1;min-height:0;max-height:none}
+#heroPortrait{width:100%;height:100%;min-height:0;max-height:none;object-fit:cover;object-position:50% 20%;border-radius:3rem}
+.partner-details{min-width:0;align-self:center}.partner-details h2{font-size:var(--type-display);line-height:1.2;margin-bottom:22rem;font-weight:600}
+.skill-description{margin:0;padding:16rem 0 0;border:0;border-top:1rem solid #c2cbbf35;background:none;min-height:0}.skill-description h3{font-size:var(--type-heading);line-height:1.4;margin:0 0 8rem;font-weight:600}.skill-description p{font-size:var(--type-body);line-height:1.75;font-weight:400;color:var(--ink-secondary);max-width:27em}
+.partner-panel .hosts{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(2,62rem);width:100%;max-width:none;gap:8rem;flex:none;margin:0}
+.partner-panel .host-button{height:62rem;max-height:none;aspect-ratio:auto;min-width:0;min-height:0;width:100%;border:2rem solid #b3b9b344;padding:0}.host-button img{height:100%;width:100%;object-fit:cover;object-position:50% 25%}.host-button.active{border-color:var(--orange)}
+body .instrument-panel{grid-column:2;grid-row:1;align-items:stretch;display:flex;flex-direction:column;gap:10rem}.instrument-panel>h2{display:block;font-size:var(--type-heading);font-weight:600}.tools{display:flex;flex-direction:column;gap:10rem;flex:1;min-height:0}
+.instrument-panel .loadout-heading{font-size:var(--type-meta);min-height:28rem;display:flex;align-items:center;justify-content:space-between;margin:0;gap:10rem;color:var(--ink-muted)}.instrument-panel .loadout-heading button{font-size:var(--type-detail);min-height:32rem;font-weight:500}
+#tools .tool-card{flex:1;min-height:0;margin:0;padding:12rem;gap:12rem;align-items:center;border:1rem solid #ffffff1e;background:#ffffff04}.tool-title{gap:6rem}#tools .tool-card strong{font-size:var(--type-heading);font-weight:600;line-height:1.4}#tools .tool-card p{font-size:var(--type-detail);margin:6rem 0 0;line-height:1.65;color:var(--ink-secondary)}#tools .tool-card em,#tools .tool-card small{font-size:var(--type-meta);font-weight:400;color:var(--ink-muted)}#tools .tool-card>span{font-size:21rem;opacity:.8}
+.startbar{position:static;display:flex;justify-content:flex-end;margin:0;padding:0;min-height:48rem;background:none;border:0;flex:none}.startbar .primary{font-size:20rem;min-height:48rem;min-width:240rem;padding:8rem 24rem;width:auto;font-weight:600}
+/* Admission uses the same landscape scene, not a vertically stacked page. */
+.admission{display:flex;flex-direction:column;padding:16rem 0;gap:18rem}.admission-heading{display:flex;align-items:center;flex-wrap:nowrap;gap:20rem;margin:0;min-height:44rem}.admission-heading h1{font-size:var(--type-title);margin:0 auto 0 0}.admission-heading>.text-button{font-size:var(--type-detail)}.admission-partner{display:flex;margin:0;padding:0;border:0;gap:10rem;min-width:0}.admission-partner img{width:42rem;height:42rem}.admission-partner strong{font-size:var(--type-heading)}.admission-partner span{font-size:var(--type-meta)}
+.admission .venues{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18rem;flex:1;min-height:0;margin:0}.admission .venue{display:flex;flex-direction:column;justify-content:center;min-height:0;padding:22rem;overflow:hidden}.admission .venue strong{font-size:24rem;margin:0 0 12rem}.admission .venue p{font-size:var(--type-body);line-height:1.55;margin:0 0 10rem;color:var(--ink-secondary)}.admission .venue span{font-size:var(--type-meta)}.admission .venue-fee{font-size:32rem;margin:16rem 0}.admission .venue-fee small{font-size:var(--type-meta)}.admission .venue-availability{margin-top:5rem}
+.admission-checkout{display:grid;grid-template-columns:1fr 1fr;padding:14rem 20rem;gap:25rem;flex:none;align-items:center;margin:0}#admissionBill p{font-size:var(--type-detail);margin:3rem 0;line-height:1.45}#admissionBill .remaining{padding-top:5rem}#admissionBill .remaining b{font-size:22rem}.admission-confirm .primary{font-size:20rem;min-height:52rem}.admission-confirm .error:empty{display:none}
+/* Auction: participants | round/intelligence | vault. Tools do not take a column. */
+.play{display:flex;flex-direction:column;padding:14rem 0 14rem;gap:16rem}
+.arena{display:grid;grid-template-columns:minmax(0,.94fr) minmax(0,1.08fr) minmax(0,1.08fr);grid-template-rows:minmax(0,1fr);gap:26rem;flex:1;min-height:0;padding:0;align-items:stretch}
+body .arena>.bidders{grid-column:1;grid-row:1;align-self:stretch;order:0;display:flex;flex-direction:column;gap:12rem;min-height:0;min-width:0;padding:0;margin:0;background:none;border:0}
+#seats{display:grid;grid-template-rows:repeat(4,minmax(0,1fr));gap:18rem;flex:1;min-height:0;padding:8rem 0}
+.bidder{display:grid;grid-template-columns:52rem minmax(0,1fr);grid-template-rows:auto auto;align-content:center;gap:5rem 9rem;margin:0;padding:8rem 8rem 8rem 0;min-height:0;background:linear-gradient(90deg,transparent,#161e20b8 24%,#171d2080);border:1rem solid transparent;border-radius:0 14rem 14rem 0}
+.bidder-main{display:contents}.bidder-avatar{grid-column:1;grid-row:1/3;width:52rem;height:52rem;align-self:center;object-fit:cover;border:2rem solid #ddd9c2a8;border-radius:50%}
+.bidder-name{grid-column:2;grid-row:1;min-width:0;padding-right:53rem}.bidder-name strong{font-size:var(--type-heading);line-height:1.2;font-weight:600;white-space:nowrap;display:block;overflow:hidden;text-overflow:ellipsis}
+.bidder-status{grid-column:2;grid-row:1;justify-self:end;align-self:center;margin:0;padding:0;font-size:var(--type-meta);font-weight:400;line-height:1.2;white-space:nowrap;color:var(--ink-muted);background:none;min-width:0;border:0}
+.bidder-last{display:none}
+.bid-history{display:grid;grid-column:2;grid-row:2;grid-template-columns:repeat(6,minmax(0,1fr));gap:3rem;margin:0;padding:0;min-height:0;background:none;border:0;overflow:visible}
+.bid-history span,.self .bid-history span{position:relative;display:flex;align-items:center;justify-content:center;font-size:19rem;font-weight:600;line-height:1.2;min-width:0;min-height:39rem;padding:9rem 0 0;background:linear-gradient(#edeae2,#b7bab6);color:#222b2c;border:1rem solid #e6e2d5;border-radius:6rem;box-shadow:0 3rem #060c0c88;font-variant-numeric:tabular-nums;letter-spacing:-.5rem}
+.bid-history small{position:absolute;left:4rem;top:0;font-size:13rem;line-height:1.2;margin:0;color:#565e5a}
+.bidder.self{background:linear-gradient(90deg,transparent,#393225b8);color:var(--paper)}.bidder.self .bidder-status{color:var(--ink-muted);border:0;font-size:var(--type-meta)}.bidder.self .bidder-name strong{color:#f6cf8a;font-size:var(--type-heading);font-weight:600}.bidder.out{opacity:.48}.bidder.bid-submitted{background:linear-gradient(90deg,#224632a0,#326749d6);border-color:#a6d6ab88;box-shadow:none}.bid-submitted .bidder-status{color:var(--ink-muted);font-weight:500;font-size:var(--type-meta)}.bidder.round-leading{background:linear-gradient(90deg,#34422ba0,#52643dd6);border-color:#e7d895aa;box-shadow:none}.bid-revealed .bid-history .round-amount{background:#cee5bd;color:#243723;outline:1rem solid #cff9b1;font-weight:700}.bid-thinking .bidder-status{color:var(--ink-muted);font-size:var(--type-meta)}
+.round-rule{padding:3rem 2rem;flex:none;margin:0;border:0;background:none;text-align:center}.round-rule strong{display:block;font-size:var(--type-meta);font-weight:400;line-height:1.3;color:var(--ink-muted)}
+body .arena>.intel-panel{grid-column:2;grid-row:1;order:0;align-self:stretch;display:flex;flex-direction:column;min-height:0;min-width:0;background:linear-gradient(#131c1feb,#161d2070);border:0;padding:0 16rem 14rem;gap:16rem}
+.session-strip{display:flex;flex-direction:column;gap:5rem;margin:0 -16rem;padding:10rem 8rem 12rem;min-height:0;border:0;border-bottom:1rem solid #d8bb7955;background:#202829aa;flex:none}
+.session-strip h1{font-size:var(--type-meta);font-weight:400;line-height:1.3;text-align:center;color:var(--ink-muted);white-space:nowrap;margin:0}.round-track{display:block;margin:0;order:0;width:auto;line-height:1.3}.round-track span.current{display:block;background:none;border:0;color:#faf4e6;font-size:24rem;font-weight:600;line-height:1.3;padding:0;text-align:center;min-width:0}
+.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:10rem;margin:0;flex:none}.panel-heading h2{font-size:var(--type-heading);font-weight:600;line-height:1.3}.panel-heading h2 small{font-size:var(--type-meta);margin-left:6rem;font-weight:400;color:var(--ink-muted)}.panel-heading>span{font-size:var(--type-meta);color:var(--ink-muted)}.text-button{font-size:20rem;min-height:36rem;padding:0;background:none;color:#f1d7aa}
+.clues{flex:1;min-height:0;max-height:none;overflow:auto;padding:0;scrollbar-width:thin;scrollbar-color:#b9b6a36b transparent}
+.intel-panel .clue{display:block;padding:11rem 12rem;margin:0 0 10rem;background:#d8e4de06;border:0;border-left:2rem solid #83979765;border-radius:0 8rem 8rem 0}.intel-panel .clue:first-child{padding-top:11rem}.intel-panel .clue.private{border-left-color:#e2b775;background:#a7885317}
+.intel-panel .clue p{font-size:var(--type-body);line-height:1.65;font-weight:400;margin:0;color:#e8ece6}.intel-panel .clue .intel-number{font-size:1.12em;font-weight:600;color:#ffdb94}.clue-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4rem 10rem;margin-top:7rem}.intel-panel .clue-meta span{display:inline;background:none;padding:0;margin:0;font-size:var(--type-meta);font-weight:400;line-height:1.4;color:var(--ink-muted)}.intel-panel .clue-meta span:first-child{color:var(--ink-muted)}
+body .arena>.warehouse{grid-column:3;grid-row:1;order:0;align-self:stretch;display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;gap:8rem;min-height:0;min-width:0;background:transparent;border:0;padding:0;margin:0}
+.vault-footer{display:flex;align-items:center;gap:10rem;min-width:0}.vault-footer .panel-heading{display:contents}.vault-footer h2{white-space:nowrap}.vault-footer #btnCatalog{order:2;margin-left:auto;white-space:nowrap}.vault-footer .unlocated-intel{flex:1;flex-wrap:nowrap;max-height:32rem}.vault-footer .unlocated-count,.vault-footer .unlocated-chip{white-space:nowrap;flex:none;font-size:var(--type-meta)}.warehouse .panel-heading h2{font-size:var(--type-heading)}.warehouse .panel-heading .text-button{min-height:28rem;font-size:var(--type-detail)}
+.warehouse .estimate{padding-top:5rem}.estimate{display:flex;align-items:center;justify-content:space-between;margin:0;padding:5rem 12rem;border:1rem solid #d3c7ae30;border-radius:24rem;background:#0d1418dd;gap:8rem}.estimate>span{font-size:var(--type-detail);color:var(--ink-secondary);white-space:nowrap}.estimate>strong{font-size:var(--type-display);font-weight:600;line-height:1.1;margin:0;letter-spacing:0;color:#f4c482;font-variant-numeric:tabular-nums}.tiny-help{font-size:16rem;min-height:24rem;width:24rem;margin-left:3rem}
+.vault-frame{display:flex;align-items:flex-start;justify-content:center;container-type:size;min-width:0;min-height:0}.vault-frame>.vault{width:min(100cqw,100cqh);height:min(100cqw,100cqh);max-width:100%;aspect-ratio:1;flex:none;margin:0;gap:3rem;padding:4rem;border:1rem solid #aca9965e;background-color:#090d10d9;background-size:calc((100% - 8rem)/6) calc((100% - 8rem)/6)}
+.vault-item{padding:3rem}.vault-item small{font-size:17rem;line-height:1.2;bottom:3rem;left:3rem;padding:2rem}.vault-item .unknown{font-size:27rem}
+.unlocated-intel{display:flex;align-items:center;gap:6rem;flex-wrap:wrap;max-height:48rem;overflow:auto;padding:0;margin:0;scrollbar-width:thin}.unlocated-count{font-size:var(--type-meta);color:var(--ink-muted)}.unlocated-chip{font-size:var(--type-meta);min-height:28rem;padding:2rem 6rem}.selection{display:flex;align-items:center;gap:6rem;flex-wrap:wrap;min-height:0;margin:0;padding:0;border:0;font-size:var(--type-detail);line-height:1.35}.selection:empty,.unlocated-intel:empty{display:none}.selection .text-button{font-size:var(--type-detail);min-height:28rem}
+/* A stable bottom HUD: tool access left, feedback center, bid controls right. */
+.bidbar{display:flex;align-items:center;position:static;flex:none;min-height:52rem;gap:16rem;padding:0;margin:0;border:0;background:none}
+.bidbar .primary,.bidbar .secondary{min-height:48rem;min-width:148rem;font-size:20rem;font-weight:600;line-height:1.2;padding:9rem 22rem;border-radius:30rem;border:2rem solid #b9b7ab;background:#e8e6dd;color:#242b2e;flex:none}.bidbar .primary{background:#f2d59d;border-color:#efdbb7}.bidbar #btnFieldTools{min-width:150rem;margin-right:auto}.bid-summary{display:flex;align-items:center;gap:12rem;padding:0;border:0;margin:0 auto 0 0}.bid-summary small{font-size:var(--type-meta);color:var(--ink-muted)}.bid-summary strong{font-size:26rem;line-height:1.2;margin:0;font-weight:600}
+.round-feedback{display:flex;flex:1;flex-direction:column;gap:3rem;min-width:0;padding:4rem 12rem;border-left:3rem solid #afd19e;background:linear-gradient(90deg,#244533bd,transparent)}.round-feedback strong{display:flex;align-items:baseline;gap:12rem;font-size:20rem;font-weight:600;line-height:1.3}.round-feedback small,.round-feedback>span{font-size:var(--type-meta);font-weight:400;line-height:1.4;color:var(--ink-secondary)}.round-feedback[hidden]{display:none}body[data-round-stage=result] .bidbar{background:none;border:0}
+body[data-round-stage=waiting] #btnPass,body[data-round-stage=result] #btnPass,body[data-round-stage=waiting] #btnBid,body[data-round-stage=result] #btnBid{display:none}body[data-round-stage=waiting] #btnFieldTools,body[data-round-stage=result] #btnFieldTools{opacity:.5}
+/* Instruments are a bottom-left popover, deliberately off the intelligence column. */
+.field-tools-dialog{position:fixed;inset:auto auto 76rem max(18rem,env(safe-area-inset-left));width:500rem;max-width:calc(100vw - 36rem);max-height:calc(100dvh - 100rem);padding:22rem;margin:0;border:1rem solid #a6aaa175;background:#1c292a}
+.field-tools{display:flex;flex-direction:column;gap:15rem;padding:0;border:0;background:none}.field-tools .panel-heading h2{font-size:var(--type-title)}.field-tools .close{width:42rem;height:42rem;min-height:42rem;font-size:28rem}.field-shop{display:flex;justify-content:flex-end}.field-tools select{font-size:var(--type-heading);min-height:48rem;margin:0;padding:8rem;width:100%;min-width:0;background:#344345;color:#f5f3e8;border:1rem solid #94a39b}.field-tools .instrument-description{font-size:var(--type-body);line-height:1.65;margin:0;color:#e1e7db}.field-tools .tool-action{font-size:20rem;min-height:48rem;padding:10rem 16rem;margin:0;background:#efd297;color:#222b2c;justify-content:center}.field-tools .tool-action:disabled{opacity:.5}
+.bid-history-dialog{width:820rem;max-width:calc(100vw - 32rem);padding:24rem;background:#1a272b}.bid-history-dialog .dialog-heading{margin:0 0 16rem}.bid-history-dialog h2{font-size:27rem}.bid-history-dialog .close{font-size:28rem;width:42rem;height:42rem;min-height:42rem}
+#bidHistoryTable{width:100%;border-collapse:collapse;text-align:right;font-variant-numeric:tabular-nums}#bidHistoryTable th,#bidHistoryTable td{padding:12rem 8rem;border-bottom:1rem solid #ffffff28;font-size:22rem;font-weight:400}#bidHistoryTable th:first-child{text-align:left}#bidHistoryTable thead th{font-size:19rem;color:#c6d5d2}#bidHistoryEmpty{font-size:22rem;text-align:center;padding:18rem}
+/* Shared keypad sizes follow the scene, with the same 2-column composition. */
+.bid-dialog{width:840rem;padding:24rem;max-height:calc(100dvh - 24rem)}.bid-dialog .dialog-heading{margin:0 0 16rem}.bid-dialog .dialog-heading h2{font-size:28rem;margin:0}.bid-dialog .close{width:44rem;height:44rem;min-height:44rem;font-size:30rem}.bid-calculator{grid-template-columns:1fr 1fr;gap:28rem}.bid-entry>label{font-size:22rem;margin:0}.bid-dialog .amount-wrap{margin:10rem 0 14rem;padding:10rem 0;gap:12rem}.bid-dialog .amount-wrap>span{font-size:30rem}#bidAmount{font-size:46rem;font-weight:650}#bidBudget{font-size:21rem}.bid-dialog .quick-bids{margin:20rem 0 0}.bid-dialog .quick-bids button{font-size:23rem;min-height:52rem;padding:8rem}.bid-dialog #bidError{font-size:20rem!important;min-height:27rem;margin:8rem 0;line-height:1.4}.bid-dialog #bidConfirm{font-size:24rem;min-height:58rem;padding:10rem;margin: auto 0 0}.bid-keypad{height:auto;grid-template-rows:repeat(4,64rem) 44rem;gap:8rem}.bid-keypad button{font-size:34rem;font-weight:500;min-height:0;border-radius:5rem}.bid-keypad .key-clear{font-size:22rem}
+/* Shop remains paged: exactly two readable cards, regardless of device. */
+.instrument-dialog[open]{width:1000rem;padding:22rem;max-height:calc(100dvh - 24rem)}.instrument-dialog .dialog-heading{margin:0 0 12rem}.instrument-dialog .dialog-heading h2{font-size:28rem;margin:0}.instrument-dialog .close{width:42rem;height:42rem;min-height:42rem;font-size:28rem}.instrument-dialog .shop-toolbar{display:flex;flex-wrap:wrap;gap:14rem;margin:12rem 0}.instrument-dialog .shop-toolbar strong{width:auto;font-size:22rem}.instrument-dialog .shop-toolbar label{font-size:19rem;display:flex;flex-direction:row;align-items:center;gap:8rem}.instrument-dialog .shop-toolbar select{font-size:20rem;min-height:38rem;padding:4rem 8rem;max-width:none}.instrument-dialog .instrument-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16rem;overflow:visible}.instrument-dialog .instrument-card{padding:16rem;min-height:0}.instrument-dialog .instrument-eyebrow{font-size:18rem}.instrument-dialog .instrument-card h3{font-size:25rem;margin:8rem 0;line-height:1.3}.instrument-dialog .instrument-card p{font-size:22rem;line-height:1.5}.instrument-dialog .instrument-price{font-size:30rem;margin:10rem 0}.instrument-dialog .instrument-price small{font-size:19rem}.instrument-dialog .instrument-actions{gap:10rem}.instrument-dialog .instrument-actions button{font-size:21rem;min-height:44rem;padding:8rem}.instrument-dialog .shop-pagination{margin-top:14rem;padding-top:12rem;gap:10rem;flex-wrap:nowrap}.instrument-dialog .shop-pagination button,.instrument-dialog .shop-pagination select{font-size:20rem;min-height:42rem;padding:6rem 12rem}.shop-pagination>span{font-size:19rem}
+/* The reveal also stays a single, proportionally scaled landscape scene. */
+.result-dialog{width:1060rem;height:570rem;max-height:calc(100dvh - 24rem);padding:24rem;overflow:hidden}.result-layout{height:100%;display:grid;grid-template-columns:1fr 1.05fr;gap:28rem}.result-copy{display:flex;flex-direction:column;min-height:0;gap:16rem;padding:0;overflow:auto}.result-title{gap:14rem}.result-title h2{font-size:30rem}.result-title>span{font-size:42rem}.result-winner{font-size:22rem;padding:0;min-height:42rem}.result-winner img{width:42rem;height:42rem}.result-numbers{display:grid;grid-template-columns:1fr 1fr;gap:12rem;margin:0}.result-numbers span{font-size:20rem}.result-numbers strong{font-size:28rem}.result-numbers .value-total strong{font-size:38rem}.result-numbers .profit{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding-top:10rem}.result-numbers .profit strong{font-size:34rem}.reveal-spotlight{min-height:76rem;padding:10rem;gap:10rem}.reveal-spotlight img{width:58rem;height:58rem}.reveal-spotlight>div{gap:3rem}.reveal-spotlight small{font-size:19rem}.reveal-spotlight strong{font-size:22rem}.reveal-gain{font-size:28rem}.result-actions{margin:auto 0 0;padding:0;gap:10rem}.result-actions button{font-size:23rem;min-height:52rem;padding:10rem 16rem}.result-vault{display:flex;flex-direction:column;min-height:0;padding:0;gap:14rem}.result-vault .vault-frame{flex:1;align-items:center}.result-vault .vault-item small{font-size:18rem}.seal-mark{font-size:32rem}.result-copy .error:empty{display:none}
+@media(prefers-reduced-motion:reduce){.bidder{transition:none}}
+
+/* Compact intelligence, whole-surface dragging, and reserved in-seat chatter. */
+body .arena>.intel-panel{gap:11rem}
+.clues{cursor:grab;touch-action:pinch-zoom;overscroll-behavior:contain;user-select:none;-webkit-user-select:none;scroll-behavior:auto}
+.clues.dragging{cursor:grabbing}.clues:focus-visible{outline:2rem solid #efbd7a;outline-offset:3rem}
+/* Chat lives above the speaker, with a tail pointing down towards the avatar. */
+.npc-bubble{position:absolute;left:32rem;right:auto;top:auto;bottom:calc(100% + 1rem);z-index:3;display:block;width:max-content;max-width:calc(100% - 40rem);height:auto;min-height:30rem;padding:4rem 12rem;border:1rem solid #dfcba1;border-radius:13rem 13rem 13rem 4rem;background:#fff3da;color:#28302e;font-size:18rem;font-weight:550;line-height:22rem;letter-spacing:0;white-space:nowrap;pointer-events:none;box-shadow:0 3rem 10rem #0005;transform-origin:14rem 100%}
+.npc-bubble::after{content:"";position:absolute;left:10rem;bottom:-5rem;width:9rem;height:9rem;background:#fff3da;border-right:1rem solid #dfcba1;border-bottom:1rem solid #dfcba1;transform:skewY(-12deg) rotate(45deg)}
+.npc-bubble:empty{display:none}
+.npc-bubble.speaking{animation:bubble-in .2s ease-out}
+.bidder.npc-speaking{z-index:3}
+.npc-speaking .bidder-avatar{border-color:#f5dba2;box-shadow:0 0 0 2rem #f5dba22b}
+.round-flash{animation:round-pulse .55s ease-out}
+@keyframes bubble-in{from{opacity:0;transform:translateY(3rem) scale(.94)}to{opacity:1;transform:none}}
+@keyframes round-pulse{from{box-shadow:inset 0 0 0 2rem #e9d5a3;background-color:#587044}to{box-shadow:inset 0 0 0 0 transparent}}
+/* Reserve footer actions; six ledger entries share a bounded two-column grid. */
+.result-copy{gap:10rem;overflow:auto}.result-title h2{margin:0}.result-title{min-height:38rem}.result-title>span{font-size:34rem}
+.result-winner{min-height:34rem;font-size:20rem}.result-winner img{width:34rem;height:34rem}
+.result-numbers{gap:6rem 14rem}.result-numbers>div{padding:5rem 0;min-height:0}
+.result-numbers span{font-size:18rem}.result-numbers strong{font-size:26rem}.result-numbers .value-total strong{font-size:30rem}
+.result-numbers .profit{grid-column:auto;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:5rem 0}.result-numbers .profit strong{font-size:28rem}
+.reveal-spotlight{min-height:64rem;padding:6rem;flex-shrink:0}.reveal-spotlight img{width:50rem;height:50rem}.reveal-spotlight strong{font-size:20rem}.reveal-gain{font-size:24rem}
+.result-actions{flex-shrink:0}.result-actions button{min-height:46rem;font-size:21rem;padding:8rem 12rem}
+@media(prefers-reduced-motion:reduce){.npc-bubble.speaking,.round-flash{animation:none}}
+
+.result-copy{background:#192326;color:#f5f1e8;padding:14rem}
+.result-title>span{letter-spacing:0}.result-winner{border-color:#ffffff20}
+.result-numbers>div{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0}
+.result-numbers span{color:#c0cfca}.result-numbers .profit{border-top:0}
+.reveal-spotlight strong{color:#f5f1e8}
+.result-copy .result-actions button{font-size:21rem;min-height:46rem;padding:8rem 12rem}
+.result-copy .result-actions .secondary{color:#f5e4c7;border:1rem solid #c8b38277;background:#35403d}
+.result-vault .panel-heading h2{text-shadow:none;font-size:var(--type-heading)}
+
+#tools{display:flex;flex-direction:column;gap:8rem}#tools .loadout-heading{flex:none}#tools .tool-card{flex:1;min-height:0;padding:8rem 10rem}#tools .tool-card p{margin:6rem 0 0;font-size:var(--type-detail);line-height:1.65;color:var(--ink-secondary)}
+
+/* A reserved chat lane above each NPC keeps avatars, names and bids clear. */
+#seats{gap:32rem;padding:0}
+.bidder{grid-template-rows:27rem 35rem;gap:2rem 9rem;padding:2rem 8rem 2rem 0}
+.bid-history{height:35rem;min-height:35rem;align-self:center}
+.bid-history span,.self .bid-history span{min-height:35rem;font-size:18rem}
+.round-rule strong{margin:0;font-size:var(--type-meta);color:var(--ink-muted)}
+.result-numbers span{line-height:1.25}.result-numbers strong{line-height:1.15}
+.reveal-spotlight{min-height:74rem}.reveal-spotlight strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}.reveal-spotlight small{line-height:1.2}
+
+.warehouse .vault-item small{font-size:15rem;padding:1rem 2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 6rem);left:3rem;bottom:3rem}
+
+/* Settlement hierarchy: primary outcome, valuation, then secondary costs. */
+.result-copy{gap:12rem;overflow:hidden;padding:18rem}
+.result-title{min-height:30rem;gap:10rem;flex-shrink:0}
+.result-title h2{font-size:var(--type-title);font-weight:600;line-height:1.3}
+.result-title>span{font-size:24rem;color:#ceb888;font-weight:500}
+.result-winner{font-size:var(--type-body);color:var(--ink-secondary);min-height:30rem;flex-shrink:0}
+.result-winner img{width:28rem;height:28rem}
+.result-numbers{gap:8rem 20rem;flex-shrink:0}
+.result-numbers>div{padding:5rem 0;gap:4rem}
+.result-numbers span{font-size:var(--type-meta);font-weight:400;color:var(--ink-muted);line-height:1.35}
+.result-numbers strong{font-size:24rem;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.2}
+.result-numbers .value-total strong{font-size:32rem;font-weight:600;color:#f4d596}
+.result-numbers .settlement-cost{flex-direction:row;align-items:baseline;justify-content:space-between;border-bottom:1rem solid #ffffff12;padding:7rem 0}
+.result-numbers .settlement-cost strong{font-size:var(--type-heading);font-weight:500;color:var(--ink-secondary)}
+.result-numbers .profit{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;border-top:1rem solid #afc6b140;margin-top:2rem;padding:12rem 0 2rem}
+.result-numbers .profit span{font-size:var(--type-detail);color:var(--ink-secondary)}
+.result-numbers .profit strong{font-size:36rem;font-weight:650}
+.reveal-spotlight{min-height:68rem;padding:8rem;gap:10rem}
+.reveal-spotlight img{width:46rem;height:46rem}
+.reveal-spotlight small{font-size:var(--type-meta);font-weight:400}
+.reveal-spotlight strong{font-size:var(--type-heading);font-weight:500}
+.reveal-gain{font-size:24rem;font-weight:600;font-variant-numeric:tabular-nums}
+.result-copy .result-actions button{font-size:var(--type-heading);font-weight:600;min-height:46rem}
+.result-vault #resultItemCount{font-size:var(--type-meta)}
+/* Keep quick actions secondary to the entered price and the confirm action. */
+.bid-dialog .dialog-heading h2{font-size:var(--type-title)}
+.bid-entry>label{font-size:var(--type-body);color:var(--ink-secondary)}
+#bidBudget{font-size:var(--type-detail);color:var(--ink-secondary)}
+.bid-dialog .quick-bids{display:grid;grid-template-columns:1fr 1fr;gap:8rem;margin:16rem 0 0}
+.bid-dialog .quick-bids button{font-size:var(--type-detail);line-height:1.3;min-height:48rem;padding:8rem 4rem;white-space:nowrap}
+.bid-dialog #bidRecommend{color:#f3d99e;border-color:#b9a372;background:#514833}
+.bid-dialog #bidAdvice{font-size:var(--type-meta);line-height:1.5;color:var(--ink-secondary);margin:8rem 0 0;min-height:21rem}
+.bid-dialog #bidError{font-size:var(--type-detail)!important;min-height:23rem;margin:4rem 0}
+.bid-dialog #bidConfirm{font-size:20rem}

@@ -1,0 +1,2306 @@
+[
+  {
+    "id": 84,
+    "key": "anomaly-01",
+    "source": "anomaly.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      52,
+      107,
+      323,
+      371
+    ],
+    "cropBox": [
+      52,
+      107,
+      323,
+      371
+    ],
+    "touchesEdge": false,
+    "sha256": "b8d8963e5ac8f7f1743571ea401005c13ed0cb893f1e4c639769dae2b6dcd52f",
+    "bytes": 12894
+  },
+  {
+    "id": 85,
+    "key": "anomaly-02",
+    "source": "anomaly.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      387,
+      96,
+      625,
+      377
+    ],
+    "cropBox": [
+      387,
+      96,
+      625,
+      377
+    ],
+    "touchesEdge": false,
+    "sha256": "df8556ec31b1620a227eab7eb92da21ba6b0a2db6650568d1f768c6fd930381b",
+    "bytes": 14836
+  },
+  {
+    "id": 86,
+    "key": "anomaly-03",
+    "source": "anomaly.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      696,
+      173,
+      946,
+      369
+    ],
+    "cropBox": [
+      696,
+      173,
+      946,
+      369
+    ],
+    "touchesEdge": false,
+    "sha256": "f1095058936b969116f33b51921b7d6e8277b55f4592e7de33abb687fb1726de",
+    "bytes": 10462
+  },
+  {
+    "id": 87,
+    "key": "anomaly-04",
+    "source": "anomaly.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      997,
+      109,
+      1306,
+      361
+    ],
+    "cropBox": [
+      997,
+      109,
+      1306,
+      361
+    ],
+    "touchesEdge": false,
+    "sha256": "602dc79dd11ef22e90417299d596082c51150a136c7b458db58b474798ad1ee8",
+    "bytes": 14938
+  },
+  {
+    "id": 88,
+    "key": "anomaly-05",
+    "source": "anomaly.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      80,
+      431,
+      291,
+      747
+    ],
+    "cropBox": [
+      80,
+      431,
+      291,
+      747
+    ],
+    "touchesEdge": false,
+    "sha256": "ccce227df8a17ac0d3221d3cd15f50e4877d8459fbc00f3463deb41ebca51127",
+    "bytes": 15592
+  },
+  {
+    "id": 89,
+    "key": "anomaly-06",
+    "source": "anomaly.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      400,
+      436,
+      609,
+      742
+    ],
+    "cropBox": [
+      400,
+      436,
+      609,
+      742
+    ],
+    "touchesEdge": false,
+    "sha256": "18fd6b2f563a206c735f78a64e9caf814fe7c4618010ff2c8f565b1d0f060e21",
+    "bytes": 13506
+  },
+  {
+    "id": 90,
+    "key": "anomaly-07",
+    "source": "anomaly.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      720,
+      457,
+      927,
+      746
+    ],
+    "cropBox": [
+      720,
+      457,
+      927,
+      746
+    ],
+    "touchesEdge": false,
+    "sha256": "7ba9901a76cbf42a430b1ecdcb8f88248e457300aa7e0f9ae7939963e44e1cd4",
+    "bytes": 12084
+  },
+  {
+    "id": 91,
+    "key": "anomaly-08",
+    "source": "anomaly.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1021,
+      452,
+      1276,
+      740
+    ],
+    "cropBox": [
+      1021,
+      452,
+      1276,
+      740
+    ],
+    "touchesEdge": false,
+    "sha256": "3efc3d164409933844e883891c1041657d2bf53e0ea27d06530e2a49f0b454b2",
+    "bytes": 12468
+  },
+  {
+    "id": 92,
+    "key": "anomaly-09",
+    "source": "anomaly.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      51,
+      861,
+      340,
+      1056
+    ],
+    "cropBox": [
+      51,
+      861,
+      340,
+      1056
+    ],
+    "touchesEdge": false,
+    "sha256": "5de410c1eb0e5b827a065789d2f921689119cfa04da3a31f2e76901f761217f8",
+    "bytes": 9906
+  },
+  {
+    "id": 93,
+    "key": "anomaly-10",
+    "source": "anomaly.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      378,
+      811,
+      639,
+      1075
+    ],
+    "cropBox": [
+      378,
+      811,
+      639,
+      1075
+    ],
+    "touchesEdge": false,
+    "sha256": "4cf31ecc9e92e20e403e7722f14a56504653c5f64e3ec6089f156900bfca391a",
+    "bytes": 15826
+  },
+  {
+    "id": 94,
+    "key": "anomaly-11",
+    "source": "anomaly.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      691,
+      845,
+      966,
+      1061
+    ],
+    "cropBox": [
+      691,
+      845,
+      966,
+      1061
+    ],
+    "touchesEdge": false,
+    "sha256": "3664bf46ff2360626fc5a948e9ea02d63632595528d9daa1d0c728f77226e558",
+    "bytes": 14870
+  },
+  {
+    "id": 95,
+    "key": "anomaly-12",
+    "source": "anomaly.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1022,
+      792,
+      1279,
+      1104
+    ],
+    "cropBox": [
+      1022,
+      792,
+      1279,
+      1104
+    ],
+    "touchesEdge": false,
+    "sha256": "a7d12fff07363b521c2446d4b1036f02e72d6602cddaa9ce8d99033a04a9dfeb",
+    "bytes": 19032
+  },
+  {
+    "id": 72,
+    "key": "archive-01",
+    "source": "archive.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      45,
+      104,
+      331,
+      365
+    ],
+    "cropBox": [
+      45,
+      104,
+      331,
+      365
+    ],
+    "touchesEdge": false,
+    "sha256": "138fb63033e6092efc4788f7c066e9fcd1a25608cc2775f3655596a9ad26881d",
+    "bytes": 13858
+  },
+  {
+    "id": 73,
+    "key": "archive-02",
+    "source": "archive.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      386,
+      97,
+      644,
+      368
+    ],
+    "cropBox": [
+      386,
+      97,
+      644,
+      368
+    ],
+    "touchesEdge": false,
+    "sha256": "b8a720be5e061e8c464cfa016502bd4bdc925e0fce4b3123ae4c79e6626170ac",
+    "bytes": 14310
+  },
+  {
+    "id": 74,
+    "key": "archive-03",
+    "source": "archive.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      701,
+      92,
+      988,
+      366
+    ],
+    "cropBox": [
+      701,
+      92,
+      988,
+      366
+    ],
+    "touchesEdge": false,
+    "sha256": "8724aa2133be89131036bc03af4f447316de4e81a677870b17fe2d6f34531643",
+    "bytes": 10980
+  },
+  {
+    "id": 75,
+    "key": "archive-04",
+    "source": "archive.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      1047,
+      72,
+      1282,
+      377
+    ],
+    "cropBox": [
+      1047,
+      72,
+      1282,
+      377
+    ],
+    "touchesEdge": false,
+    "sha256": "583d85659982a8197f6ff26c59612bb87dbcfc4ebd17deb80de49bd3be3a94d4",
+    "bytes": 14786
+  },
+  {
+    "id": 76,
+    "key": "archive-05",
+    "source": "archive.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      40,
+      466,
+      336,
+      742
+    ],
+    "cropBox": [
+      40,
+      466,
+      336,
+      742
+    ],
+    "touchesEdge": false,
+    "sha256": "b1743bc3c59b625505355b6f54d90459fd51bc75a1f07ccff421b1b0521f0dda",
+    "bytes": 13330
+  },
+  {
+    "id": 77,
+    "key": "archive-06",
+    "source": "archive.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      401,
+      432,
+      615,
+      757
+    ],
+    "cropBox": [
+      401,
+      432,
+      615,
+      757
+    ],
+    "touchesEdge": false,
+    "sha256": "58cc4d74efac41312132c31ae816176a3ee6ad33260c3b9cbe977b63c10d52c7",
+    "bytes": 15474
+  },
+  {
+    "id": 78,
+    "key": "archive-07",
+    "source": "archive.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      669,
+      483,
+      997,
+      685
+    ],
+    "cropBox": [
+      669,
+      483,
+      997,
+      685
+    ],
+    "touchesEdge": false,
+    "sha256": "abedec4f6e5f9685683dac9356034bbff9fc6a40c20a54c851bbdb04206a5838",
+    "bytes": 11306
+  },
+  {
+    "id": 79,
+    "key": "archive-08",
+    "source": "archive.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      1028,
+      433,
+      1293,
+      752
+    ],
+    "cropBox": [
+      1028,
+      433,
+      1293,
+      752
+    ],
+    "touchesEdge": false,
+    "sha256": "3fee2a1cda09de8c5474eb98182ec646f9e4fef9d2f15ce429d81e293c2e2152",
+    "bytes": 15520
+  },
+  {
+    "id": 80,
+    "key": "archive-09",
+    "source": "archive.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      38,
+      807,
+      340,
+      1094
+    ],
+    "cropBox": [
+      38,
+      807,
+      340,
+      1094
+    ],
+    "touchesEdge": false,
+    "sha256": "86c85e584d93e423614108810111014d1393b94f836c0f1e104f7735f64d3abb",
+    "bytes": 17592
+  },
+  {
+    "id": 81,
+    "key": "archive-10",
+    "source": "archive.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      379,
+      823,
+      658,
+      1099
+    ],
+    "cropBox": [
+      379,
+      823,
+      658,
+      1099
+    ],
+    "touchesEdge": false,
+    "sha256": "e3fdcb6f52b893283e4cd8b81c5891591299943dc2ff3efc16f24aa8467f4910",
+    "bytes": 17250
+  },
+  {
+    "id": 82,
+    "key": "archive-11",
+    "source": "archive.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      698,
+      826,
+      982,
+      1087
+    ],
+    "cropBox": [
+      698,
+      826,
+      982,
+      1087
+    ],
+    "touchesEdge": false,
+    "sha256": "71c2388612c25be5e40382dc2a2e71785aabc4644d942d97102f5a5bee85ed65",
+    "bytes": 15890
+  },
+  {
+    "id": 83,
+    "key": "archive-12",
+    "source": "archive.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      1040,
+      791,
+      1286,
+      1109
+    ],
+    "cropBox": [
+      1040,
+      791,
+      1286,
+      1109
+    ],
+    "touchesEdge": false,
+    "sha256": "0f1691a9ba85736826c4386c7867ccda9a10a577f31c15aa3e013eb4e2123d78",
+    "bytes": 14946
+  },
+  {
+    "id": 36,
+    "key": "atelier-01",
+    "source": "atelier.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      37,
+      122,
+      328,
+      343
+    ],
+    "cropBox": [
+      37,
+      122,
+      328,
+      343
+    ],
+    "touchesEdge": false,
+    "sha256": "1d280ecc345ab6730e08589e90057c2c20376862d4dd60808325caa4a6622965",
+    "bytes": 12800
+  },
+  {
+    "id": 37,
+    "key": "atelier-02",
+    "source": "atelier.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      419,
+      31,
+      583,
+      381
+    ],
+    "cropBox": [
+      419,
+      31,
+      583,
+      381
+    ],
+    "touchesEdge": false,
+    "sha256": "0a05542281afaabcb12f2613ebdf50a4a5f337c0f3ff7fd033c7d19b5a330ec8",
+    "bytes": 9596
+  },
+  {
+    "id": 38,
+    "key": "atelier-03",
+    "source": "atelier.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      682,
+      98,
+      1018,
+      361
+    ],
+    "cropBox": [
+      682,
+      98,
+      1018,
+      361
+    ],
+    "touchesEdge": false,
+    "sha256": "547726302c84d925de21d4028bc7adf84e6fb983d01a8fce527a8ce333295fea",
+    "bytes": 12986
+  },
+  {
+    "id": 39,
+    "key": "atelier-04",
+    "source": "atelier.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1069,
+      73,
+      1276,
+      371
+    ],
+    "cropBox": [
+      1069,
+      73,
+      1276,
+      371
+    ],
+    "touchesEdge": false,
+    "sha256": "d39260e672b18d17a9581a0b366939f056e23f255d438655096e39d6f4b91ee9",
+    "bytes": 11282
+  },
+  {
+    "id": 40,
+    "key": "atelier-05",
+    "source": "atelier.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      38,
+      434,
+      309,
+      749
+    ],
+    "cropBox": [
+      38,
+      434,
+      309,
+      749
+    ],
+    "touchesEdge": false,
+    "sha256": "27833305d39af26ac8aa5015236659f9f45b67cf91b8b381be319c7448614ebd",
+    "bytes": 15222
+  },
+  {
+    "id": 41,
+    "key": "atelier-06",
+    "source": "atelier.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      390,
+      431,
+      633,
+      751
+    ],
+    "cropBox": [
+      390,
+      431,
+      633,
+      751
+    ],
+    "touchesEdge": false,
+    "sha256": "a05766042065687299c10ed4fd095bebd5770e9e940162d871ea6fc9048b6a8b",
+    "bytes": 12278
+  },
+  {
+    "id": 42,
+    "key": "atelier-07",
+    "source": "atelier.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      712,
+      448,
+      964,
+      749
+    ],
+    "cropBox": [
+      712,
+      448,
+      964,
+      749
+    ],
+    "touchesEdge": false,
+    "sha256": "7981552e973bcb9d4349bb896b59caf668d3d3a39cabe33a5152388db2cb9ba7",
+    "bytes": 15460
+  },
+  {
+    "id": 43,
+    "key": "atelier-08",
+    "source": "atelier.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1059,
+      434,
+      1294,
+      755
+    ],
+    "cropBox": [
+      1059,
+      434,
+      1294,
+      755
+    ],
+    "touchesEdge": false,
+    "sha256": "f12062269a2ca2e43a164f8400d08945f2e54c927891526a061b1d0deb6ac64a",
+    "bytes": 14842
+  },
+  {
+    "id": 44,
+    "key": "atelier-09",
+    "source": "atelier.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      54,
+      805,
+      288,
+      1123
+    ],
+    "cropBox": [
+      54,
+      805,
+      288,
+      1123
+    ],
+    "touchesEdge": false,
+    "sha256": "b479490ceeba303e80d8a00232cf7bb6f0edcfaab669d68df0220bbd40a3e5d6",
+    "bytes": 16808
+  },
+  {
+    "id": 45,
+    "key": "atelier-10",
+    "source": "atelier.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      338,
+      843,
+      667,
+      1089
+    ],
+    "cropBox": [
+      338,
+      843,
+      667,
+      1089
+    ],
+    "touchesEdge": false,
+    "sha256": "3268b578e19e9f5f694086ea51c6476ee71388462c9768df54c65597fd09cdfc",
+    "bytes": 12240
+  },
+  {
+    "id": 46,
+    "key": "atelier-11",
+    "source": "atelier.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      687,
+      842,
+      976,
+      1112
+    ],
+    "cropBox": [
+      687,
+      842,
+      976,
+      1112
+    ],
+    "touchesEdge": false,
+    "sha256": "942f98add92269fa382abb75d271b0e7fa8f612220ffad788c3d093f0f288b5d",
+    "bytes": 15660
+  },
+  {
+    "id": 47,
+    "key": "atelier-12",
+    "source": "atelier.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1027,
+      808,
+      1305,
+      1120
+    ],
+    "cropBox": [
+      1027,
+      808,
+      1305,
+      1120
+    ],
+    "touchesEdge": false,
+    "sha256": "aefe203efeba5a0428ea26b143415aa9e79fa94545153b5188ab68b473455a86",
+    "bytes": 19104
+  },
+  {
+    "id": 24,
+    "key": "encore-01",
+    "source": "encore.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      40,
+      81,
+      318,
+      339
+    ],
+    "cropBox": [
+      40,
+      81,
+      318,
+      339
+    ],
+    "touchesEdge": false,
+    "sha256": "fd6d6f26a283b866faae405e3a6dd1f19d18dd46f073b96c444a6f76b5bb6499",
+    "bytes": 10656
+  },
+  {
+    "id": 25,
+    "key": "encore-02",
+    "source": "encore.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      400,
+      57,
+      629,
+      357
+    ],
+    "cropBox": [
+      400,
+      57,
+      629,
+      357
+    ],
+    "touchesEdge": false,
+    "sha256": "5cf997f1a63fa89dbe87fe35c8bba14bfd25a37d9248ec45db91cad302a0264b",
+    "bytes": 9990
+  },
+  {
+    "id": 26,
+    "key": "encore-03",
+    "source": "encore.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      681,
+      120,
+      991,
+      322
+    ],
+    "cropBox": [
+      681,
+      120,
+      991,
+      322
+    ],
+    "touchesEdge": false,
+    "sha256": "849aada0eb02f9740d19a528d6f16d15846522e3417a771750906bb47a4200ce",
+    "bytes": 11680
+  },
+  {
+    "id": 27,
+    "key": "encore-04",
+    "source": "encore.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1042,
+      53,
+      1267,
+      369
+    ],
+    "cropBox": [
+      1042,
+      53,
+      1267,
+      369
+    ],
+    "touchesEdge": false,
+    "sha256": "5e363f2e0ca1020b250b91f3dbf9d8e43d98da8a58459fb44878821db45fa155",
+    "bytes": 12090
+  },
+  {
+    "id": 28,
+    "key": "encore-05",
+    "source": "encore.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      80,
+      416,
+      270,
+      742
+    ],
+    "cropBox": [
+      80,
+      416,
+      270,
+      742
+    ],
+    "touchesEdge": false,
+    "sha256": "842d4819defe52876b7783bff8e5531aedd86336d28d403198c44f7cb7b85076",
+    "bytes": 13262
+  },
+  {
+    "id": 29,
+    "key": "encore-06",
+    "source": "encore.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      353,
+      408,
+      641,
+      744
+    ],
+    "cropBox": [
+      353,
+      408,
+      641,
+      744
+    ],
+    "touchesEdge": false,
+    "sha256": "8ed9094a1194506c35f8783a976c69ae6b73490892dccf3ad0422bcf733f0d76",
+    "bytes": 13116
+  },
+  {
+    "id": 30,
+    "key": "encore-07",
+    "source": "encore.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      664,
+      467,
+      994,
+      709
+    ],
+    "cropBox": [
+      664,
+      467,
+      994,
+      709
+    ],
+    "touchesEdge": false,
+    "sha256": "51697bc57a7423ee804992c45cf551ea3a695b2f52ae80ce8addb3f61a4c48ae",
+    "bytes": 13818
+  },
+  {
+    "id": 31,
+    "key": "encore-08",
+    "source": "encore.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1031,
+      417,
+      1304,
+      739
+    ],
+    "cropBox": [
+      1031,
+      417,
+      1304,
+      739
+    ],
+    "touchesEdge": false,
+    "sha256": "738395f05f4e6bc26415f1315da7258f2c38210e83519efe86c5bd2e6ffff325",
+    "bytes": 15556
+  },
+  {
+    "id": 32,
+    "key": "encore-09",
+    "source": "encore.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      19,
+      833,
+      339,
+      1091
+    ],
+    "cropBox": [
+      19,
+      833,
+      339,
+      1091
+    ],
+    "touchesEdge": false,
+    "sha256": "a7fea057ea258bf4eaf6aab7468453c157ab356d0385c2e594e8d4837e90115d",
+    "bytes": 14506
+  },
+  {
+    "id": 33,
+    "key": "encore-10",
+    "source": "encore.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      376,
+      749,
+      661,
+      1138
+    ],
+    "cropBox": [
+      376,
+      749,
+      661,
+      1138
+    ],
+    "touchesEdge": false,
+    "sha256": "8696a5d22e9bb046fd1634a583accf31effe7f0d52aed2f5fb227aad105cf07c",
+    "bytes": 14030
+  },
+  {
+    "id": 34,
+    "key": "encore-11",
+    "source": "encore.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      705,
+      769,
+      945,
+      1134
+    ],
+    "cropBox": [
+      705,
+      769,
+      945,
+      1134
+    ],
+    "touchesEdge": false,
+    "sha256": "5faa9a244e5bfcdc72a42b0576478f9e15cce364c521c15dc15223dd089dce70",
+    "bytes": 11872
+  },
+  {
+    "id": 35,
+    "key": "encore-12",
+    "source": "encore.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1038,
+      785,
+      1298,
+      1123
+    ],
+    "cropBox": [
+      1038,
+      785,
+      1298,
+      1123
+    ],
+    "touchesEdge": false,
+    "sha256": "7a578754f067ee3427a5ca7439eeb57948c78e3fc9293deabf358f2a361b2291",
+    "bytes": 16544
+  },
+  {
+    "id": 60,
+    "key": "pantry-01",
+    "source": "pantry.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      66,
+      63,
+      286,
+      396
+    ],
+    "cropBox": [
+      66,
+      63,
+      286,
+      396
+    ],
+    "touchesEdge": false,
+    "sha256": "b16a5fdc1a942d195e61e457e0ac96ab508bfabf8cf855fe043b1179a5b7c083",
+    "bytes": 12568
+  },
+  {
+    "id": 61,
+    "key": "pantry-02",
+    "source": "pantry.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      370,
+      102,
+      633,
+      387
+    ],
+    "cropBox": [
+      370,
+      102,
+      633,
+      387
+    ],
+    "touchesEdge": false,
+    "sha256": "8175bd5adf7199508b53f1ab3c6fce925f609d8073cebf05bfb39811e55c79b6",
+    "bytes": 16288
+  },
+  {
+    "id": 62,
+    "key": "pantry-03",
+    "source": "pantry.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      689,
+      61,
+      959,
+      396
+    ],
+    "cropBox": [
+      689,
+      61,
+      959,
+      396
+    ],
+    "touchesEdge": false,
+    "sha256": "b82503d457f2786c06be6a6d211d7224b58034df505060d29eb486b98347773c",
+    "bytes": 11274
+  },
+  {
+    "id": 63,
+    "key": "pantry-04",
+    "source": "pantry.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1016,
+      103,
+      1296,
+      392
+    ],
+    "cropBox": [
+      1016,
+      103,
+      1296,
+      392
+    ],
+    "touchesEdge": false,
+    "sha256": "3f3420da66ab080f7acc853e1b1e2b6d8b925c2e16f035f4d69813661d2daeb2",
+    "bytes": 17648
+  },
+  {
+    "id": 64,
+    "key": "pantry-05",
+    "source": "pantry.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      38,
+      475,
+      302,
+      726
+    ],
+    "cropBox": [
+      38,
+      475,
+      302,
+      726
+    ],
+    "touchesEdge": false,
+    "sha256": "ad068c60289583010da8ceb8ffa297ed0ab388cd46587cba51721646675df7fa",
+    "bytes": 15072
+  },
+  {
+    "id": 65,
+    "key": "pantry-06",
+    "source": "pantry.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      362,
+      481,
+      660,
+      725
+    ],
+    "cropBox": [
+      362,
+      481,
+      660,
+      725
+    ],
+    "touchesEdge": false,
+    "sha256": "7ee36e4416fc2fd5201ec5dbbb259adbe3ab7a3cd0f1f9d9ce45ab48dee43c74",
+    "bytes": 15232
+  },
+  {
+    "id": 66,
+    "key": "pantry-07",
+    "source": "pantry.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      732,
+      444,
+      938,
+      743
+    ],
+    "cropBox": [
+      732,
+      444,
+      938,
+      743
+    ],
+    "touchesEdge": false,
+    "sha256": "d1ef5d8ebd0c576cc3cb3a97cd42bbc80dbb80f3b5a04b0607c2ec0bc3333161",
+    "bytes": 11230
+  },
+  {
+    "id": 67,
+    "key": "pantry-08",
+    "source": "pantry.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1029,
+      439,
+      1287,
+      748
+    ],
+    "cropBox": [
+      1029,
+      439,
+      1287,
+      748
+    ],
+    "touchesEdge": false,
+    "sha256": "7806dee8c6931c77c932ea18a222d3c925ae9c5b6f9dbc04c1975cc173553284",
+    "bytes": 12938
+  },
+  {
+    "id": 68,
+    "key": "pantry-09",
+    "source": "pantry.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      42,
+      829,
+      321,
+      1092
+    ],
+    "cropBox": [
+      42,
+      829,
+      321,
+      1092
+    ],
+    "touchesEdge": false,
+    "sha256": "4ae1cc5bed1aa5d80cc2723f90eaaa75a9fed2cc9d7a7294c316f9742965c3a4",
+    "bytes": 13816
+  },
+  {
+    "id": 69,
+    "key": "pantry-10",
+    "source": "pantry.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      371,
+      781,
+      657,
+      1106
+    ],
+    "cropBox": [
+      371,
+      781,
+      657,
+      1106
+    ],
+    "touchesEdge": false,
+    "sha256": "5679d4787a7eaccfc77eef802239a53dd64096752ddb5d9be5b343aa3a8573f7",
+    "bytes": 16210
+  },
+  {
+    "id": 70,
+    "key": "pantry-11",
+    "source": "pantry.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      695,
+      805,
+      959,
+      1096
+    ],
+    "cropBox": [
+      695,
+      805,
+      959,
+      1096
+    ],
+    "touchesEdge": false,
+    "sha256": "dcf63bc91dc6563b2b82c3447f5dc6ac8123cca0aa809927e232a62491d9304a",
+    "bytes": 14202
+  },
+  {
+    "id": 71,
+    "key": "pantry-12",
+    "source": "pantry.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1023,
+      803,
+      1310,
+      1107
+    ],
+    "cropBox": [
+      1023,
+      803,
+      1310,
+      1107
+    ],
+    "touchesEdge": false,
+    "sha256": "81159bf0eb293c43fcc23f624935eb1a05ef5f272825edf9a173020eb1d8899c",
+    "bytes": 19418
+  },
+  {
+    "id": 12,
+    "key": "playroom-01",
+    "source": "playroom.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      41,
+      68,
+      302,
+      344
+    ],
+    "cropBox": [
+      41,
+      68,
+      302,
+      344
+    ],
+    "touchesEdge": false,
+    "sha256": "273c6f22c5f222d1f96de4a82b2cf1008cd383c1aa31194840d61c30fd7cb13e",
+    "bytes": 14064
+  },
+  {
+    "id": 13,
+    "key": "playroom-02",
+    "source": "playroom.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      370,
+      87,
+      650,
+      322
+    ],
+    "cropBox": [
+      370,
+      87,
+      650,
+      322
+    ],
+    "touchesEdge": false,
+    "sha256": "491328ff10ea6f30e705ab82facc8165377f691a0c4a92fd4d6a44a560f1da5d",
+    "bytes": 13990
+  },
+  {
+    "id": 14,
+    "key": "playroom-03",
+    "source": "playroom.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      698,
+      58,
+      960,
+      353
+    ],
+    "cropBox": [
+      698,
+      58,
+      960,
+      353
+    ],
+    "touchesEdge": false,
+    "sha256": "42e5f8907526d70e991063d055e51a656b7f471ccae2c642af543d315e318471",
+    "bytes": 12160
+  },
+  {
+    "id": 15,
+    "key": "playroom-04",
+    "source": "playroom.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1030,
+      48,
+      1299,
+      373
+    ],
+    "cropBox": [
+      1030,
+      48,
+      1299,
+      373
+    ],
+    "touchesEdge": false,
+    "sha256": "9dd3c59191fe49c9edd4176ec24f507f84a4b16c755b2fa5a381bcda8e7f9d78",
+    "bytes": 15746
+  },
+  {
+    "id": 16,
+    "key": "playroom-05",
+    "source": "playroom.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      35,
+      436,
+      324,
+      742
+    ],
+    "cropBox": [
+      35,
+      436,
+      324,
+      742
+    ],
+    "touchesEdge": false,
+    "sha256": "67df520e52dfe8edd5580c193735a0ee1c28c6c9e13ee5a3e8d62eeed9058886",
+    "bytes": 15096
+  },
+  {
+    "id": 17,
+    "key": "playroom-06",
+    "source": "playroom.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      377,
+      443,
+      624,
+      720
+    ],
+    "cropBox": [
+      377,
+      443,
+      624,
+      720
+    ],
+    "touchesEdge": false,
+    "sha256": "03db1caf868e8015157301dee917ac2c697bdd1a4401508d3ae5e76ad189f1ce",
+    "bytes": 12720
+  },
+  {
+    "id": 18,
+    "key": "playroom-07",
+    "source": "playroom.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      690,
+      430,
+      960,
+      744
+    ],
+    "cropBox": [
+      690,
+      430,
+      960,
+      744
+    ],
+    "touchesEdge": false,
+    "sha256": "88bb72b8cd3514790c44da32f9ae5291fd6fcd384ea31b2de0bd820462c9703b",
+    "bytes": 16518
+  },
+  {
+    "id": 19,
+    "key": "playroom-08",
+    "source": "playroom.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1022,
+      434,
+      1287,
+      745
+    ],
+    "cropBox": [
+      1022,
+      434,
+      1287,
+      745
+    ],
+    "touchesEdge": false,
+    "sha256": "9289536dcc86ee9166c03bbf0093500b0d47a1c491ecf83b702441132e99bc8b",
+    "bytes": 13536
+  },
+  {
+    "id": 20,
+    "key": "playroom-09",
+    "source": "playroom.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      22,
+      800,
+      330,
+      1113
+    ],
+    "cropBox": [
+      22,
+      800,
+      330,
+      1113
+    ],
+    "touchesEdge": false,
+    "sha256": "33109ac1d77fef33c1fffb8242c96f4fd3264c1b9ff82e11287413b583269531",
+    "bytes": 15520
+  },
+  {
+    "id": 21,
+    "key": "playroom-10",
+    "source": "playroom.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      368,
+      808,
+      649,
+      1114
+    ],
+    "cropBox": [
+      368,
+      808,
+      649,
+      1114
+    ],
+    "touchesEdge": false,
+    "sha256": "897ee195721789b6cf171a8761c513fda49b63790ff063af043440ac8ed280b3",
+    "bytes": 17360
+  },
+  {
+    "id": 22,
+    "key": "playroom-11",
+    "source": "playroom.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      688,
+      823,
+      986,
+      1108
+    ],
+    "cropBox": [
+      688,
+      823,
+      986,
+      1108
+    ],
+    "touchesEdge": false,
+    "sha256": "fb8394998a8412a1d1748199e9458df531ec2e74699d9fe0c2ef903a688c9806",
+    "bytes": 15568
+  },
+  {
+    "id": 23,
+    "key": "playroom-12",
+    "source": "playroom.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1029,
+      793,
+      1319,
+      1124
+    ],
+    "cropBox": [
+      1029,
+      793,
+      1319,
+      1124
+    ],
+    "touchesEdge": false,
+    "sha256": "6ec6d24311f72aeea04b31beea584be3b93010b2f93498f74dfe90a43b9580cc",
+    "bytes": 15538
+  },
+  {
+    "id": 48,
+    "key": "roadtrip-01",
+    "source": "roadtrip.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      35,
+      152,
+      324,
+      369
+    ],
+    "cropBox": [
+      35,
+      152,
+      324,
+      369
+    ],
+    "touchesEdge": false,
+    "sha256": "2e1916eb685dfcbf4be97324e21f5fea58910a6343c015ffdf78c3fabb4ca686",
+    "bytes": 13806
+  },
+  {
+    "id": 49,
+    "key": "roadtrip-02",
+    "source": "roadtrip.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      345,
+      104,
+      649,
+      366
+    ],
+    "cropBox": [
+      345,
+      104,
+      649,
+      366
+    ],
+    "touchesEdge": false,
+    "sha256": "bc4839034231623bc94d7598e9603da46391f1cbddce3a070ed700b9097a1059",
+    "bytes": 16048
+  },
+  {
+    "id": 50,
+    "key": "roadtrip-03",
+    "source": "roadtrip.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      683,
+      100,
+      972,
+      375
+    ],
+    "cropBox": [
+      683,
+      100,
+      972,
+      375
+    ],
+    "touchesEdge": false,
+    "sha256": "e2b59f1a55d32601514ea22a310adea69d2aa746ce0ade73c17eb5930a815f53",
+    "bytes": 16798
+  },
+  {
+    "id": 51,
+    "key": "roadtrip-04",
+    "source": "roadtrip.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1016,
+      128,
+      1304,
+      379
+    ],
+    "cropBox": [
+      1016,
+      128,
+      1304,
+      379
+    ],
+    "touchesEdge": false,
+    "sha256": "cf3ea68a8e2be8cb3b483c2d6aad1c1ea548680faece65fe95b5e3ff3f4f990d",
+    "bytes": 17010
+  },
+  {
+    "id": 52,
+    "key": "roadtrip-05",
+    "source": "roadtrip.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      19,
+      512,
+      332,
+      720
+    ],
+    "cropBox": [
+      19,
+      512,
+      332,
+      720
+    ],
+    "touchesEdge": false,
+    "sha256": "15087459b893323f88dec051199176249d277fc435f792b4716c291ae337d60d",
+    "bytes": 13200
+  },
+  {
+    "id": 53,
+    "key": "roadtrip-06",
+    "source": "roadtrip.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      366,
+      436,
+      632,
+      740
+    ],
+    "cropBox": [
+      366,
+      436,
+      632,
+      740
+    ],
+    "touchesEdge": false,
+    "sha256": "fb41cea5bd6d693a4366a9308fade779864874827516fea0a03192562be2257d",
+    "bytes": 15684
+  },
+  {
+    "id": 54,
+    "key": "roadtrip-07",
+    "source": "roadtrip.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      682,
+      455,
+      989,
+      742
+    ],
+    "cropBox": [
+      682,
+      455,
+      989,
+      742
+    ],
+    "touchesEdge": false,
+    "sha256": "af341f921bedf8016c0584d3ab988e1a0e340b3e0c5d698d1895b10b3317f25e",
+    "bytes": 20074
+  },
+  {
+    "id": 55,
+    "key": "roadtrip-08",
+    "source": "roadtrip.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1007,
+      462,
+      1313,
+      742
+    ],
+    "cropBox": [
+      1007,
+      462,
+      1313,
+      742
+    ],
+    "touchesEdge": false,
+    "sha256": "7fbe6eabd845d8fbcf642159f55ddff7609f492a1cb883937429dba3909a26b0",
+    "bytes": 15810
+  },
+  {
+    "id": 56,
+    "key": "roadtrip-09",
+    "source": "roadtrip.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      42,
+      791,
+      292,
+      1107
+    ],
+    "cropBox": [
+      42,
+      791,
+      292,
+      1107
+    ],
+    "touchesEdge": false,
+    "sha256": "5454329f6810c35f08e36c4c7fc3a2fe6df691a15360de958a476f1d8b50f4b2",
+    "bytes": 15422
+  },
+  {
+    "id": 57,
+    "key": "roadtrip-10",
+    "source": "roadtrip.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      345,
+      840,
+      656,
+      1061
+    ],
+    "cropBox": [
+      345,
+      840,
+      656,
+      1061
+    ],
+    "touchesEdge": false,
+    "sha256": "28c7cb8f0a4f559907afcb07331f6a7a56d19771f42c446e349d65087352ebb5",
+    "bytes": 13264
+  },
+  {
+    "id": 58,
+    "key": "roadtrip-11",
+    "source": "roadtrip.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      684,
+      817,
+      986,
+      1090
+    ],
+    "cropBox": [
+      684,
+      817,
+      986,
+      1090
+    ],
+    "touchesEdge": false,
+    "sha256": "52b80267f5be0851697ac63903feaf5731cd8d5c36a8fed83111becdcc9cdb1f",
+    "bytes": 16084
+  },
+  {
+    "id": 59,
+    "key": "roadtrip-12",
+    "source": "roadtrip.png",
+    "sourceSize": [
+      1330,
+      1182
+    ],
+    "cellBox": [
+      1016,
+      788,
+      1294,
+      1107
+    ],
+    "cropBox": [
+      1016,
+      788,
+      1294,
+      1107
+    ],
+    "touchesEdge": false,
+    "sha256": "f2d2456b0c31724630937b9a3e061bb1140ae6c0434defe03cefba9f48b90d3d",
+    "bytes": 17672
+  },
+  {
+    "id": 0,
+    "key": "signal-01",
+    "source": "signal.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      31,
+      39,
+      317,
+      354
+    ],
+    "cropBox": [
+      31,
+      39,
+      317,
+      354
+    ],
+    "touchesEdge": false,
+    "sha256": "a8693fbd5e8d3205f88e2e3ba8c3b3295b0741245ebdf30b30489a3988326b3d",
+    "bytes": 17128
+  },
+  {
+    "id": 1,
+    "key": "signal-02",
+    "source": "signal.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      377,
+      80,
+      634,
+      354
+    ],
+    "cropBox": [
+      377,
+      80,
+      634,
+      354
+    ],
+    "touchesEdge": false,
+    "sha256": "9559bf286b853790c5250c4f123bea2a0d5491dc122a30ea874dd49c34fe87d8",
+    "bytes": 14266
+  },
+  {
+    "id": 2,
+    "key": "signal-03",
+    "source": "signal.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      688,
+      127,
+      962,
+      341
+    ],
+    "cropBox": [
+      688,
+      127,
+      962,
+      341
+    ],
+    "touchesEdge": false,
+    "sha256": "96afcfc4062a6e64d90c8f3d98dd6bc16bf46c5a52602f98b4341ce08d418b32",
+    "bytes": 13110
+  },
+  {
+    "id": 3,
+    "key": "signal-04",
+    "source": "signal.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      1013,
+      100,
+      1299,
+      352
+    ],
+    "cropBox": [
+      1013,
+      100,
+      1299,
+      352
+    ],
+    "touchesEdge": false,
+    "sha256": "24ed87b56afe0f7ba7cf0a4b5a4af98d7183e0388bb5023768149cf14fa24dbd",
+    "bytes": 14222
+  },
+  {
+    "id": 4,
+    "key": "signal-05",
+    "source": "signal.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      48,
+      437,
+      303,
+      752
+    ],
+    "cropBox": [
+      48,
+      437,
+      303,
+      752
+    ],
+    "touchesEdge": false,
+    "sha256": "674c89d99db98aaf1606a43c42f8e54d4f3154e3f557004f37d1ee33d5946017",
+    "bytes": 13932
+  },
+  {
+    "id": 5,
+    "key": "signal-06",
+    "source": "signal.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      371,
+      432,
+      630,
+      745
+    ],
+    "cropBox": [
+      371,
+      432,
+      630,
+      745
+    ],
+    "touchesEdge": false,
+    "sha256": "11b4933b74e1c50e7f4715a4028e993cc50bb87947af90960185f4127fbe3242",
+    "bytes": 17718
+  },
+  {
+    "id": 6,
+    "key": "signal-07",
+    "source": "signal.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      684,
+      434,
+      958,
+      749
+    ],
+    "cropBox": [
+      684,
+      434,
+      958,
+      749
+    ],
+    "touchesEdge": false,
+    "sha256": "ca775bac17d675a634c7e3c534a8ac4d7f833815864bbdd042eba624c4ddae08",
+    "bytes": 17834
+  },
+  {
+    "id": 7,
+    "key": "signal-08",
+    "source": "signal.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      1017,
+      418,
+      1309,
+      750
+    ],
+    "cropBox": [
+      1017,
+      418,
+      1309,
+      750
+    ],
+    "touchesEdge": false,
+    "sha256": "97dea16b56d0a18883f96d57350e6e56590c74dbf16d4acc239fe09f67914609",
+    "bytes": 14914
+  },
+  {
+    "id": 8,
+    "key": "signal-09",
+    "source": "signal.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      16,
+      835,
+      329,
+      1116
+    ],
+    "cropBox": [
+      16,
+      835,
+      329,
+      1116
+    ],
+    "touchesEdge": false,
+    "sha256": "57cff84e62127ed0ddf36ba26052620908773103afe3ceff8b3afbcdfbef6ded",
+    "bytes": 16288
+  },
+  {
+    "id": 9,
+    "key": "signal-10",
+    "source": "signal.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      415,
+      778,
+      610,
+      1132
+    ],
+    "cropBox": [
+      415,
+      778,
+      610,
+      1132
+    ],
+    "touchesEdge": false,
+    "sha256": "9f5ca9884e3b7e0998f21da4884e86b5ed7f18e5afb82edfe425efb9465a86e4",
+    "bytes": 11058
+  },
+  {
+    "id": 10,
+    "key": "signal-11",
+    "source": "signal.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      684,
+      816,
+      950,
+      1134
+    ],
+    "cropBox": [
+      684,
+      816,
+      950,
+      1134
+    ],
+    "touchesEdge": false,
+    "sha256": "8cdf5ec896d339f3a3186f9c55051d10af066534194525e3636096b7f22a56f6",
+    "bytes": 15490
+  },
+  {
+    "id": 11,
+    "key": "signal-12",
+    "source": "signal.png",
+    "sourceSize": [
+      1330,
+      1183
+    ],
+    "cellBox": [
+      1024,
+      839,
+      1305,
+      1108
+    ],
+    "cropBox": [
+      1024,
+      839,
+      1305,
+      1108
+    ],
+    "touchesEdge": false,
+    "sha256": "ff61dc1afe6757470de3b17bbda93986dfea0de6c58b1eeb7fb2461f7861eea8",
+    "bytes": 15376
+  }
+]

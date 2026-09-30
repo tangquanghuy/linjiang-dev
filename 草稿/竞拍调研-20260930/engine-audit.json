@@ -1,0 +1,76 @@
+{
+  "engineVersion": "0.2.0",
+  "scope": "Read-only deterministic diagnostics, not a balancing benchmark",
+  "estimateCounterexample": {
+    "seed": 1,
+    "round": 2,
+    "estimate": 79492,
+    "wholeLotTrueValue": 59519,
+    "kits": [
+      "scope-s",
+      "scope-m"
+    ]
+  },
+  "passCounterexample": {
+    "seed": 1,
+    "firstBid": 10000000,
+    "passAccepted": true,
+    "phase": "hammered",
+    "playerActive": false,
+    "won": true,
+    "hammerPrice": 10000000
+  },
+  "sameRoundBidResponse": {
+    "seed": 1,
+    "low": {
+      "playerBid": 5630,
+      "rivals": [
+        {
+          "name": "新入行的",
+          "bid": 18000,
+          "active": true
+        },
+        {
+          "name": "跑货的",
+          "bid": 18900,
+          "active": true
+        },
+        {
+          "name": "古玩城老板",
+          "bid": 19300,
+          "active": true
+        },
+        {
+          "name": "外来豪客",
+          "bid": 14700,
+          "active": true
+        }
+      ]
+    },
+    "high": {
+      "playerBid": 10000000,
+      "rivals": [
+        {
+          "name": "新入行的",
+          "bid": null,
+          "active": false
+        },
+        {
+          "name": "跑货的",
+          "bid": null,
+          "active": false
+        },
+        {
+          "name": "古玩城老板",
+          "bid": null,
+          "active": false
+        },
+        {
+          "name": "外来豪客",
+          "bid": null,
+          "active": false
+        }
+      ]
+    }
+  }
+}

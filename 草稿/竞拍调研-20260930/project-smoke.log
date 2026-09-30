@@ -1,0 +1,15 @@
+Command: node tools/capture-project.mjs
+Underlying flow: scripts/check-auction.mjs --shots
+Research change: 650ms wait before each screenshot
+Exit code: 1
+
+w1760      箱数 3  键盘 11 次  总账 3 行  溢出 0px  报错 0
+d1280      箱数 3  键盘 14 次  总账 3 行  溢出 0px  报错 0
+t768       箱数 3  键盘 15 次  总账 3 行  溢出 0px  报错 0
+p360       箱数 3  键盘 15 次  总账 3 行  溢出 0px  报错 0
+大厅       标签 4 个  4 列  当前 shrine.html
+
+发现问题：
+ · 大厅标签 4 个，应为 5
+ · 大厅标签栏 4 列，应为 5
+ · 大厅路由到 shrine.html，应为 auction.html

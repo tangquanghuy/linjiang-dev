@@ -453,6 +453,8 @@ const GAMES = [
    title:'直播幸运机',     state:'airp_physical_slot_state_v2', fit:'content', themed:true},
   {id:'fishing', file:'fishing.html', ns:'airp-fishing', ico:'🐟', label:'深海寻宝',
    title:'深海寻宝',       state:'airp_fishing_state_v1', fit:'content', themed:true, landscape:true},
+  {id:'auction', file:'auction.html?v=20260930-auction-open1', ns:'airp-auction', ico:'🔨', label:'临江落槌',
+   title:'临江落槌', state:'airp_auction_state_v3', fit:'viewport', themed:false, landscape:true},
 ];
 const GAME_STATE_KEYS = GAMES.map(g => g.state).filter(Boolean);
 const MILESTONES = [
@@ -646,7 +648,7 @@ function buildThemes() {
     b.setAttribute('aria-pressed', String(t === theme));
     b.addEventListener('click', () => {
       applyTheme(t);
-      if (!current.themed) toast('每日一签使用固定夜景主题，已保存给其他游戏');
+      if (!current.themed) toast(current.label+'使用固定主题，已保存给其他游戏');
     });
     el.themes.appendChild(b);
   }
@@ -686,7 +688,7 @@ function show(game) {
     if (t) { t.setAttribute('aria-selected', String(g === game)); t.tabIndex = g === game ? 0 : -1; }
   }
   el.themes.dataset.inert = String(!game.themed);
-  el.themes.title = game.themed ? '切换主题' : '每日一签为固定夜景主题';
+  el.themes.title = game.themed ? '切换主题' : game.label+'使用固定主题';
 
   el.stage.dataset.fit = game.fit;
   el.frame.style.height = '';

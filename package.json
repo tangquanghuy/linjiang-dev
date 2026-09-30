@@ -32,6 +32,13 @@
     "auction": "node scripts/check-auction.mjs",
     "auction:shots": "node scripts/check-auction.mjs --shots",
     "auction:themes": "node scripts/shot-auction-themes.mjs",
+    "auction:release": "node scripts/check-auction-release.mjs",
+    "auction:recommendation": "node scripts/check-auction-recommendation.mjs",
+    "auction:feel": "node scripts/check-auction-feel.mjs",
+    "auction:music": "node scripts/check-auction-music.mjs",
+    "auction:engine": "node scripts/check-auction-engine.mjs",
+    "auction:npc": "node scripts/check-auction-npc.mjs",
+    "auction:settlement": "node scripts/check-auction-settlement.mjs",
     "auction:sim": "node scripts/sim-auction.mjs",
     "auction:dist": "node scripts/sim-auction-dist.mjs",
     "auction:trace": "node scripts/sim-auction-trace.mjs",
@@ -99,7 +106,13 @@
     "tavern:blackout": "node scripts/check-status-blackout.mjs",
     "tavern:blackout:shots": "node scripts/check-status-blackout.mjs --shots",
     "development:check": "node scripts/check-development-progress.mjs",
-    "overlay:assets": "node scripts/check-overlay-resources.mjs"
+    "overlay:assets": "node scripts/check-overlay-resources.mjs",
+    "auction:instruments": "node scripts/check-auction-instruments.mjs",
+    "auction:purchases": "node scripts/check-auction-purchases.mjs",
+    "auction:admission": "node scripts/check-auction-admission.mjs",
+    "auction:layout": "node scripts/check-auction-layout.mjs",
+    "auction:roundflow": "node scripts/check-auction-roundflow.mjs",
+    "auction:landscape": "node scripts/check-auction-landscape.mjs"
   },
   "devDependencies": {
     "ejs": "3.1.10",

@@ -1,41 +1,13 @@
-/* 单局逐回合追踪：看密封出价的走势、情报卡节奏、各人上限。
- *   node scripts/sim-auction-trace.mjs [seed]
- */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-new Function(readFileSync(join(ROOT, 'arcade', 'auction-engine.js'), 'utf8'))();
-const Engine = globalThis.AIRPAuctionEngine;
-
-const seed = Number(process.argv[2] || 20260830);
-const session = Engine.createSession({
-  seed, budget: 400000, lots: 1, rivalCount: 4,
-  kits: ['scope-s', 'uv-lamp', 'regular'],
-});
-let step = session.beginLot();
-const truth = session._truth();
-const n = (v) => Math.round(v).toLocaleString('en-US');
-
-console.log(`主题 ${truth.lot.theme}  件数 ${truth.lot.items.length}  赝品 ${truth.lot.fakeCount}`);
-console.log(`先验 ${n(truth.lot.prior)}  真值 ${n(truth.lot.trueValue)}  起拍 ${n(truth.lot.prior * 0.12)}`);
-console.log('装备位', session.slotUsed, '/', Engine.INSTRUMENT_SLOTS);
-console.log('竞拍人上限:', truth.rivals.map((r) => `${r.name} ${n(r.cap)}`).join(' | '), '\n');
-
-let view = step.view;
-for (let guard = 0; guard < 12 && view.phase === 'bidding'; guard++) {
-  console.log(`— 第 ${view.round} 回合  当前估价 ${n(view.estimate)}  明面最高 ${n(view.high)}  推荐 ${n(view.suggest)}`);
-  for (const c of (step.cards || [])) console.log(`   [${c.source}] ${c.title}：${c.text}`);
-  /* 机器人策略：出到「当前估价 + 未探部分按先验补足」的八成 */
-  const target = Math.max(view.floorPrice, Math.round(view.high * 1.05), Math.round(view.estimate * 0.9));
-  const amount = target <= view.budgetLeft / (1 + view.commissionRate) ? target : null;
-  step = session.bid(amount);
-  for (const e of step.events) if (e.text) console.log('     ', e.text);
-  view = step.view;
+﻿// Private developer trace. Uses export() for diagnostics; never loaded by the player UI.
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const ctx=vm.createContext({console,Date,Math});for(const f of ['auction-data.js','auction-npc.js','auction-engine.js'])vm.runInContext(readFileSync(new URL('../arcade/'+f,import.meta.url),'utf8'),ctx);
+const E=ctx.AIRPAuctionEngine,D=ctx.AuctionData,seed=Number(process.argv[2]||20260930),game=E.createSession({seed,budget:10000,venue:'dock',host:seed%11});
+for(let lot=1;lot<=1;lot++){
+ game.beginLot();console.log(JSON.stringify({lot,opponents:game.view().opponents}));
+ while(game.view().phase==='bidding'){
+  const v=game.view(),bid=v.active[0]?Math.min(v.bank,Math.max(1,Math.floor(v.estimate*.95))):null;game.bid(bid);
+  console.log(JSON.stringify({lot,round:v.round,bids:game.view().history.at(-1).bids,npcs:game.export().bots.map(b=>({host:D.hosts[b.host].name,type:b.type,decision:b.lot.lastDecision}))}));
+ }
+ console.log(JSON.stringify({lot,result:game.view().result,settlement:game.closeLot(game.view().result.won?'sell':'none')}));
 }
-const out = session.settle();
-console.log('\n各人出价轨迹:');
-for (const r of view.rivals) console.log(`  ${r.name.padEnd(6)}`, r.bids.map((b) => (b == null ? '–' : n(b))).join('  '));
-console.log(`  ${'你'.padEnd(6)}`, view.playerBids.map((b) => (b == null ? '–' : n(b))).join('  '));
-console.log('\n结算:', JSON.stringify(out.entry, null, 1));

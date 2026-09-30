@@ -1,7 +1,7 @@
 /* Arcade overlay.
    ------------------------------------------------------------------
-   The four games are self-contained HTML pages (scratch / slots / fishing /
-   shrine) hosted under arcade/.  They cannot be inlined: fishing and slots
+   The five games are self-contained HTML pages (scratch / slots / fishing /
+   shrine / auction) hosted under arcade/.  They cannot be inlined: fishing and slots
    own their own canvas, and a CSS transform on an ancestor breaks pointer
    coordinates the same way it does for the city map.
 
@@ -18,7 +18,7 @@ import { acquireOverlayHost } from './overlay-host.js';
 
 export function arcadeSrc() {
   /* 基准是 HUD 自己的来源，不是 document.baseURI（见 src/asset.js 的 hudBase）。 */
-  return hudPage('arcade/index.html');
+  return hudPage('arcade/index.html?v=20260930-auction-open1');
 }
 
 let activeArcadeLayer = null;
